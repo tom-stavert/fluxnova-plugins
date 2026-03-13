@@ -460,6 +460,7 @@ public record TaskQueryDto(
         if (Boolean.TRUE.equals(excludeSubtasks)) {
             query.excludeSubtasks();
         }
+        query.initializeFormKeys();
         return query;
     }
 }

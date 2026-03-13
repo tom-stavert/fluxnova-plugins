@@ -67,6 +67,7 @@ class TaskQueryMcpToolsTest {
             List<TaskResultDto> result = tools.queryTasks(emptyDto(), null);
 
             assertTrue(result.isEmpty());
+            verify(query).initializeFormKeys();
             verify(query).list();
             verify(query, never()).taskId(any());
             verify(query, never()).taskAssignee(any());
