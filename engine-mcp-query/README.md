@@ -9,6 +9,22 @@ tools, allowing LLM-based agents to inspect and monitor running workflows withou
 `engine-mcp-query` interacts directly with the Fluxnova process engine Query API to provide safe, read-only access to
 runtime data.
 
+## Architecture
+
+### Request / Response Flow
+
+1. **MCP Client** (an LLM agent) discovers available tools via the MCP `tools/list` endpoint.
+   The set of tools exposed is controlled by configuration (see [Configuration](#configuration)):
+   - **Service-level toggles** — e.g. `fluxnova.mcp.query.tools.history.enabled=false` disables all history tools.
+   - **Per-tool exclusion** — e.g. `fluxnova.mcp.query.tools.exclude=querySchemaLog` removes individual tools.
+   - **Result limit** — `fluxnova.mcp.query.max-results` caps the number of results any single tool call can return (default 200).
+
+2. **Tool call** — the client sends a JSON-RPC `tools/call` request with the tool name and a JSON object containing filter criteria. The MCP server deserializes the criteria into a **Query DTO** (`TaskQueryDto`, `ProcessInstanceQueryDto`, etc.).
+
+3. **Query execution** — the tool class calls `queryDto.toQuery(service)` which builds a native engine query, applying only the non-null filters from the DTO. The query is executed against the process engine database.
+
+4. **Response** — engine entities are mapped to lightweight **Result DTO** records (`TaskResultDto`, `ProcessInstanceResultDto`, etc.) and serialized to JSON. The MCP server wraps the JSON in a standard MCP text content block and returns it to the client.
+
 ### Available Tools
 
 The extension ships tool components covering twelve engine services:
@@ -16,7 +32,7 @@ The extension ships tool components covering twelve engine services:
 #### RuntimeService (`RuntimeQueryMcpTools`)
 
 | Tool                      | Description                                                                                                 |
-|---------------------------|-------------------------------------------------------------------------------------------------------------|
+| ------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | `queryProcessInstances`   | Find active or suspended process instances by definition, business key, tenant, incident status, and more.  |
 | `queryExecutions`         | Inspect execution paths within process instances, including those waiting for signals or messages.          |
 | `queryIncidents`          | Diagnose process execution failures such as failed jobs or failed external tasks.                           |
@@ -26,45 +42,45 @@ The extension ships tool components covering twelve engine services:
 #### RepositoryService (`RepositoryQueryMcpTools`)
 
 | Tool                      | Description                                                                                |
-|---------------------------|--------------------------------------------------------------------------------------------|
+| ------------------------- | ------------------------------------------------------------------------------------------ |
 | `queryProcessDefinitions` | Discover available workflow templates, find specific versions, or check deployment status. |
 | `queryDeployments`        | List deployments by name, source, tenant, or date range.                                   |
 
 #### TaskService (`TaskQueryMcpTools`)
 
 | Tool         | Description                                                                                                     |
-|--------------|-----------------------------------------------------------------------------------------------------------------|
+| ------------ | --------------------------------------------------------------------------------------------------------------- |
 | `queryTasks` | Find user tasks by assignee, candidate group, process context, priority, due dates, delegation state, and more. |
 
 #### ExternalTaskService (`ExternalTaskQueryMcpTools`)
 
 | Tool                 | Description                                                                                                        |
-|----------------------|--------------------------------------------------------------------------------------------------------------------|
+| -------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | `queryExternalTasks` | Find external tasks by topic, worker, process instance, activity, priority, lock status, retry status, and tenant. |
 
 #### AuthorizationService (`AuthorizationQueryMcpTools`)
 
 | Tool                  | Description                                                                         |
-|-----------------------|-------------------------------------------------------------------------------------|
+| --------------------- | ----------------------------------------------------------------------------------- |
 | `queryAuthorizations` | Find authorization entries by id, type, user, group, resource type, or resource id. |
 
 #### FilterService (`FilterQueryMcpTools`)
 
 | Tool           | Description                                                                 |
-|----------------|-----------------------------------------------------------------------------|
+| -------------- | --------------------------------------------------------------------------- |
 | `queryFilters` | Find saved task filters by id, resource type, name, name pattern, or owner. |
 
 #### CaseService (`CaseQueryMcpTools`)
 
 | Tool                  | Description                                                                                                                                   |
-|-----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | `queryCaseInstances`  | Find CMMN case instances by id, business key, case definition, lifecycle state (active, completed, terminated), super/sub linkage, or tenant. |
 | `queryCaseExecutions` | Find CMMN case executions (stages, milestones, tasks) within case instances by id, activity, case definition, or lifecycle state.             |
 
 #### IdentityService (`IdentityQueryMcpTools`)
 
 | Tool           | Description                                                                                                     |
-|----------------|-----------------------------------------------------------------------------------------------------------------|
+| -------------- | --------------------------------------------------------------------------------------------------------------- |
 | `queryUsers`   | Find users by id, first/last name, email, group membership, or tenant membership. Passwords are never returned. |
 | `queryGroups`  | Find groups by id, name, type, member user, or tenant.                                                          |
 | `queryTenants` | Find tenants by id, name, or by the users and groups that are members of them.                                  |
@@ -72,7 +88,7 @@ The extension ships tool components covering twelve engine services:
 #### ManagementService (`ManagementQueryMcpTools`)
 
 | Tool                  | Description                                                                                                       |
-|-----------------------|-------------------------------------------------------------------------------------------------------------------|
+| --------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | `queryJobs`           | Find async jobs by id, definition, process, activity, retry status, due date, priority, exception, and tenant.    |
 | `queryJobDefinitions` | Find job definitions by id, activity, process definition, job type, configuration, override priority, and tenant. |
 | `queryBatches`        | Find batch operations (e.g. instance migration, deletion, set-retries) by id, type, activity state, and tenant.   |
@@ -81,7 +97,7 @@ The extension ships tool components covering twelve engine services:
 #### RepositoryService — XML models (`XMLMcpTools`)
 
 | Tool                              | Description                                                                             |
-|-----------------------------------|-----------------------------------------------------------------------------------------|
+| --------------------------------- | --------------------------------------------------------------------------------------- |
 | `getProcessModelXml`              | Return the raw BPMN 2.0 XML source of a deployed process definition.                    |
 | `getDecisionModelXml`             | Return the raw DMN 1.1 XML source of a deployed decision definition.                    |
 | `getDecisionRequirementsModelXml` | Return the raw DMN 1.1 XML source of a deployed decision requirements definition (DRG). |
@@ -93,7 +109,7 @@ than a list of result DTOs.
 #### HistoryService (`HistoryQueryMcpTools`)
 
 | Tool                                 | Description                                                                                                          |
-|--------------------------------------|----------------------------------------------------------------------------------------------------------------------|
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
 | `queryHistoricProcessInstances`      | Find completed or running process instances with historical context: start/end times, state, business key, and more. |
 | `queryHistoricActivityInstances`     | Find historical activity instance records including start/end times, type, assignee, completion, and cancellation.   |
 | `queryHistoricTaskInstances`         | Find historical task records including assignee, owner, priority, lifecycle dates, and candidate group details.      |
@@ -146,13 +162,13 @@ Fluxnova application context.
    `ManagementQueryMcpTools`, `HistoryQueryMcpTools`, `XMLMcpTools`) inject their respective engine service and expose
    `@McpTool`-annotated methods.
 3. Each tool method:
-    - Accepts a query DTO (e.g. `ProcessInstanceQueryDto`) describing the filter criteria, and an optional `maxResults`
-      parameter.
-    - Builds a native engine query (`RuntimeService.createProcessInstanceQuery()`, etc.) by applying only the non-null
-      filters from the DTO.
-    - Applies a result limit: `maxResults` if provided (capped at the configured maximum), otherwise the configured
-      default.
-    - Maps the engine entity results into lightweight result DTOs and serializes them to JSON.
+   - Accepts a query DTO (e.g. `ProcessInstanceQueryDto`) describing the filter criteria, and an optional `maxResults`
+     parameter.
+   - Builds a native engine query (`RuntimeService.createProcessInstanceQuery()`, etc.) by applying only the non-null
+     filters from the DTO.
+   - Applies a result limit: `maxResults` if provided (capped at the configured maximum), otherwise the configured
+     default.
+   - Maps the engine entity results into lightweight result DTOs and serializes them to JSON.
 
 ## Configuration
 
@@ -161,7 +177,7 @@ The extension supports the following application properties:
 ### General
 
 | Property                         | Default | Description                                                                                                                                                                  |
-|----------------------------------|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| -------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `fluxnova.mcp.query.max-results` | `200`   | Maximum number of results any tool call can return. Individual tool calls may request fewer via the `maxResults` tool parameter, but this value acts as an absolute ceiling. |
 
 ### Service-Level Toggles
@@ -169,7 +185,7 @@ The extension supports the following application properties:
 Each engine service's tools can be enabled or disabled as a group. All services are enabled by default.
 
 | Property                                         | Default | Description                       |
-|--------------------------------------------------|---------|-----------------------------------|
+| ------------------------------------------------ | ------- | --------------------------------- |
 | `fluxnova.mcp.query.tools.repository.enabled`    | `true`  | Enable RepositoryService tools    |
 | `fluxnova.mcp.query.tools.runtime.enabled`       | `true`  | Enable RuntimeService tools       |
 | `fluxnova.mcp.query.tools.task.enabled`          | `true`  | Enable TaskService tools          |
@@ -187,7 +203,7 @@ Each engine service's tools can be enabled or disabled as a group. All services 
 Individual tools can be excluded by name, even when their parent service is enabled.
 
 | Property                           | Default   | Description                                   |
-|------------------------------------|-----------|-----------------------------------------------|
+| ---------------------------------- | --------- | --------------------------------------------- |
 | `fluxnova.mcp.query.tools.exclude` | _(empty)_ | Comma-separated list of tool names to exclude |
 
 ### Examples
@@ -260,9 +276,7 @@ Pass `maxResults` as a separate tool parameter (e.g. `10`) to limit how many res
 
 ```json
 {
-  "processInstanceIdIn": [
-    "abc-123"
-  ],
+  "processInstanceIdIn": ["abc-123"],
   "variableName": "orderTotal"
 }
 ```
@@ -272,10 +286,7 @@ Pass `maxResults` as a separate tool parameter (e.g. `10`) to limit how many res
 ```json
 {
   "eventType": "signal",
-  "tenantIdIn": [
-    "tenant-a",
-    "tenant-b"
-  ]
+  "tenantIdIn": ["tenant-a", "tenant-b"]
 }
 ```
 
