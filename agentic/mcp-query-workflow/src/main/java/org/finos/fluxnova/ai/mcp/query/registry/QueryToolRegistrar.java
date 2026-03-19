@@ -213,22 +213,22 @@ public class QueryToolRegistrar {
         registerStringTool("getProcessModelXml", tools::getProcessModelXml,
                 "Retrieve the BPMN 2.0 XML source of a deployed process definition. Returns the raw BPMN XML as a string, which describes the process flow, tasks, gateways, events, and other elements of the workflow. Use this tool to inspect or analyse the structure of a specific process definition.",
                 "processDefinitionId",
-                "The ID of the process definition to retrieve the BPMN XML for. Use the queryProcessDefinitions tool to find the ID of the desired process definition.");
+                "The ID of the process definition to retrieve the BPMN XML for. Obtain this from available process definition discovery/query tools or existing process metadata.");
 
         registerStringTool("getDecisionModelXml", tools::getDecisionModelXml,
                 "Retrieve the DMN 1.1 XML source of a deployed decision definition. Returns the raw DMN XML as a string, which describes the decision table or literal expression logic used to evaluate business decisions. Use this tool to inspect or analyse the logic of a specific decision definition.",
                 "decisionDefinitionId",
-                "The ID of the decision definition to retrieve the DMN XML for. Use the queryDecisionDefinitions tool to find the ID of the desired decision definition.");
+                "The ID of the decision definition to retrieve the DMN XML for. Obtain this from available decision definition discovery/query tools or existing decision metadata.");
 
         registerStringTool("getDecisionRequirementsModelXml", tools::getDecisionRequirementsModelXml,
                 "Retrieve the DMN 1.1 XML source of a deployed decision requirements definition. Returns the raw DMN XML as a string, which describes the decision requirements graph (DRG) containing a set of related decisions and their dependencies. Use this tool to inspect the full decision requirements structure for a DMN resource.",
                 "decisionRequirementsDefinitionId",
-                "The ID of the decision requirements definition to retrieve the DMN XML for.");
+                "The ID of the decision requirements definition to retrieve the DMN XML for. Obtain this from available decision requirements discovery/query tools or existing decision metadata.");
 
         registerStringTool("getCaseModelXml", tools::getCaseModelXml,
                 "Retrieve the CMMN 1.0 XML source of a deployed case definition. Returns the raw CMMN XML as a string, which describes the case plan model, stages, tasks, milestones, and sentries of the case. Use this tool to inspect or analyse the structure of a specific case definition.",
                 "caseDefinitionId",
-                "The ID of the case definition to retrieve the CMMN XML for.");
+                "The ID of the case definition to retrieve the CMMN XML for. Obtain this from available case definition discovery/query tools or existing case metadata.");
     }
 
     // --- Internal registration methods ---
