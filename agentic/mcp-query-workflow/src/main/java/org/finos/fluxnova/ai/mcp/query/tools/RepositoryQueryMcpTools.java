@@ -32,8 +32,9 @@ public class RepositoryQueryMcpTools {
             Integer maxResults) {
         LOG.info("Querying process definitions with criteria: {}", queryDto);
 
+        var query = queryDto != null ? queryDto.toQuery(repositoryService) : repositoryService.createProcessDefinitionQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<ProcessDefinitionResultDto> resultDtos = queryDto.toQuery(repositoryService).list().stream()
+        List<ProcessDefinitionResultDto> resultDtos = query.list().stream()
                 .limit(limit)
                 .map(ProcessDefinitionResultDto::fromProcessDefinition)
                 .toList();
@@ -48,8 +49,9 @@ public class RepositoryQueryMcpTools {
             Integer maxResults) {
         LOG.info("Querying deployments with criteria: {}", queryDto);
 
+        var query = queryDto != null ? queryDto.toQuery(repositoryService) : repositoryService.createDeploymentQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<DeploymentResultDto> resultDtos = queryDto.toQuery(repositoryService).list().stream()
+        List<DeploymentResultDto> resultDtos = query.list().stream()
                 .limit(limit)
                 .map(DeploymentResultDto::fromDeployment)
                 .toList();
@@ -64,8 +66,9 @@ public class RepositoryQueryMcpTools {
             Integer maxResults) {
         LOG.info("Querying case definitions with criteria: {}", queryDto);
 
+        var query = queryDto != null ? queryDto.toQuery(repositoryService) : repositoryService.createCaseDefinitionQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<CaseDefinitionResultDto> resultDtos = queryDto.toQuery(repositoryService).list().stream()
+        List<CaseDefinitionResultDto> resultDtos = query.list().stream()
                 .limit(limit)
                 .map(CaseDefinitionResultDto::fromCaseDefinition)
                 .toList();
@@ -80,8 +83,9 @@ public class RepositoryQueryMcpTools {
             Integer maxResults) {
         LOG.info("Querying decision definitions with criteria: {}", queryDto);
 
+        var query = queryDto != null ? queryDto.toQuery(repositoryService) : repositoryService.createDecisionDefinitionQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<DecisionDefinitionResultDto> resultDtos = queryDto.toQuery(repositoryService).list().stream()
+        List<DecisionDefinitionResultDto> resultDtos = query.list().stream()
                 .limit(limit)
                 .map(DecisionDefinitionResultDto::fromDecisionDefinition)
                 .toList();
@@ -96,8 +100,9 @@ public class RepositoryQueryMcpTools {
             Integer maxResults) {
         LOG.info("Querying decision requirements definitions with criteria: {}", queryDto);
 
+        var query = queryDto != null ? queryDto.toQuery(repositoryService) : repositoryService.createDecisionRequirementsDefinitionQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<DecisionRequirementsDefinitionResultDto> resultDtos = queryDto.toQuery(repositoryService).list().stream()
+        List<DecisionRequirementsDefinitionResultDto> resultDtos = query.list().stream()
                 .limit(limit)
                 .map(DecisionRequirementsDefinitionResultDto::fromDecisionRequirementsDefinition)
                 .toList();

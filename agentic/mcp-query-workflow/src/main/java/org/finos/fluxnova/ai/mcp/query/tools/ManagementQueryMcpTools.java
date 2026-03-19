@@ -39,8 +39,9 @@ public class ManagementQueryMcpTools {
             Integer maxResults) {
         LOG.info("Querying jobs with criteria: {}", queryDto);
 
+        var query = queryDto != null ? queryDto.toQuery(managementService) : managementService.createJobQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<JobResultDto> resultDtos = queryDto.toQuery(managementService).list().stream()
+        List<JobResultDto> resultDtos = query.list().stream()
                 .limit(limit)
                 .map(JobResultDto::fromJob)
                 .toList();
@@ -55,8 +56,9 @@ public class ManagementQueryMcpTools {
             Integer maxResults) {
         LOG.info("Querying job definitions with criteria: {}", queryDto);
 
+        var query = queryDto != null ? queryDto.toQuery(managementService) : managementService.createJobDefinitionQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<JobDefinitionResultDto> resultDtos = queryDto.toQuery(managementService).list().stream()
+        List<JobDefinitionResultDto> resultDtos = query.list().stream()
                 .limit(limit)
                 .map(JobDefinitionResultDto::fromJobDefinition)
                 .toList();
@@ -71,8 +73,9 @@ public class ManagementQueryMcpTools {
             Integer maxResults) {
         LOG.info("Querying batches with criteria: {}", queryDto);
 
+        var query = queryDto != null ? queryDto.toQuery(managementService) : managementService.createBatchQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<BatchResultDto> resultDtos = queryDto.toQuery(managementService).list().stream()
+        List<BatchResultDto> resultDtos = query.list().stream()
                 .limit(limit)
                 .map(BatchResultDto::fromBatch)
                 .toList();
@@ -87,8 +90,9 @@ public class ManagementQueryMcpTools {
             Integer maxResults) {
         LOG.info("Querying schema log with criteria: {}", queryDto);
 
+        var query = queryDto != null ? queryDto.toQuery(managementService) : managementService.createSchemaLogQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<SchemaLogEntryResultDto> resultDtos = queryDto.toQuery(managementService).list().stream()
+        List<SchemaLogEntryResultDto> resultDtos = query.list().stream()
                 .limit(limit)
                 .map(SchemaLogEntryResultDto::fromSchemaLogEntry)
                 .toList();

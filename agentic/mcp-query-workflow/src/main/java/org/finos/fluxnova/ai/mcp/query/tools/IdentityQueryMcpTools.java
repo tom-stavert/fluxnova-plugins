@@ -37,8 +37,9 @@ public class IdentityQueryMcpTools {
             Integer maxResults) {
         LOG.info("Querying users with criteria: {}", queryDto);
 
+        var query = queryDto != null ? queryDto.toQuery(identityService) : identityService.createUserQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<UserResultDto> resultDtos = queryDto.toQuery(identityService).list().stream()
+        List<UserResultDto> resultDtos = query.list().stream()
                 .limit(limit)
                 .map(UserResultDto::fromUser)
                 .toList();
@@ -53,8 +54,9 @@ public class IdentityQueryMcpTools {
             Integer maxResults) {
         LOG.info("Querying groups with criteria: {}", queryDto);
 
+        var query = queryDto != null ? queryDto.toQuery(identityService) : identityService.createGroupQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<GroupResultDto> resultDtos = queryDto.toQuery(identityService).list().stream()
+        List<GroupResultDto> resultDtos = query.list().stream()
                 .limit(limit)
                 .map(GroupResultDto::fromGroup)
                 .toList();
@@ -69,8 +71,9 @@ public class IdentityQueryMcpTools {
             Integer maxResults) {
         LOG.info("Querying tenants with criteria: {}", queryDto);
 
+        var query = queryDto != null ? queryDto.toQuery(identityService) : identityService.createTenantQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<TenantResultDto> resultDtos = queryDto.toQuery(identityService).list().stream()
+        List<TenantResultDto> resultDtos = query.list().stream()
                 .limit(limit)
                 .map(TenantResultDto::fromTenant)
                 .toList();

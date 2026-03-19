@@ -33,8 +33,9 @@ public class AuthorizationQueryMcpTools {
             Integer maxResults) {
         LOG.info("Querying authorizations with criteria: {}", queryDto);
 
+        var query = queryDto != null ? queryDto.toQuery(authorizationService) : authorizationService.createAuthorizationQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<AuthorizationResultDto> resultDtos = queryDto.toQuery(authorizationService).list().stream()
+        List<AuthorizationResultDto> resultDtos = query.list().stream()
                 .limit(limit)
                 .map(AuthorizationResultDto::fromAuthorization)
                 .toList();

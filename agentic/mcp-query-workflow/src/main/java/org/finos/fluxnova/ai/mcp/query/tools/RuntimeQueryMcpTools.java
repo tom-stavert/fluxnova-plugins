@@ -34,8 +34,9 @@ public class RuntimeQueryMcpTools {
             Integer maxResults) {
         LOG.info("Querying process instances with criteria: {}", queryDto);
 
+        var query = queryDto != null ? queryDto.toQuery(runtimeService) : runtimeService.createProcessInstanceQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<ProcessInstanceResultDto> resultDtos = queryDto.toQuery(runtimeService).list().stream()
+        List<ProcessInstanceResultDto> resultDtos = query.list().stream()
                 .limit(limit)
                 .map(ProcessInstanceResultDto::fromProcessInstance)
                 .toList();
@@ -50,8 +51,9 @@ public class RuntimeQueryMcpTools {
             Integer maxResults) {
         LOG.info("Querying executions with criteria: {}", queryDto);
 
+        var query = queryDto != null ? queryDto.toQuery(runtimeService) : runtimeService.createExecutionQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<ExecutionResultDto> resultDtos = queryDto.toQuery(runtimeService).list().stream()
+        List<ExecutionResultDto> resultDtos = query.list().stream()
                 .limit(limit)
                 .map(ExecutionResultDto::fromExecution)
                 .toList();
@@ -66,8 +68,9 @@ public class RuntimeQueryMcpTools {
             Integer maxResults) {
         LOG.info("Querying incidents with criteria: {}", queryDto);
 
+        var query = queryDto != null ? queryDto.toQuery(runtimeService) : runtimeService.createIncidentQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<IncidentResultDto> resultDtos = queryDto.toQuery(runtimeService).list().stream()
+        List<IncidentResultDto> resultDtos = query.list().stream()
                 .limit(limit)
                 .map(IncidentResultDto::fromIncident)
                 .toList();
@@ -82,8 +85,9 @@ public class RuntimeQueryMcpTools {
             Integer maxResults) {
         LOG.info("Querying event subscriptions with criteria: {}", queryDto);
 
+        var query = queryDto != null ? queryDto.toQuery(runtimeService) : runtimeService.createEventSubscriptionQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<EventSubscriptionResultDto> resultDtos = queryDto.toQuery(runtimeService).list().stream()
+        List<EventSubscriptionResultDto> resultDtos = query.list().stream()
                 .limit(limit)
                 .map(EventSubscriptionResultDto::fromEventSubscription)
                 .toList();
@@ -98,7 +102,7 @@ public class RuntimeQueryMcpTools {
             Integer maxResults) {
         LOG.info("Querying variable instances with criteria: {}", queryDto);
 
-        VariableInstanceQuery query = queryDto.toQuery(runtimeService);
+        VariableInstanceQuery query = queryDto != null ? queryDto.toQuery(runtimeService) : runtimeService.createVariableInstanceQuery();
 
         // Disable binary fetching by default to avoid loading large blobs
         query.disableBinaryFetching();

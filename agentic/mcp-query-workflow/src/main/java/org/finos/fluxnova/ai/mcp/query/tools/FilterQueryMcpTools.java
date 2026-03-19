@@ -33,8 +33,9 @@ public class FilterQueryMcpTools {
             Integer maxResults) {
         LOG.info("Querying filters with criteria: {}", queryDto);
 
+        var query = queryDto != null ? queryDto.toQuery(filterService) : filterService.createFilterQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<FilterResultDto> resultDtos = queryDto.toQuery(filterService).list().stream()
+        List<FilterResultDto> resultDtos = query.list().stream()
                 .limit(limit)
                 .map(FilterResultDto::fromFilter)
                 .toList();
