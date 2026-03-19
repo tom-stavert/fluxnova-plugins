@@ -66,7 +66,7 @@ class HistoryQueryMcpToolsTest {
             when(query.listPage(0, DEFAULT_MAX)).thenReturn(Collections.emptyList());
 
             List<HistoricProcessInstanceResultDto> result =
-                    tools.queryHistoricProcessInstances(empty(HistoricProcessInstanceQueryDto.class));
+                    tools.queryHistoricProcessInstances(empty(HistoricProcessInstanceQueryDto.class), null);
 
             assertTrue(result.isEmpty());
             verify(query).listPage(0, DEFAULT_MAX);
@@ -93,7 +93,7 @@ class HistoryQueryMcpToolsTest {
                     List.of("t1"), true, null
             );
 
-            tools.queryHistoricProcessInstances(dto);
+            tools.queryHistoricProcessInstances(dto, null);
 
             verify(query).processInstanceId("pi-1");
             verify(query).withIncidents();
@@ -129,7 +129,7 @@ class HistoryQueryMcpToolsTest {
                     null, false, null
             );
 
-            tools.queryHistoricProcessInstances(dto);
+            tools.queryHistoricProcessInstances(dto, null);
 
             verify(query, never()).finished();
             verify(query, never()).unfinished();
@@ -156,7 +156,7 @@ class HistoryQueryMcpToolsTest {
             when(query.listPage(0, DEFAULT_MAX)).thenReturn(List.of(hpi));
 
             List<HistoricProcessInstanceResultDto> result =
-                    tools.queryHistoricProcessInstances(empty(HistoricProcessInstanceQueryDto.class));
+                    tools.queryHistoricProcessInstances(empty(HistoricProcessInstanceQueryDto.class), null);
 
             assertEquals(1, result.size());
             HistoricProcessInstanceResultDto r = result.getFirst();
@@ -190,7 +190,7 @@ class HistoryQueryMcpToolsTest {
             when(query.listPage(0, DEFAULT_MAX)).thenReturn(Collections.emptyList());
 
             List<HistoricActivityInstanceResultDto> result =
-                    tools.queryHistoricActivityInstances(empty(HistoricActivityInstanceQueryDto.class));
+                    tools.queryHistoricActivityInstances(empty(HistoricActivityInstanceQueryDto.class), null);
 
             assertTrue(result.isEmpty());
             verify(query).listPage(0, DEFAULT_MAX);
@@ -211,7 +211,7 @@ class HistoryQueryMcpToolsTest {
                     List.of("t1"), true, null
             );
 
-            tools.queryHistoricActivityInstances(dto);
+            tools.queryHistoricActivityInstances(dto, null);
 
             verify(query).activityInstanceId("ai-1");
             verify(query).processInstanceId("pi-1");
@@ -240,7 +240,7 @@ class HistoryQueryMcpToolsTest {
                     null, false, null
             );
 
-            tools.queryHistoricActivityInstances(dto);
+            tools.queryHistoricActivityInstances(dto, null);
 
             verify(query, never()).finished();
             verify(query, never()).unfinished();
@@ -263,7 +263,7 @@ class HistoryQueryMcpToolsTest {
             when(query.listPage(0, DEFAULT_MAX)).thenReturn(List.of(hai));
 
             List<HistoricActivityInstanceResultDto> result =
-                    tools.queryHistoricActivityInstances(empty(HistoricActivityInstanceQueryDto.class));
+                    tools.queryHistoricActivityInstances(empty(HistoricActivityInstanceQueryDto.class), null);
 
             assertEquals(1, result.size());
             HistoricActivityInstanceResultDto r = result.getFirst();
@@ -297,7 +297,7 @@ class HistoryQueryMcpToolsTest {
             when(query.listPage(0, DEFAULT_MAX)).thenReturn(Collections.emptyList());
 
             List<HistoricTaskInstanceResultDto> result =
-                    tools.queryHistoricTaskInstances(empty(HistoricTaskInstanceQueryDto.class));
+                    tools.queryHistoricTaskInstances(empty(HistoricTaskInstanceQueryDto.class), null);
 
             assertTrue(result.isEmpty());
             verify(query).listPage(0, DEFAULT_MAX);
@@ -323,7 +323,7 @@ class HistoryQueryMcpToolsTest {
                     List.of("t1"), true, null
             );
 
-            tools.queryHistoricTaskInstances(dto);
+            tools.queryHistoricTaskInstances(dto, null);
 
             verify(query).taskId("task-1");
             verify(query).processInstanceId("pi-1");
@@ -357,7 +357,7 @@ class HistoryQueryMcpToolsTest {
                     null, false, null
             );
 
-            tools.queryHistoricTaskInstances(dto);
+            tools.queryHistoricTaskInstances(dto, null);
 
             verify(query, never()).taskAssigned();
             verify(query, never()).taskUnassigned();
@@ -382,7 +382,7 @@ class HistoryQueryMcpToolsTest {
             when(query.listPage(0, DEFAULT_MAX)).thenReturn(List.of(hti));
 
             List<HistoricTaskInstanceResultDto> result =
-                    tools.queryHistoricTaskInstances(empty(HistoricTaskInstanceQueryDto.class));
+                    tools.queryHistoricTaskInstances(empty(HistoricTaskInstanceQueryDto.class), null);
 
             assertEquals(1, result.size());
             HistoricTaskInstanceResultDto r = result.getFirst();
@@ -415,7 +415,7 @@ class HistoryQueryMcpToolsTest {
             when(query.listPage(0, DEFAULT_MAX)).thenReturn(Collections.emptyList());
 
             List<HistoricDetailResultDto> result =
-                    tools.queryHistoricDetails(empty(HistoricDetailQueryDto.class));
+                    tools.queryHistoricDetails(empty(HistoricDetailQueryDto.class), null);
 
             assertTrue(result.isEmpty());
             verify(query).listPage(0, DEFAULT_MAX);
@@ -434,7 +434,7 @@ class HistoryQueryMcpToolsTest {
                     "op-1", List.of("pi-1"), List.of("t1"), true, null
             );
 
-            tools.queryHistoricDetails(dto);
+            tools.queryHistoricDetails(dto, null);
 
             verify(query).detailId("detail-1");
             verify(query).processInstanceId("pi-1");
@@ -464,7 +464,7 @@ class HistoryQueryMcpToolsTest {
                     null, null, null, false, null
             );
 
-            tools.queryHistoricDetails(dto);
+            tools.queryHistoricDetails(dto, null);
 
             verify(query, never()).formFields();
             verify(query, never()).variableUpdates();
@@ -484,7 +484,7 @@ class HistoryQueryMcpToolsTest {
             when(query.listPage(0, DEFAULT_MAX)).thenReturn(List.of(hd));
 
             List<HistoricDetailResultDto> result =
-                    tools.queryHistoricDetails(empty(HistoricDetailQueryDto.class));
+                    tools.queryHistoricDetails(empty(HistoricDetailQueryDto.class), null);
 
             assertEquals(1, result.size());
             HistoricDetailResultDto r = result.getFirst();
@@ -516,7 +516,7 @@ class HistoryQueryMcpToolsTest {
             when(query.listPage(0, DEFAULT_MAX)).thenReturn(Collections.emptyList());
 
             List<HistoricVariableInstanceResultDto> result =
-                    tools.queryHistoricVariableInstances(empty(HistoricVariableInstanceQueryDto.class));
+                    tools.queryHistoricVariableInstances(empty(HistoricVariableInstanceQueryDto.class), null);
 
             assertTrue(result.isEmpty());
             verify(query).listPage(0, DEFAULT_MAX);
@@ -536,7 +536,7 @@ class HistoryQueryMcpToolsTest {
                     List.of("t1"), true, null
             );
 
-            tools.queryHistoricVariableInstances(dto);
+            tools.queryHistoricVariableInstances(dto, null);
 
             verify(query).variableId("var-1");
             verify(query).processInstanceId("pi-1");
@@ -571,7 +571,7 @@ class HistoryQueryMcpToolsTest {
                     null, false, null
             );
 
-            tools.queryHistoricVariableInstances(dto);
+            tools.queryHistoricVariableInstances(dto, null);
 
             verify(query, never()).matchVariableNamesIgnoreCase();
             verify(query, never()).matchVariableValuesIgnoreCase();
@@ -592,7 +592,7 @@ class HistoryQueryMcpToolsTest {
             when(query.listPage(0, DEFAULT_MAX)).thenReturn(List.of(hvi));
 
             List<HistoricVariableInstanceResultDto> result =
-                    tools.queryHistoricVariableInstances(empty(HistoricVariableInstanceQueryDto.class));
+                    tools.queryHistoricVariableInstances(empty(HistoricVariableInstanceQueryDto.class), null);
 
             assertEquals(1, result.size());
             HistoricVariableInstanceResultDto r = result.getFirst();
@@ -626,7 +626,7 @@ class HistoryQueryMcpToolsTest {
             when(query.listPage(0, DEFAULT_MAX)).thenReturn(Collections.emptyList());
 
             List<UserOperationLogEntryResultDto> result =
-                    tools.queryUserOperationLog(empty(UserOperationLogQueryDto.class));
+                    tools.queryUserOperationLog(empty(UserOperationLogQueryDto.class), null);
 
             assertTrue(result.isEmpty());
             verify(query).listPage(0, DEFAULT_MAX);
@@ -650,7 +650,7 @@ class HistoryQueryMcpToolsTest {
                     List.of("t1"), true, null
             );
 
-            tools.queryUserOperationLog(dto);
+            tools.queryUserOperationLog(dto, null);
 
             verify(query).entityType("Task");
             verify(query).entityTypeIn("Task", "ProcessInstance");
@@ -683,7 +683,7 @@ class HistoryQueryMcpToolsTest {
                     null, null, null, false, null
             );
 
-            tools.queryUserOperationLog(dto);
+            tools.queryUserOperationLog(dto, null);
 
             verify(query, never()).withoutTenantId();
         }
@@ -702,7 +702,7 @@ class HistoryQueryMcpToolsTest {
             when(query.listPage(0, DEFAULT_MAX)).thenReturn(List.of(entry));
 
             List<UserOperationLogEntryResultDto> result =
-                    tools.queryUserOperationLog(empty(UserOperationLogQueryDto.class));
+                    tools.queryUserOperationLog(empty(UserOperationLogQueryDto.class), null);
 
             assertEquals(1, result.size());
             UserOperationLogEntryResultDto r = result.getFirst();
@@ -736,7 +736,7 @@ class HistoryQueryMcpToolsTest {
             when(query.listPage(0, DEFAULT_MAX)).thenReturn(Collections.emptyList());
 
             List<HistoricIncidentResultDto> result =
-                    tools.queryHistoricIncidents(empty(HistoricIncidentQueryDto.class));
+                    tools.queryHistoricIncidents(empty(HistoricIncidentQueryDto.class), null);
 
             assertTrue(result.isEmpty());
             verify(query).listPage(0, DEFAULT_MAX);
@@ -759,7 +759,7 @@ class HistoryQueryMcpToolsTest {
                     List.of("jdef-1"), true, false, false, null
             );
 
-            tools.queryHistoricIncidents(dto);
+            tools.queryHistoricIncidents(dto, null);
 
             verify(query).incidentId("inc-1");
             verify(query).incidentType("failedJob");
@@ -793,7 +793,7 @@ class HistoryQueryMcpToolsTest {
                     false, false, null, null
             );
 
-            tools.queryHistoricIncidents(dto);
+            tools.queryHistoricIncidents(dto, null);
 
             verify(query, never()).open();
             verify(query, never()).resolved();
@@ -815,7 +815,7 @@ class HistoryQueryMcpToolsTest {
             when(query.listPage(0, DEFAULT_MAX)).thenReturn(List.of(hi));
 
             List<HistoricIncidentResultDto> result =
-                    tools.queryHistoricIncidents(empty(HistoricIncidentQueryDto.class));
+                    tools.queryHistoricIncidents(empty(HistoricIncidentQueryDto.class), null);
 
             assertEquals(1, result.size());
             HistoricIncidentResultDto r = result.getFirst();
@@ -848,7 +848,7 @@ class HistoryQueryMcpToolsTest {
             when(query.listPage(0, DEFAULT_MAX)).thenReturn(Collections.emptyList());
 
             List<HistoricIdentityLinkLogResultDto> result =
-                    tools.queryHistoricIdentityLinkLog(empty(HistoricIdentityLinkLogQueryDto.class));
+                    tools.queryHistoricIdentityLinkLog(empty(HistoricIdentityLinkLogQueryDto.class), null);
 
             assertTrue(result.isEmpty());
             verify(query).listPage(0, DEFAULT_MAX);
@@ -868,7 +868,7 @@ class HistoryQueryMcpToolsTest {
                     List.of("t1"), true, null
             );
 
-            tools.queryHistoricIdentityLinkLog(dto);
+            tools.queryHistoricIdentityLinkLog(dto, null);
 
             verify(query).dateBefore(before);
             verify(query).dateAfter(after);
@@ -894,7 +894,7 @@ class HistoryQueryMcpToolsTest {
                     null, false, null
             );
 
-            tools.queryHistoricIdentityLinkLog(dto);
+            tools.queryHistoricIdentityLinkLog(dto, null);
 
             verify(query, never()).withoutTenantId();
         }
@@ -912,7 +912,7 @@ class HistoryQueryMcpToolsTest {
             when(query.listPage(0, DEFAULT_MAX)).thenReturn(List.of(hill));
 
             List<HistoricIdentityLinkLogResultDto> result =
-                    tools.queryHistoricIdentityLinkLog(empty(HistoricIdentityLinkLogQueryDto.class));
+                    tools.queryHistoricIdentityLinkLog(empty(HistoricIdentityLinkLogQueryDto.class), null);
 
             assertEquals(1, result.size());
             HistoricIdentityLinkLogResultDto r = result.getFirst();
@@ -945,7 +945,7 @@ class HistoryQueryMcpToolsTest {
             when(query.listPage(0, DEFAULT_MAX)).thenReturn(Collections.emptyList());
 
             List<HistoricCaseInstanceResultDto> result =
-                    tools.queryHistoricCaseInstances(empty(HistoricCaseInstanceQueryDto.class));
+                    tools.queryHistoricCaseInstances(empty(HistoricCaseInstanceQueryDto.class), null);
 
             assertTrue(result.isEmpty());
             verify(query).listPage(0, DEFAULT_MAX);
@@ -969,7 +969,7 @@ class HistoryQueryMcpToolsTest {
                     true, false, false, false, false, null
             );
 
-            tools.queryHistoricCaseInstances(dto);
+            tools.queryHistoricCaseInstances(dto, null);
 
             verify(query).caseInstanceId("ci-1");
             verify(query).caseDefinitionId("cd-1");
@@ -1000,7 +1000,7 @@ class HistoryQueryMcpToolsTest {
                     false, null, null, null, null, null
             );
 
-            tools.queryHistoricCaseInstances(dto);
+            tools.queryHistoricCaseInstances(dto, null);
 
             verify(query, never()).active();
             verify(query, never()).completed();
@@ -1023,7 +1023,7 @@ class HistoryQueryMcpToolsTest {
             when(query.listPage(0, DEFAULT_MAX)).thenReturn(List.of(hci));
 
             List<HistoricCaseInstanceResultDto> result =
-                    tools.queryHistoricCaseInstances(empty(HistoricCaseInstanceQueryDto.class));
+                    tools.queryHistoricCaseInstances(empty(HistoricCaseInstanceQueryDto.class), null);
 
             assertEquals(1, result.size());
             HistoricCaseInstanceResultDto r = result.getFirst();
@@ -1056,7 +1056,7 @@ class HistoryQueryMcpToolsTest {
             when(query.listPage(0, DEFAULT_MAX)).thenReturn(Collections.emptyList());
 
             List<HistoricCaseActivityInstanceResultDto> result =
-                    tools.queryHistoricCaseActivityInstances(empty(HistoricCaseActivityInstanceQueryDto.class));
+                    tools.queryHistoricCaseActivityInstances(empty(HistoricCaseActivityInstanceQueryDto.class), null);
 
             assertTrue(result.isEmpty());
             verify(query).listPage(0, DEFAULT_MAX);
@@ -1079,7 +1079,7 @@ class HistoryQueryMcpToolsTest {
                     List.of("t1"), true, null
             );
 
-            tools.queryHistoricCaseActivityInstances(dto);
+            tools.queryHistoricCaseActivityInstances(dto, null);
 
             verify(query).caseActivityInstanceId("cai-1");
             verify(query).caseExecutionId("ce-1");
@@ -1108,7 +1108,7 @@ class HistoryQueryMcpToolsTest {
                     null, false, null
             );
 
-            tools.queryHistoricCaseActivityInstances(dto);
+            tools.queryHistoricCaseActivityInstances(dto, null);
 
             verify(query, never()).required();
             verify(query, never()).ended();
@@ -1132,7 +1132,7 @@ class HistoryQueryMcpToolsTest {
             when(query.listPage(0, DEFAULT_MAX)).thenReturn(List.of(hcai));
 
             List<HistoricCaseActivityInstanceResultDto> result =
-                    tools.queryHistoricCaseActivityInstances(empty(HistoricCaseActivityInstanceQueryDto.class));
+                    tools.queryHistoricCaseActivityInstances(empty(HistoricCaseActivityInstanceQueryDto.class), null);
 
             assertEquals(1, result.size());
             HistoricCaseActivityInstanceResultDto r = result.getFirst();
@@ -1166,7 +1166,7 @@ class HistoryQueryMcpToolsTest {
             when(query.listPage(0, DEFAULT_MAX)).thenReturn(Collections.emptyList());
 
             List<HistoricDecisionInstanceResultDto> result =
-                    tools.queryHistoricDecisionInstances(empty(HistoricDecisionInstanceQueryDto.class));
+                    tools.queryHistoricDecisionInstances(empty(HistoricDecisionInstanceQueryDto.class), null);
 
             assertTrue(result.isEmpty());
             verify(query).listPage(0, DEFAULT_MAX);
@@ -1192,7 +1192,7 @@ class HistoryQueryMcpToolsTest {
                     List.of("t1"), true, null
             );
 
-            tools.queryHistoricDecisionInstances(dto);
+            tools.queryHistoricDecisionInstances(dto, null);
 
             verify(query).decisionInstanceId("ddi-1");
             verify(query).decisionInstanceIdIn("ddi-1");
@@ -1232,7 +1232,7 @@ class HistoryQueryMcpToolsTest {
                     null, false, null
             );
 
-            tools.queryHistoricDecisionInstances(dto);
+            tools.queryHistoricDecisionInstances(dto, null);
 
             verify(query, never()).includeInputs();
             verify(query, never()).includeOutputs();
@@ -1253,7 +1253,7 @@ class HistoryQueryMcpToolsTest {
             when(query.listPage(0, DEFAULT_MAX)).thenReturn(List.of(hdi));
 
             List<HistoricDecisionInstanceResultDto> result =
-                    tools.queryHistoricDecisionInstances(empty(HistoricDecisionInstanceQueryDto.class));
+                    tools.queryHistoricDecisionInstances(empty(HistoricDecisionInstanceQueryDto.class), null);
 
             assertEquals(1, result.size());
             HistoricDecisionInstanceResultDto r = result.getFirst();
@@ -1286,7 +1286,7 @@ class HistoryQueryMcpToolsTest {
             when(query.listPage(0, DEFAULT_MAX)).thenReturn(Collections.emptyList());
 
             List<HistoricJobLogResultDto> result =
-                    tools.queryHistoricJobLog(empty(HistoricJobLogQueryDto.class));
+                    tools.queryHistoricJobLog(empty(HistoricJobLogQueryDto.class), null);
 
             assertTrue(result.isEmpty());
             verify(query).listPage(0, DEFAULT_MAX);
@@ -1307,7 +1307,7 @@ class HistoryQueryMcpToolsTest {
                     true, false, false, false, null
             );
 
-            tools.queryHistoricJobLog(dto);
+            tools.queryHistoricJobLog(dto, null);
 
             verify(query).logId("log-1");
             verify(query).jobId("job-1");
@@ -1341,7 +1341,7 @@ class HistoryQueryMcpToolsTest {
                     false, null, null, null, null
             );
 
-            tools.queryHistoricJobLog(dto);
+            tools.queryHistoricJobLog(dto, null);
 
             verify(query, never()).creationLog();
             verify(query, never()).failureLog();
@@ -1364,7 +1364,7 @@ class HistoryQueryMcpToolsTest {
             when(query.listPage(0, DEFAULT_MAX)).thenReturn(List.of(hjl));
 
             List<HistoricJobLogResultDto> result =
-                    tools.queryHistoricJobLog(empty(HistoricJobLogQueryDto.class));
+                    tools.queryHistoricJobLog(empty(HistoricJobLogQueryDto.class), null);
 
             assertEquals(1, result.size());
             HistoricJobLogResultDto r = result.getFirst();
@@ -1397,7 +1397,7 @@ class HistoryQueryMcpToolsTest {
             when(query.listPage(0, DEFAULT_MAX)).thenReturn(Collections.emptyList());
 
             List<HistoricBatchResultDto> result =
-                    tools.queryHistoricBatches(empty(HistoricBatchQueryDto.class));
+                    tools.queryHistoricBatches(empty(HistoricBatchQueryDto.class), null);
 
             assertTrue(result.isEmpty());
             verify(query).listPage(0, DEFAULT_MAX);
@@ -1413,7 +1413,7 @@ class HistoryQueryMcpToolsTest {
                     List.of("t1"), true, null
             );
 
-            tools.queryHistoricBatches(dto);
+            tools.queryHistoricBatches(dto, null);
 
             verify(query).batchId("batch-1");
             verify(query).type("aPDeletion");
@@ -1430,7 +1430,7 @@ class HistoryQueryMcpToolsTest {
                     null, null, null, null, false, null
             );
 
-            tools.queryHistoricBatches(dto);
+            tools.queryHistoricBatches(dto, null);
 
             verify(query, never()).completed(anyBoolean());
             verify(query, never()).withoutTenantId();
@@ -1448,7 +1448,7 @@ class HistoryQueryMcpToolsTest {
             when(query.listPage(0, DEFAULT_MAX)).thenReturn(List.of(hb));
 
             List<HistoricBatchResultDto> result =
-                    tools.queryHistoricBatches(empty(HistoricBatchQueryDto.class));
+                    tools.queryHistoricBatches(empty(HistoricBatchQueryDto.class), null);
 
             assertEquals(1, result.size());
             HistoricBatchResultDto r = result.getFirst();
@@ -1480,7 +1480,7 @@ class HistoryQueryMcpToolsTest {
             when(query.listPage(0, DEFAULT_MAX)).thenReturn(Collections.emptyList());
 
             List<HistoricExternalTaskLogResultDto> result =
-                    tools.queryHistoricExternalTaskLog(empty(HistoricExternalTaskLogQueryDto.class));
+                    tools.queryHistoricExternalTaskLog(empty(HistoricExternalTaskLogQueryDto.class), null);
 
             assertTrue(result.isEmpty());
             verify(query).listPage(0, DEFAULT_MAX);
@@ -1500,7 +1500,7 @@ class HistoryQueryMcpToolsTest {
                     true, false, false, false, null
             );
 
-            tools.queryHistoricExternalTaskLog(dto);
+            tools.queryHistoricExternalTaskLog(dto, null);
 
             verify(query).logId("log-1");
             verify(query).externalTaskId("ext-1");
@@ -1531,7 +1531,7 @@ class HistoryQueryMcpToolsTest {
                     false, null, null, null, null
             );
 
-            tools.queryHistoricExternalTaskLog(dto);
+            tools.queryHistoricExternalTaskLog(dto, null);
 
             verify(query, never()).creationLog();
             verify(query, never()).failureLog();
@@ -1554,7 +1554,7 @@ class HistoryQueryMcpToolsTest {
             when(query.listPage(0, DEFAULT_MAX)).thenReturn(List.of(hetl));
 
             List<HistoricExternalTaskLogResultDto> result =
-                    tools.queryHistoricExternalTaskLog(empty(HistoricExternalTaskLogQueryDto.class));
+                    tools.queryHistoricExternalTaskLog(empty(HistoricExternalTaskLogQueryDto.class), null);
 
             assertEquals(1, result.size());
             HistoricExternalTaskLogResultDto r = result.getFirst();

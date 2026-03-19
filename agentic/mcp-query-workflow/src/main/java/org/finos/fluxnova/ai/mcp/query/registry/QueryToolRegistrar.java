@@ -95,59 +95,59 @@ public class QueryToolRegistrar {
     }
 
     public void registerHistoryTools(HistoryQueryMcpTools tools) {
-        registerHistoryTool("queryHistoricProcessInstances", tools::queryHistoricProcessInstances,
+        registerQueryTool("queryHistoricProcessInstances", tools::queryHistoricProcessInstances,
                 "Query historic process instances using the criteria provided in the query DTO. Returns a list of historic process instances that match the specified filters.",
                 HistoricProcessInstanceQueryDto.class);
 
-        registerHistoryTool("queryHistoricActivityInstances", tools::queryHistoricActivityInstances,
+        registerQueryTool("queryHistoricActivityInstances", tools::queryHistoricActivityInstances,
                 "Query historic activity instances using the criteria provided in the query DTO. Returns a list of historic activity instances that match the specified filters.",
                 HistoricActivityInstanceQueryDto.class);
 
-        registerHistoryTool("queryHistoricTaskInstances", tools::queryHistoricTaskInstances,
+        registerQueryTool("queryHistoricTaskInstances", tools::queryHistoricTaskInstances,
                 "Query historic task instances using the criteria provided in the query DTO. Returns a list of historic task instances that match the specified filters.",
                 HistoricTaskInstanceQueryDto.class);
 
-        registerHistoryTool("queryHistoricDetails", tools::queryHistoricDetails,
+        registerQueryTool("queryHistoricDetails", tools::queryHistoricDetails,
                 "Query historic details (variable updates, form fields, and form properties) using the criteria provided in the query DTO. Returns a list of historic details that match the specified filters.",
                 HistoricDetailQueryDto.class);
 
-        registerHistoryTool("queryHistoricVariableInstances", tools::queryHistoricVariableInstances,
+        registerQueryTool("queryHistoricVariableInstances", tools::queryHistoricVariableInstances,
                 "Query historic variable instances using the criteria provided in the query DTO. Returns a list of historic variable instances that match the specified filters.",
                 HistoricVariableInstanceQueryDto.class);
 
-        registerHistoryTool("queryUserOperationLog", tools::queryUserOperationLog,
+        registerQueryTool("queryUserOperationLog", tools::queryUserOperationLog,
                 "Query user operation log entries using the criteria provided in the query DTO. Returns a list of user operation log entries that match the specified filters.",
                 UserOperationLogQueryDto.class);
 
-        registerHistoryTool("queryHistoricIncidents", tools::queryHistoricIncidents,
+        registerQueryTool("queryHistoricIncidents", tools::queryHistoricIncidents,
                 "Query historic incidents using the criteria provided in the query DTO. Returns a list of historic incidents that match the specified filters.",
                 HistoricIncidentQueryDto.class);
 
-        registerHistoryTool("queryHistoricIdentityLinkLog", tools::queryHistoricIdentityLinkLog,
+        registerQueryTool("queryHistoricIdentityLinkLog", tools::queryHistoricIdentityLinkLog,
                 "Query historic identity link log entries using the criteria provided in the query DTO. Returns a list of historic identity link log entries that match the specified filters.",
                 HistoricIdentityLinkLogQueryDto.class);
 
-        registerHistoryTool("queryHistoricCaseInstances", tools::queryHistoricCaseInstances,
+        registerQueryTool("queryHistoricCaseInstances", tools::queryHistoricCaseInstances,
                 "Query historic case instances using the criteria provided in the query DTO. Returns a list of historic case instances that match the specified filters.",
                 HistoricCaseInstanceQueryDto.class);
 
-        registerHistoryTool("queryHistoricCaseActivityInstances", tools::queryHistoricCaseActivityInstances,
+        registerQueryTool("queryHistoricCaseActivityInstances", tools::queryHistoricCaseActivityInstances,
                 "Query historic case activity instances using the criteria provided in the query DTO. Returns a list of historic case activity instances that match the specified filters.",
                 HistoricCaseActivityInstanceQueryDto.class);
 
-        registerHistoryTool("queryHistoricDecisionInstances", tools::queryHistoricDecisionInstances,
+        registerQueryTool("queryHistoricDecisionInstances", tools::queryHistoricDecisionInstances,
                 "Query historic decision instances using the criteria provided in the query DTO. Returns a list of historic decision instances that match the specified filters.",
                 HistoricDecisionInstanceQueryDto.class);
 
-        registerHistoryTool("queryHistoricJobLog", tools::queryHistoricJobLog,
+        registerQueryTool("queryHistoricJobLog", tools::queryHistoricJobLog,
                 "Query historic job log entries using the criteria provided in the query DTO. Returns a list of historic job log entries that match the specified filters.",
                 HistoricJobLogQueryDto.class);
 
-        registerHistoryTool("queryHistoricBatches", tools::queryHistoricBatches,
+        registerQueryTool("queryHistoricBatches", tools::queryHistoricBatches,
                 "Query historic batches using the criteria provided in the query DTO. Returns a list of historic batches that match the specified filters.",
                 HistoricBatchQueryDto.class);
 
-        registerHistoryTool("queryHistoricExternalTaskLog", tools::queryHistoricExternalTaskLog,
+        registerQueryTool("queryHistoricExternalTaskLog", tools::queryHistoricExternalTaskLog,
                 "Query historic external task log entries using the criteria provided in the query DTO. Returns a list of historic external task log entries that match the specified filters.",
                 HistoricExternalTaskLogQueryDto.class);
     }
@@ -281,45 +281,6 @@ public class QueryToolRegistrar {
     }
 
     /**
-     * Registers a history query tool (QueryDto only, no maxResults parameter).
-     */
-    @SuppressWarnings("unchecked")
-    private <Q extends Record> void registerHistoryTool(
-            String toolName,
-            HistoryToolMethod<Q> method,
-            String description,
-            Class<Q> queryDtoClass) {
-
-        if (excludedTools.contains(toolName)) {
-            LOG.info("MCP - Excluding tool: {}", toolName);
-            return;
-        }
-
-        // History tools only take queryDto, no maxResults
-        Map<String, Object> queryDtoSchema = new LinkedHashMap<>();
-        queryDtoSchema.putAll(generateRecordSchemaMap(queryDtoClass));
-
-        Map<String, Object> properties = new LinkedHashMap<>();
-        properties.put("queryDto", queryDtoSchema);
-
-        JsonSchema schema = new JsonSchema("object", properties, null, null, null, null);
-
-        ToolConfig config = new ToolConfig(toolName, description, schema, args -> {
-            Q queryDto = null;
-            Object queryDtoRaw = args.get("queryDto");
-            if (queryDtoRaw != null) {
-                queryDto = objectMapper.convertValue(queryDtoRaw, queryDtoClass);
-            }
-            return method.execute(queryDto);
-        });
-
-        if (toolRegistry.register(config)) {
-            registrarTools.add(toolName);
-            LOG.debug("MCP - Registered history tool: {}", toolName);
-        }
-    }
-
-    /**
      * Registers a simple string-parameter tool (e.g. XML retrieval).
      */
     private void registerStringTool(
@@ -348,28 +309,10 @@ public class QueryToolRegistrar {
     }
 
     /**
-     * Helper to generate a record schema map for use in history tools.
-     */
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> generateRecordSchemaMap(Class<? extends Record> queryDtoClass) {
-        JsonSchema fullSchema = QueryToolSchemaGenerator.generateQueryToolSchema(queryDtoClass);
-        // Extract the queryDto property which contains the record schema
-        return (Map<String, Object>) fullSchema.properties().get("queryDto");
-    }
-
-    /**
      * Functional interface for standard query tool methods.
      */
     @FunctionalInterface
     interface QueryToolMethod<Q> {
         Object execute(Q queryDto, Integer maxResults);
-    }
-
-    /**
-     * Functional interface for history tool methods (no maxResults).
-     */
-    @FunctionalInterface
-    interface HistoryToolMethod<Q> {
-        Object execute(Q queryDto);
     }
 }
