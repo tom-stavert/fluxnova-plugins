@@ -57,19 +57,19 @@ class FilterQueryMcpToolsTest {
 
         @Test
         void emptyDto_callsListWithNoFilters() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             List<FilterResultDto> result = tools.queryFilters(emptyQuery(), null);
 
             assertTrue(result.isEmpty());
-            verify(query).list();
+            verify(query).listPage(anyInt(), anyInt());
             verify(query, never()).filterId(any());
             verify(query, never()).filterResourceType(any());
         }
 
         @Test
         void allFiltersApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             FilterQueryDto dto = new FilterQueryDto(
                     "filter-1", "Task",
@@ -88,7 +88,7 @@ class FilterQueryMcpToolsTest {
 
         @Test
         void booleanFalseAndNull_notApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             FilterQueryDto dto = new FilterQueryDto(null, null, null, null, null);
 
@@ -108,7 +108,7 @@ class FilterQueryMcpToolsTest {
             when(filter.getResourceType()).thenReturn("Task");
             when(filter.getName()).thenReturn("My Tasks");
             when(filter.getOwner()).thenReturn("admin");
-            when(query.list()).thenReturn(List.of(filter));
+            when(query.listPage(anyInt(), anyInt())).thenReturn(List.of(filter));
 
             List<FilterResultDto> result = tools.queryFilters(emptyQuery(), null);
 

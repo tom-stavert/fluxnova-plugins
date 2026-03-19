@@ -35,8 +35,7 @@ public class FilterQueryMcpTools {
 
         var query = queryDto != null ? queryDto.toQuery(filterService) : filterService.createFilterQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<FilterResultDto> resultDtos = query.list().stream()
-                .limit(limit)
+        List<FilterResultDto> resultDtos = query.listPage(0, limit).stream()
                 .map(FilterResultDto::fromFilter)
                 .toList();
 

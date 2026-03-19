@@ -35,8 +35,7 @@ public class ExternalTaskQueryMcpTools {
 
         var query = queryDto != null ? queryDto.toQuery(externalTaskService) : externalTaskService.createExternalTaskQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<ExternalTaskResultDto> resultDtos = query.list().stream()
-                .limit(limit)
+        List<ExternalTaskResultDto> resultDtos = query.listPage(0, limit).stream()
                 .map(ExternalTaskResultDto::fromExternalTask)
                 .toList();
 

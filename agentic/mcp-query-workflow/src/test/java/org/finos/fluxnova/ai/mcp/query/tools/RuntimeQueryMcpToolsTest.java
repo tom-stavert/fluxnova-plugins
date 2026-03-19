@@ -61,19 +61,19 @@ class RuntimeQueryMcpToolsTest {
 
         @Test
         void emptyDto_callsListWithNoFilters() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             List<ProcessInstanceResultDto> result = tools.queryProcessInstances(empty(ProcessInstanceQueryDto.class), null);
 
             assertTrue(result.isEmpty());
-            verify(query).list();
+            verify(query).listPage(anyInt(), anyInt());
             verify(query, never()).processInstanceId(any());
             verify(query, never()).processDefinitionKey(any());
         }
 
         @Test
         void allFiltersApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             ProcessInstanceQueryDto dto = new ProcessInstanceQueryDto(
                     "pi-1", List.of("pi-1", "pi-2"),
@@ -122,7 +122,7 @@ class RuntimeQueryMcpToolsTest {
 
         @Test
         void booleanFalseAndNull_notApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             ProcessInstanceQueryDto dto = new ProcessInstanceQueryDto(
                     null, null, null, null, null, null, null, null, null, null,
@@ -143,7 +143,7 @@ class RuntimeQueryMcpToolsTest {
         @Test
         void resultMapping() {
             ProcessInstance pi = mockProcessInstance("pi-1", "def:1:abc", "order-123", "root-1", "case-1", true, "tenant-a");
-            when(query.list()).thenReturn(List.of(pi));
+            when(query.listPage(anyInt(), anyInt())).thenReturn(List.of(pi));
 
             List<ProcessInstanceResultDto> result = tools.queryProcessInstances(empty(ProcessInstanceQueryDto.class), null);
 
@@ -162,7 +162,7 @@ class RuntimeQueryMcpToolsTest {
         void multipleResults() {
             ProcessInstance pi1 = mockProcessInstance("pi-1", "def-1", null, null, null, false, null);
             ProcessInstance pi2 = mockProcessInstance("pi-2", "def-2", "bk-2", null, null, true, "t1");
-            when(query.list()).thenReturn(List.of(pi1, pi2));
+            when(query.listPage(anyInt(), anyInt())).thenReturn(List.of(pi1, pi2));
 
             List<ProcessInstanceResultDto> result = tools.queryProcessInstances(empty(ProcessInstanceQueryDto.class), null);
 
@@ -189,17 +189,17 @@ class RuntimeQueryMcpToolsTest {
 
         @Test
         void emptyDto_callsListWithNoFilters() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             List<ExecutionResultDto> result = tools.queryExecutions(empty(ExecutionQueryDto.class), null);
 
             assertTrue(result.isEmpty());
-            verify(query).list();
+            verify(query).listPage(anyInt(), anyInt());
         }
 
         @Test
         void allFiltersApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             ExecutionQueryDto dto = new ExecutionQueryDto(
                     "exec-1", "pi-1", "bk-1", "def-1", "myProcess", "task1",
@@ -233,7 +233,7 @@ class RuntimeQueryMcpToolsTest {
 
         @Test
         void booleanFalseAndNull_notApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             ExecutionQueryDto dto = new ExecutionQueryDto(
                     null, null, null, null, null, null, null, null,
@@ -255,7 +255,7 @@ class RuntimeQueryMcpToolsTest {
             when(exec.isSuspended()).thenReturn(false);
             when(exec.isEnded()).thenReturn(false);
             when(exec.getTenantId()).thenReturn("t1");
-            when(query.list()).thenReturn(List.of(exec));
+            when(query.listPage(anyInt(), anyInt())).thenReturn(List.of(exec));
 
             List<ExecutionResultDto> result = tools.queryExecutions(empty(ExecutionQueryDto.class), null);
 
@@ -284,17 +284,17 @@ class RuntimeQueryMcpToolsTest {
 
         @Test
         void emptyDto_callsListWithNoFilters() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             List<IncidentResultDto> result = tools.queryIncidents(empty(IncidentQueryDto.class), null);
 
             assertTrue(result.isEmpty());
-            verify(query).list();
+            verify(query).listPage(anyInt(), anyInt());
         }
 
         @Test
         void allFiltersApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
             Date before = new Date();
             Date after = new Date();
 
@@ -342,7 +342,7 @@ class RuntimeQueryMcpToolsTest {
             when(incident.getTenantId()).thenReturn("t1");
             Date timestamp = new Date();
             when(incident.getIncidentTimestamp()).thenReturn(timestamp);
-            when(query.list()).thenReturn(List.of(incident));
+            when(query.listPage(anyInt(), anyInt())).thenReturn(List.of(incident));
 
             List<IncidentResultDto> result = tools.queryIncidents(empty(IncidentQueryDto.class), null);
 
@@ -371,17 +371,17 @@ class RuntimeQueryMcpToolsTest {
 
         @Test
         void emptyDto_callsListWithNoFilters() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             List<EventSubscriptionResultDto> result = tools.queryEventSubscriptions(empty(EventSubscriptionQueryDto.class), null);
 
             assertTrue(result.isEmpty());
-            verify(query).list();
+            verify(query).listPage(anyInt(), anyInt());
         }
 
         @Test
         void allFiltersApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             EventSubscriptionQueryDto dto = new EventSubscriptionQueryDto(
                     "es-1", "myEvent", "message",
@@ -414,7 +414,7 @@ class RuntimeQueryMcpToolsTest {
             when(es.getTenantId()).thenReturn("t1");
             Date created = new Date();
             when(es.getCreated()).thenReturn(created);
-            when(query.list()).thenReturn(List.of(es));
+            when(query.listPage(anyInt(), anyInt())).thenReturn(List.of(es));
 
             List<EventSubscriptionResultDto> result = tools.queryEventSubscriptions(empty(EventSubscriptionQueryDto.class), null);
 
@@ -442,18 +442,18 @@ class RuntimeQueryMcpToolsTest {
 
         @Test
         void emptyDto_callsListWithNoFilters_andDisablesBinaryFetching() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             List<VariableInstanceResultDto> result = tools.queryVariableInstances(empty(VariableInstanceQueryDto.class), null);
 
             assertTrue(result.isEmpty());
             verify(query).disableBinaryFetching();
-            verify(query).list();
+            verify(query).listPage(anyInt(), anyInt());
         }
 
         @Test
         void allFiltersApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             VariableInstanceQueryDto dto = new VariableInstanceQueryDto(
                     "orderId", "order%",
@@ -485,7 +485,7 @@ class RuntimeQueryMcpToolsTest {
 
         @Test
         void emptyLists_doNotApplyFilters() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             VariableInstanceQueryDto dto = new VariableInstanceQueryDto(
                     null, null,
@@ -514,7 +514,7 @@ class RuntimeQueryMcpToolsTest {
             when(var.getProcessInstanceId()).thenReturn("pi-1");
             when(var.getExecutionId()).thenReturn("exec-1");
             when(var.getTenantId()).thenReturn("t1");
-            when(query.list()).thenReturn(List.of(var));
+            when(query.listPage(anyInt(), anyInt())).thenReturn(List.of(var));
 
             List<VariableInstanceResultDto> result = tools.queryVariableInstances(empty(VariableInstanceQueryDto.class), null);
 
@@ -533,7 +533,7 @@ class RuntimeQueryMcpToolsTest {
             when(var.getName()).thenReturn("binaryData");
             when(var.getValue()).thenThrow(new RuntimeException("Cannot deserialize"));
             when(var.getTypeName()).thenReturn("bytes");
-            when(query.list()).thenReturn(List.of(var));
+            when(query.listPage(anyInt(), anyInt())).thenReturn(List.of(var));
 
             List<VariableInstanceResultDto> result = tools.queryVariableInstances(empty(VariableInstanceQueryDto.class), null);
 

@@ -62,20 +62,20 @@ class TaskQueryMcpToolsTest {
 
         @Test
         void emptyDto_callsListWithNoFilters() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             List<TaskResultDto> result = tools.queryTasks(emptyDto(), null);
 
             assertTrue(result.isEmpty());
             verify(query).initializeFormKeys();
-            verify(query).list();
+            verify(query).listPage(anyInt(), anyInt());
             verify(query, never()).taskId(any());
             verify(query, never()).taskAssignee(any());
         }
 
         @Test
         void stringFiltersApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             TaskQueryDto dto = new TaskQueryDto(
                     "task-1", null,
@@ -145,7 +145,7 @@ class TaskQueryMcpToolsTest {
 
         @Test
         void listFiltersApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             TaskQueryDto dto = new TaskQueryDto(
                     null, List.of("t1", "t2"),
@@ -188,7 +188,7 @@ class TaskQueryMcpToolsTest {
 
         @Test
         void integerAndDateFiltersApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
             Date dueDate = new Date();
             Date dueAfter = new Date();
             Date dueBefore = new Date();
@@ -240,7 +240,7 @@ class TaskQueryMcpToolsTest {
 
         @Test
         void booleanFiltersApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             TaskQueryDto dto = new TaskQueryDto(
                     null, null, null, null, null, null, null,
@@ -280,7 +280,7 @@ class TaskQueryMcpToolsTest {
 
         @Test
         void delegationStateFilter() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             TaskQueryDto dto = new TaskQueryDto(
                     null, null, null, null, null, null, null,
@@ -308,7 +308,7 @@ class TaskQueryMcpToolsTest {
 
         @Test
         void booleanFalseAndNull_notApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             TaskQueryDto dto = new TaskQueryDto(
                     null, Collections.emptyList(),
@@ -376,7 +376,7 @@ class TaskQueryMcpToolsTest {
             when(task.getFormKey()).thenReturn("embedded:app:approve-form.html");
             when(task.getTenantId()).thenReturn("t1");
             when(task.getTaskState()).thenReturn("Created");
-            when(query.list()).thenReturn(List.of(task));
+            when(query.listPage(anyInt(), anyInt())).thenReturn(List.of(task));
 
             List<TaskResultDto> result = tools.queryTasks(emptyDto(), null);
 
@@ -412,7 +412,7 @@ class TaskQueryMcpToolsTest {
             Task task = mock(Task.class);
             when(task.getId()).thenReturn("task-1");
             when(task.getDelegationState()).thenReturn(null);
-            when(query.list()).thenReturn(List.of(task));
+            when(query.listPage(anyInt(), anyInt())).thenReturn(List.of(task));
 
             List<TaskResultDto> result = tools.queryTasks(emptyDto(), null);
 

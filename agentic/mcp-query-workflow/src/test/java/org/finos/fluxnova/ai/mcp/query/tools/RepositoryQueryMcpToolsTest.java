@@ -78,19 +78,19 @@ class RepositoryQueryMcpToolsTest {
 
         @Test
         void emptyDto_callsListWithNoFilters() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             List<ProcessDefinitionResultDto> result = tools.queryProcessDefinitions(empty(ProcessDefinitionQueryDto.class), null);
 
             assertTrue(result.isEmpty());
-            verify(query).list();
+            verify(query).listPage(anyInt(), anyInt());
             verify(query, never()).processDefinitionId(any());
             verify(query, never()).processDefinitionKey(any());
         }
 
         @Test
         void allFiltersApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
             Date deployedAfter = new Date();
             Date deployedAt = new Date();
 
@@ -146,7 +146,7 @@ class RepositoryQueryMcpToolsTest {
 
         @Test
         void booleanFalseAndNull_notApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             ProcessDefinitionQueryDto dto = new ProcessDefinitionQueryDto(
                     null, Collections.emptyList(),
@@ -188,7 +188,7 @@ class RepositoryQueryMcpToolsTest {
             when(pd.getVersionTag()).thenReturn("v1.0");
             when(pd.getHistoryTimeToLive()).thenReturn(180);
             when(pd.isStartableInTasklist()).thenReturn(true);
-            when(query.list()).thenReturn(List.of(pd));
+            when(query.listPage(anyInt(), anyInt())).thenReturn(List.of(pd));
 
             List<ProcessDefinitionResultDto> result = tools.queryProcessDefinitions(empty(ProcessDefinitionQueryDto.class), null);
 
@@ -228,18 +228,18 @@ class RepositoryQueryMcpToolsTest {
 
         @Test
         void emptyDto_callsListWithNoFilters() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             List<DeploymentResultDto> result = tools.queryDeployments(empty(DeploymentQueryDto.class), null);
 
             assertTrue(result.isEmpty());
-            verify(query).list();
+            verify(query).listPage(anyInt(), anyInt());
             verify(query, never()).deploymentId(any());
         }
 
         @Test
         void allFiltersApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
             Date after = new Date();
             Date before = new Date();
 
@@ -265,7 +265,7 @@ class RepositoryQueryMcpToolsTest {
 
         @Test
         void withoutSource_passesNullToDeploymentSource() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             DeploymentQueryDto dto = new DeploymentQueryDto(
                     null, null, null, null, true,
@@ -279,7 +279,7 @@ class RepositoryQueryMcpToolsTest {
 
         @Test
         void booleanFalseAndNull_notApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             DeploymentQueryDto dto = new DeploymentQueryDto(
                     null, null, null, null, null,
@@ -302,7 +302,7 @@ class RepositoryQueryMcpToolsTest {
             when(dep.getDeploymentTime()).thenReturn(deployTime);
             when(dep.getSource()).thenReturn("process-application");
             when(dep.getTenantId()).thenReturn("t1");
-            when(query.list()).thenReturn(List.of(dep));
+            when(query.listPage(anyInt(), anyInt())).thenReturn(List.of(dep));
 
             List<DeploymentResultDto> result = tools.queryDeployments(empty(DeploymentQueryDto.class), null);
 
@@ -333,19 +333,19 @@ class RepositoryQueryMcpToolsTest {
 
         @Test
         void emptyDto_callsListWithNoFilters() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             List<CaseDefinitionResultDto> result = tools.queryCaseDefinitions(empty(CaseDefinitionQueryDto.class), null);
 
             assertTrue(result.isEmpty());
-            verify(query).list();
+            verify(query).listPage(anyInt(), anyInt());
             verify(query, never()).caseDefinitionId(any());
             verify(query, never()).caseDefinitionKey(any());
         }
 
         @Test
         void allFiltersApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             CaseDefinitionQueryDto dto = new CaseDefinitionQueryDto(
                     "case-1", List.of("case-1", "case-2"),
@@ -379,7 +379,7 @@ class RepositoryQueryMcpToolsTest {
 
         @Test
         void booleanFalseAndNull_notApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             CaseDefinitionQueryDto dto = new CaseDefinitionQueryDto(
                     null, Collections.emptyList(),
@@ -410,7 +410,7 @@ class RepositoryQueryMcpToolsTest {
             when(cd.getDiagramResourceName()).thenReturn("insurance.png");
             when(cd.getTenantId()).thenReturn("t1");
             when(cd.getHistoryTimeToLive()).thenReturn(90);
-            when(query.list()).thenReturn(List.of(cd));
+            when(query.listPage(anyInt(), anyInt())).thenReturn(List.of(cd));
 
             List<CaseDefinitionResultDto> result = tools.queryCaseDefinitions(empty(CaseDefinitionQueryDto.class), null);
 
@@ -446,19 +446,19 @@ class RepositoryQueryMcpToolsTest {
 
         @Test
         void emptyDto_callsListWithNoFilters() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             List<DecisionDefinitionResultDto> result = tools.queryDecisionDefinitions(empty(DecisionDefinitionQueryDto.class), null);
 
             assertTrue(result.isEmpty());
-            verify(query).list();
+            verify(query).listPage(anyInt(), anyInt());
             verify(query, never()).decisionDefinitionId(any());
             verify(query, never()).decisionDefinitionKey(any());
         }
 
         @Test
         void allFiltersApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
             Date deployedAfter = new Date();
             Date deployedAt = new Date();
 
@@ -505,7 +505,7 @@ class RepositoryQueryMcpToolsTest {
 
         @Test
         void booleanFalseAndNull_notApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             DecisionDefinitionQueryDto dto = new DecisionDefinitionQueryDto(
                     null, Collections.emptyList(),
@@ -542,7 +542,7 @@ class RepositoryQueryMcpToolsTest {
             when(dd.getDecisionRequirementsDefinitionKey()).thenReturn("loanDrd");
             when(dd.getVersionTag()).thenReturn("v2.0");
             when(dd.getHistoryTimeToLive()).thenReturn(365);
-            when(query.list()).thenReturn(List.of(dd));
+            when(query.listPage(anyInt(), anyInt())).thenReturn(List.of(dd));
 
             List<DecisionDefinitionResultDto> result = tools.queryDecisionDefinitions(empty(DecisionDefinitionQueryDto.class), null);
 
@@ -580,20 +580,20 @@ class RepositoryQueryMcpToolsTest {
 
         @Test
         void emptyDto_callsListWithNoFilters() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             List<DecisionRequirementsDefinitionResultDto> result = tools.queryDecisionRequirementsDefinitions(
                     empty(DecisionRequirementsDefinitionQueryDto.class), null);
 
             assertTrue(result.isEmpty());
-            verify(query).list();
+            verify(query).listPage(anyInt(), anyInt());
             verify(query, never()).decisionRequirementsDefinitionId(any());
             verify(query, never()).decisionRequirementsDefinitionKey(any());
         }
 
         @Test
         void allFiltersApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             DecisionRequirementsDefinitionQueryDto dto = new DecisionRequirementsDefinitionQueryDto(
                     "drd-1", List.of("drd-1", "drd-2"),
@@ -627,7 +627,7 @@ class RepositoryQueryMcpToolsTest {
 
         @Test
         void booleanFalseAndNull_notApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             DecisionRequirementsDefinitionQueryDto dto = new DecisionRequirementsDefinitionQueryDto(
                     null, Collections.emptyList(),
@@ -658,7 +658,7 @@ class RepositoryQueryMcpToolsTest {
             when(drd.getDiagramResourceName()).thenReturn("loan.png");
             when(drd.getTenantId()).thenReturn("t1");
             when(drd.getHistoryTimeToLive()).thenReturn(180);
-            when(query.list()).thenReturn(List.of(drd));
+            when(query.listPage(anyInt(), anyInt())).thenReturn(List.of(drd));
 
             List<DecisionRequirementsDefinitionResultDto> result = tools.queryDecisionRequirementsDefinitions(
                     empty(DecisionRequirementsDefinitionQueryDto.class), null);

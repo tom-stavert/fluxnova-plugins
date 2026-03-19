@@ -41,8 +41,7 @@ public class ManagementQueryMcpTools {
 
         var query = queryDto != null ? queryDto.toQuery(managementService) : managementService.createJobQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<JobResultDto> resultDtos = query.list().stream()
-                .limit(limit)
+        List<JobResultDto> resultDtos = query.listPage(0, limit).stream()
                 .map(JobResultDto::fromJob)
                 .toList();
 
@@ -58,8 +57,7 @@ public class ManagementQueryMcpTools {
 
         var query = queryDto != null ? queryDto.toQuery(managementService) : managementService.createJobDefinitionQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<JobDefinitionResultDto> resultDtos = query.list().stream()
-                .limit(limit)
+        List<JobDefinitionResultDto> resultDtos = query.listPage(0, limit).stream()
                 .map(JobDefinitionResultDto::fromJobDefinition)
                 .toList();
 
@@ -75,8 +73,7 @@ public class ManagementQueryMcpTools {
 
         var query = queryDto != null ? queryDto.toQuery(managementService) : managementService.createBatchQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<BatchResultDto> resultDtos = query.list().stream()
-                .limit(limit)
+        List<BatchResultDto> resultDtos = query.listPage(0, limit).stream()
                 .map(BatchResultDto::fromBatch)
                 .toList();
 
@@ -92,8 +89,7 @@ public class ManagementQueryMcpTools {
 
         var query = queryDto != null ? queryDto.toQuery(managementService) : managementService.createSchemaLogQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<SchemaLogEntryResultDto> resultDtos = query.list().stream()
-                .limit(limit)
+        List<SchemaLogEntryResultDto> resultDtos = query.listPage(0, limit).stream()
                 .map(SchemaLogEntryResultDto::fromSchemaLogEntry)
                 .toList();
 

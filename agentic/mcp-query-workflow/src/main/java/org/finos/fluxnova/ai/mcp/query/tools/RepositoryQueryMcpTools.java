@@ -34,8 +34,7 @@ public class RepositoryQueryMcpTools {
 
         var query = queryDto != null ? queryDto.toQuery(repositoryService) : repositoryService.createProcessDefinitionQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<ProcessDefinitionResultDto> resultDtos = query.list().stream()
-                .limit(limit)
+        List<ProcessDefinitionResultDto> resultDtos = query.listPage(0, limit).stream()
                 .map(ProcessDefinitionResultDto::fromProcessDefinition)
                 .toList();
 
@@ -51,8 +50,7 @@ public class RepositoryQueryMcpTools {
 
         var query = queryDto != null ? queryDto.toQuery(repositoryService) : repositoryService.createDeploymentQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<DeploymentResultDto> resultDtos = query.list().stream()
-                .limit(limit)
+        List<DeploymentResultDto> resultDtos = query.listPage(0, limit).stream()
                 .map(DeploymentResultDto::fromDeployment)
                 .toList();
 
@@ -68,8 +66,7 @@ public class RepositoryQueryMcpTools {
 
         var query = queryDto != null ? queryDto.toQuery(repositoryService) : repositoryService.createCaseDefinitionQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<CaseDefinitionResultDto> resultDtos = query.list().stream()
-                .limit(limit)
+        List<CaseDefinitionResultDto> resultDtos = query.listPage(0, limit).stream()
                 .map(CaseDefinitionResultDto::fromCaseDefinition)
                 .toList();
 
@@ -85,8 +82,7 @@ public class RepositoryQueryMcpTools {
 
         var query = queryDto != null ? queryDto.toQuery(repositoryService) : repositoryService.createDecisionDefinitionQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<DecisionDefinitionResultDto> resultDtos = query.list().stream()
-                .limit(limit)
+        List<DecisionDefinitionResultDto> resultDtos = query.listPage(0, limit).stream()
                 .map(DecisionDefinitionResultDto::fromDecisionDefinition)
                 .toList();
 
@@ -102,8 +98,7 @@ public class RepositoryQueryMcpTools {
 
         var query = queryDto != null ? queryDto.toQuery(repositoryService) : repositoryService.createDecisionRequirementsDefinitionQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<DecisionRequirementsDefinitionResultDto> resultDtos = query.list().stream()
-                .limit(limit)
+        List<DecisionRequirementsDefinitionResultDto> resultDtos = query.listPage(0, limit).stream()
                 .map(DecisionRequirementsDefinitionResultDto::fromDecisionRequirementsDefinition)
                 .toList();
 

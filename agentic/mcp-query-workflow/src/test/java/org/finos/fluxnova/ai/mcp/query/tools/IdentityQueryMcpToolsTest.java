@@ -65,19 +65,19 @@ class IdentityQueryMcpToolsTest {
 
         @Test
         void emptyDto_callsListWithNoFilters() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             List<UserResultDto> result = tools.queryUsers(empty(UserQueryDto.class), null);
 
             assertTrue(result.isEmpty());
-            verify(query).list();
+            verify(query).listPage(anyInt(), anyInt());
             verify(query, never()).userId(any());
             verify(query, never()).userEmail(any());
         }
 
         @Test
         void allFiltersApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             UserQueryDto dto = new UserQueryDto(
                     "john", List.of("john", "jane"),
@@ -103,7 +103,7 @@ class IdentityQueryMcpToolsTest {
 
         @Test
         void booleanFalseAndNull_notApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             UserQueryDto dto = new UserQueryDto(
                     null, Collections.emptyList(),
@@ -126,7 +126,7 @@ class IdentityQueryMcpToolsTest {
             when(user.getFirstName()).thenReturn("John");
             when(user.getLastName()).thenReturn("Doe");
             when(user.getEmail()).thenReturn("john@example.com");
-            when(query.list()).thenReturn(List.of(user));
+            when(query.listPage(anyInt(), anyInt())).thenReturn(List.of(user));
 
             List<UserResultDto> result = tools.queryUsers(empty(UserQueryDto.class), null);
 
@@ -152,19 +152,19 @@ class IdentityQueryMcpToolsTest {
 
         @Test
         void emptyDto_callsListWithNoFilters() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             List<GroupResultDto> result = tools.queryGroups(empty(GroupQueryDto.class), null);
 
             assertTrue(result.isEmpty());
-            verify(query).list();
+            verify(query).listPage(anyInt(), anyInt());
             verify(query, never()).groupId(any());
             verify(query, never()).groupName(any());
         }
 
         @Test
         void allFiltersApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             GroupQueryDto dto = new GroupQueryDto(
                     "managers", List.of("managers", "admins"),
@@ -185,7 +185,7 @@ class IdentityQueryMcpToolsTest {
 
         @Test
         void booleanFalseAndNull_notApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             GroupQueryDto dto = new GroupQueryDto(
                     null, Collections.emptyList(),
@@ -205,7 +205,7 @@ class IdentityQueryMcpToolsTest {
             when(group.getId()).thenReturn("managers");
             when(group.getName()).thenReturn("Managers");
             when(group.getType()).thenReturn("SYSTEM");
-            when(query.list()).thenReturn(List.of(group));
+            when(query.listPage(anyInt(), anyInt())).thenReturn(List.of(group));
 
             List<GroupResultDto> result = tools.queryGroups(empty(GroupQueryDto.class), null);
 
@@ -230,19 +230,19 @@ class IdentityQueryMcpToolsTest {
 
         @Test
         void emptyDto_callsListWithNoFilters() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             List<TenantResultDto> result = tools.queryTenants(empty(TenantQueryDto.class), null);
 
             assertTrue(result.isEmpty());
-            verify(query).list();
+            verify(query).listPage(anyInt(), anyInt());
             verify(query, never()).tenantId(any());
             verify(query, never()).tenantName(any());
         }
 
         @Test
         void allFiltersApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             TenantQueryDto dto = new TenantQueryDto(
                     "acme", List.of("acme", "globex"),
@@ -263,7 +263,7 @@ class IdentityQueryMcpToolsTest {
 
         @Test
         void booleanFalseAndNull_notApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             TenantQueryDto dto = new TenantQueryDto(
                     null, Collections.emptyList(),
@@ -282,7 +282,7 @@ class IdentityQueryMcpToolsTest {
             Tenant tenant = mock(Tenant.class);
             when(tenant.getId()).thenReturn("acme");
             when(tenant.getName()).thenReturn("Acme Corp");
-            when(query.list()).thenReturn(List.of(tenant));
+            when(query.listPage(anyInt(), anyInt())).thenReturn(List.of(tenant));
 
             List<TenantResultDto> result = tools.queryTenants(empty(TenantQueryDto.class), null);
 

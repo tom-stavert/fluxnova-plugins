@@ -9,7 +9,6 @@ import io.modelcontextprotocol.spec.McpSchema.TextContent;
 import io.modelcontextprotocol.spec.McpSchema.Tool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,7 +20,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>This is the primary integration point between the MCP server layer and tool
  * providers such as the mcp-process-start-event plugin.</p>
  */
-@Service
 public class ToolRegistry {
     private static final Logger LOG = LoggerFactory.getLogger(ToolRegistry.class);
 
@@ -47,7 +45,10 @@ public class ToolRegistry {
         try {
             if (registeredTools.containsKey(config.name())) {
                 LOG.warn("MCP - Tool '{}' is already registered. Unregistering old version first.", config.name());
-                unregister(config.name());
+                if (!unregisterInternal(config.name(), false)) {
+                    LOG.error("MCP - Failed to unregister existing tool '{}' before re-registration.", config.name());
+                    return false;
+                }
             }
 
             Tool tool = buildTool(config);
@@ -75,6 +76,12 @@ public class ToolRegistry {
     public boolean unregister(String toolName) {
         Objects.requireNonNull(toolName, "tool name cannot be null");
 
+        return unregisterInternal(toolName, true);
+    }
+
+    private boolean unregisterInternal(String toolName, boolean notifyChange) {
+        Objects.requireNonNull(toolName, "tool name cannot be null");
+
         try {
             if (!registeredTools.containsKey(toolName)) {
                 LOG.warn("MCP - Tool '{}' is not registered", toolName);
@@ -83,7 +90,9 @@ public class ToolRegistry {
 
             mcpServer.removeTool(toolName);
             registeredTools.remove(toolName);
-            mcpServer.notifyToolsListChanged();
+            if (notifyChange) {
+                mcpServer.notifyToolsListChanged();
+            }
 
             LOG.info("MCP - Successfully unregistered tool: {}", toolName);
             return true;

@@ -37,8 +37,7 @@ public class CaseQueryMcpTools {
 
         var query = queryDto != null ? queryDto.toQuery(caseService) : caseService.createCaseInstanceQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<CaseInstanceResultDto> resultDtos = query.list().stream()
-                .limit(limit)
+        List<CaseInstanceResultDto> resultDtos = query.listPage(0, limit).stream()
                 .map(CaseInstanceResultDto::fromCaseInstance)
                 .toList();
 
@@ -54,8 +53,7 @@ public class CaseQueryMcpTools {
 
         var query = queryDto != null ? queryDto.toQuery(caseService) : caseService.createCaseExecutionQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<CaseExecutionResultDto> resultDtos = query.list().stream()
-                .limit(limit)
+        List<CaseExecutionResultDto> resultDtos = query.listPage(0, limit).stream()
                 .map(CaseExecutionResultDto::fromCaseExecution)
                 .toList();
 

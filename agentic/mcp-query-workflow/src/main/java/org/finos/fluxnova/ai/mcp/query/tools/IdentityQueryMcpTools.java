@@ -39,8 +39,7 @@ public class IdentityQueryMcpTools {
 
         var query = queryDto != null ? queryDto.toQuery(identityService) : identityService.createUserQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<UserResultDto> resultDtos = query.list().stream()
-                .limit(limit)
+        List<UserResultDto> resultDtos = query.listPage(0, limit).stream()
                 .map(UserResultDto::fromUser)
                 .toList();
 
@@ -56,8 +55,7 @@ public class IdentityQueryMcpTools {
 
         var query = queryDto != null ? queryDto.toQuery(identityService) : identityService.createGroupQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<GroupResultDto> resultDtos = query.list().stream()
-                .limit(limit)
+        List<GroupResultDto> resultDtos = query.listPage(0, limit).stream()
                 .map(GroupResultDto::fromGroup)
                 .toList();
 
@@ -73,8 +71,7 @@ public class IdentityQueryMcpTools {
 
         var query = queryDto != null ? queryDto.toQuery(identityService) : identityService.createTenantQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<TenantResultDto> resultDtos = query.list().stream()
-                .limit(limit)
+        List<TenantResultDto> resultDtos = query.listPage(0, limit).stream()
                 .map(TenantResultDto::fromTenant)
                 .toList();
 

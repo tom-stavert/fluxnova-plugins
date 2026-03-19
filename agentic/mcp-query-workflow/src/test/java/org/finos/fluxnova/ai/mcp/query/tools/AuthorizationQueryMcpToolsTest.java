@@ -56,19 +56,19 @@ class AuthorizationQueryMcpToolsTest {
 
         @Test
         void emptyDto_callsListWithNoFilters() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             List<AuthorizationResultDto> result = tools.queryAuthorizations(emptyQuery(), null);
 
             assertTrue(result.isEmpty());
-            verify(query).list();
+            verify(query).listPage(anyInt(), anyInt());
             verify(query, never()).authorizationId(any());
             verify(query, never()).authorizationType(anyInt());
         }
 
         @Test
         void allFiltersApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             AuthorizationQueryDto dto = new AuthorizationQueryDto(
                     "auth-1", 1,
@@ -89,7 +89,7 @@ class AuthorizationQueryMcpToolsTest {
 
         @Test
         void booleanFalseAndNull_notApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             AuthorizationQueryDto dto = new AuthorizationQueryDto(
                     null, null,
@@ -117,7 +117,7 @@ class AuthorizationQueryMcpToolsTest {
             when(auth.getGroupId()).thenReturn(null);
             when(auth.getResourceType()).thenReturn(2);
             when(auth.getResourceId()).thenReturn("resource-1");
-            when(query.list()).thenReturn(List.of(auth));
+            when(query.listPage(anyInt(), anyInt())).thenReturn(List.of(auth));
 
             List<AuthorizationResultDto> result = tools.queryAuthorizations(emptyQuery(), null);
 

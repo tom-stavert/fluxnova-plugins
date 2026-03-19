@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
  * <pre>{@code
  * <plugins>
  *   <plugin>
- *     <class>org.finos.fluxnova.ai.mcp.server.plugin.FluxnovaMcpServerPlugin</class>
+ *     <class>org.finos.fluxnova.ai.mcp.server.plugin.McpServerFluxnovaPlugin</class>
  *   </plugin>
  * </plugins>
  * }</pre>

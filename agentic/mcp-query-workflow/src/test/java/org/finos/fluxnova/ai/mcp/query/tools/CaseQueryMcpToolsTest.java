@@ -60,19 +60,19 @@ class CaseQueryMcpToolsTest {
 
         @Test
         void emptyDto_callsListWithNoFilters() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             List<CaseInstanceResultDto> result = tools.queryCaseInstances(empty(CaseInstanceQueryDto.class), null);
 
             assertTrue(result.isEmpty());
-            verify(query).list();
+            verify(query).listPage(anyInt(), anyInt());
             verify(query, never()).caseInstanceId(any());
             verify(query, never()).caseDefinitionKey(any());
         }
 
         @Test
         void allFiltersApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             CaseInstanceQueryDto dto = new CaseInstanceQueryDto(
                     "ci-1", "bk-1", "loanCase", "caseDef:1",
@@ -102,7 +102,7 @@ class CaseQueryMcpToolsTest {
 
         @Test
         void booleanFalseAndNull_notApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             CaseInstanceQueryDto dto = new CaseInstanceQueryDto(
                     null, null, null, null,
@@ -132,7 +132,7 @@ class CaseQueryMcpToolsTest {
             when(ci.isCompleted()).thenReturn(false);
             when(ci.isTerminated()).thenReturn(false);
             when(ci.getTenantId()).thenReturn("t1");
-            when(query.list()).thenReturn(List.of(ci));
+            when(query.listPage(anyInt(), anyInt())).thenReturn(List.of(ci));
 
             List<CaseInstanceResultDto> result = tools.queryCaseInstances(empty(CaseInstanceQueryDto.class), null);
 
@@ -163,19 +163,19 @@ class CaseQueryMcpToolsTest {
 
         @Test
         void emptyDto_callsListWithNoFilters() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             List<CaseExecutionResultDto> result = tools.queryCaseExecutions(empty(CaseExecutionQueryDto.class), null);
 
             assertTrue(result.isEmpty());
-            verify(query).list();
+            verify(query).listPage(anyInt(), anyInt());
             verify(query, never()).caseExecutionId(any());
             verify(query, never()).activityId(any());
         }
 
         @Test
         void allFiltersApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             CaseExecutionQueryDto dto = new CaseExecutionQueryDto(
                     "exec-1", "ci-1", "bk-1",
@@ -203,7 +203,7 @@ class CaseQueryMcpToolsTest {
 
         @Test
         void booleanFalseAndNull_notApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             CaseExecutionQueryDto dto = new CaseExecutionQueryDto(
                     null, null, null, null, null, null,
@@ -239,7 +239,7 @@ class CaseQueryMcpToolsTest {
             when(ce.isDisabled()).thenReturn(false);
             when(ce.isTerminated()).thenReturn(false);
             when(ce.getTenantId()).thenReturn("t1");
-            when(query.list()).thenReturn(List.of(ce));
+            when(query.listPage(anyInt(), anyInt())).thenReturn(List.of(ce));
 
             List<CaseExecutionResultDto> result = tools.queryCaseExecutions(empty(CaseExecutionQueryDto.class), null);
 

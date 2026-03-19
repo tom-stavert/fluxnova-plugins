@@ -60,19 +60,19 @@ class ExternalTaskQueryMcpToolsTest {
 
         @Test
         void emptyDto_callsListWithNoFilters() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             List<ExternalTaskResultDto> result = tools.queryExternalTasks(emptyQuery(), null);
 
             assertTrue(result.isEmpty());
-            verify(query).list();
+            verify(query).listPage(anyInt(), anyInt());
             verify(query, never()).externalTaskId(any());
             verify(query, never()).topicName(any());
         }
 
         @Test
         void allFiltersApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
             Date lockBefore = new Date();
             Date lockAfter = new Date();
 
@@ -116,7 +116,7 @@ class ExternalTaskQueryMcpToolsTest {
 
         @Test
         void booleanFalseAndNull_notApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             ExternalTaskQueryDto dto = new ExternalTaskQueryDto(
                     null, Collections.emptyList(),
@@ -165,7 +165,7 @@ class ExternalTaskQueryMcpToolsTest {
             when(et.getTenantId()).thenReturn("t1");
             when(et.getPriority()).thenReturn(10L);
             when(et.getBusinessKey()).thenReturn("order-123");
-            when(query.list()).thenReturn(List.of(et));
+            when(query.listPage(anyInt(), anyInt())).thenReturn(List.of(et));
 
             List<ExternalTaskResultDto> result = tools.queryExternalTasks(emptyQuery(), null);
 

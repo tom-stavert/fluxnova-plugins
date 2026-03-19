@@ -3,6 +3,8 @@ package org.finos.fluxnova.ai.mcp.query.registry;
 import io.modelcontextprotocol.spec.McpSchema.JsonSchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.lang.reflect.RecordComponent;
 import java.util.*;
 
@@ -71,8 +73,10 @@ class QueryToolSchemaGenerator {
             String description = getSchemaDescription(recordClass, component);
             prop.put("description", description != null ? description : "Parameter: " + component.getName());
 
-            if (List.class.isAssignableFrom(component.getType())) {
-                prop.put("items", Map.of("type", "string"));
+            if (List.class.isAssignableFrom(component.getType())
+                    || Set.class.isAssignableFrom(component.getType())
+                    || component.getType().isArray()) {
+                prop.put("items", buildItemsSchema(component));
             }
 
             properties.put(component.getName(), prop);
@@ -142,5 +146,23 @@ class QueryToolSchemaGenerator {
             return "string";
         }
         return "string";
+    }
+
+    private static Map<String, Object> buildItemsSchema(RecordComponent component) {
+        Class<?> itemType = String.class;
+
+        if (component.getType().isArray()) {
+            itemType = component.getType().getComponentType();
+        } else {
+            Type genericType = component.getGenericType();
+            if (genericType instanceof ParameterizedType parameterizedType) {
+                Type[] actualTypes = parameterizedType.getActualTypeArguments();
+                if (actualTypes.length > 0 && actualTypes[0] instanceof Class<?> clazz) {
+                    itemType = clazz;
+                }
+            }
+        }
+
+        return Map.of("type", mapJavaTypeToJsonSchemaType(itemType));
     }
 }

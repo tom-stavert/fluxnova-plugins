@@ -72,19 +72,19 @@ class ManagementQueryMcpToolsTest {
 
         @Test
         void emptyDto_callsListWithNoFilters() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             List<JobResultDto> result = tools.queryJobs(empty(JobQueryDto.class), null);
 
             assertTrue(result.isEmpty());
-            verify(query).list();
+            verify(query).listPage(anyInt(), anyInt());
             verify(query, never()).jobId(any());
             verify(query, never()).processInstanceId(any());
         }
 
         @Test
         void allFiltersApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
             Date dueBefore = new Date();
             Date dueAfter = new Date();
             Date createdBefore = new Date();
@@ -139,7 +139,7 @@ class ManagementQueryMcpToolsTest {
 
         @Test
         void booleanFalseAndNull_notApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             JobQueryDto dto = new JobQueryDto(
                     null, Collections.emptyList(),
@@ -188,7 +188,7 @@ class ManagementQueryMcpToolsTest {
             when(job.getPriority()).thenReturn(0L);
             when(job.getTenantId()).thenReturn("t1");
             when(job.getCreateTime()).thenReturn(createTime);
-            when(query.list()).thenReturn(List.of(job));
+            when(query.listPage(anyInt(), anyInt())).thenReturn(List.of(job));
 
             List<JobResultDto> result = tools.queryJobs(empty(JobQueryDto.class), null);
 
@@ -217,19 +217,19 @@ class ManagementQueryMcpToolsTest {
 
         @Test
         void emptyDto_callsListWithNoFilters() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             List<JobDefinitionResultDto> result = tools.queryJobDefinitions(empty(JobDefinitionQueryDto.class), null);
 
             assertTrue(result.isEmpty());
-            verify(query).list();
+            verify(query).listPage(anyInt(), anyInt());
             verify(query, never()).jobDefinitionId(any());
             verify(query, never()).processDefinitionKey(any());
         }
 
         @Test
         void allFiltersApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             JobDefinitionQueryDto dto = new JobDefinitionQueryDto(
                     "jdef-1", List.of("timerStart", "asyncTask"),
@@ -257,7 +257,7 @@ class ManagementQueryMcpToolsTest {
 
         @Test
         void booleanFalseAndNull_notApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             JobDefinitionQueryDto dto = new JobDefinitionQueryDto(
                     null, Collections.emptyList(),
@@ -288,7 +288,7 @@ class ManagementQueryMcpToolsTest {
             when(jd.isSuspended()).thenReturn(false);
             when(jd.getOverridingJobPriority()).thenReturn(null);
             when(jd.getTenantId()).thenReturn("t1");
-            when(query.list()).thenReturn(List.of(jd));
+            when(query.listPage(anyInt(), anyInt())).thenReturn(List.of(jd));
 
             List<JobDefinitionResultDto> result = tools.queryJobDefinitions(empty(JobDefinitionQueryDto.class), null);
 
@@ -315,19 +315,19 @@ class ManagementQueryMcpToolsTest {
 
         @Test
         void emptyDto_callsListWithNoFilters() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             List<BatchResultDto> result = tools.queryBatches(empty(BatchQueryDto.class), null);
 
             assertTrue(result.isEmpty());
-            verify(query).list();
+            verify(query).listPage(anyInt(), anyInt());
             verify(query, never()).batchId(any());
             verify(query, never()).type(any());
         }
 
         @Test
         void allFiltersApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             BatchQueryDto dto = new BatchQueryDto(
                     "batch-1", "instance-migration",
@@ -346,7 +346,7 @@ class ManagementQueryMcpToolsTest {
 
         @Test
         void booleanFalseAndNull_notApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             BatchQueryDto dto = new BatchQueryDto(
                     null, null, Collections.emptyList(), null, false, false
@@ -379,7 +379,7 @@ class ManagementQueryMcpToolsTest {
             when(batch.isSuspended()).thenReturn(false);
             when(batch.getStartTime()).thenReturn(startTime);
             when(batch.getExecutionStartTime()).thenReturn(execStartTime);
-            when(query.list()).thenReturn(List.of(batch));
+            when(query.listPage(anyInt(), anyInt())).thenReturn(List.of(batch));
 
             List<BatchResultDto> result = tools.queryBatches(empty(BatchQueryDto.class), null);
 
@@ -406,18 +406,18 @@ class ManagementQueryMcpToolsTest {
 
         @Test
         void emptyDto_callsListWithNoFilters() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             List<SchemaLogEntryResultDto> result = tools.querySchemaLog(empty(SchemaLogQueryDto.class), null);
 
             assertTrue(result.isEmpty());
-            verify(query).list();
+            verify(query).listPage(anyInt(), anyInt());
             verify(query, never()).version(any());
         }
 
         @Test
         void allFiltersApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             SchemaLogQueryDto dto = new SchemaLogQueryDto("7.19.0");
 
@@ -428,7 +428,7 @@ class ManagementQueryMcpToolsTest {
 
         @Test
         void booleanFalseAndNull_notApplied() {
-            when(query.list()).thenReturn(Collections.emptyList());
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
             SchemaLogQueryDto dto = new SchemaLogQueryDto(null);
 
@@ -444,7 +444,7 @@ class ManagementQueryMcpToolsTest {
             when(entry.getId()).thenReturn("1");
             when(entry.getTimestamp()).thenReturn(timestamp);
             when(entry.getVersion()).thenReturn("7.19.0");
-            when(query.list()).thenReturn(List.of(entry));
+            when(query.listPage(anyInt(), anyInt())).thenReturn(List.of(entry));
 
             List<SchemaLogEntryResultDto> result = tools.querySchemaLog(empty(SchemaLogQueryDto.class), null);
 

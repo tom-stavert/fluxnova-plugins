@@ -36,8 +36,7 @@ public class RuntimeQueryMcpTools {
 
         var query = queryDto != null ? queryDto.toQuery(runtimeService) : runtimeService.createProcessInstanceQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<ProcessInstanceResultDto> resultDtos = query.list().stream()
-                .limit(limit)
+        List<ProcessInstanceResultDto> resultDtos = query.listPage(0, limit).stream()
                 .map(ProcessInstanceResultDto::fromProcessInstance)
                 .toList();
 
@@ -53,8 +52,7 @@ public class RuntimeQueryMcpTools {
 
         var query = queryDto != null ? queryDto.toQuery(runtimeService) : runtimeService.createExecutionQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<ExecutionResultDto> resultDtos = query.list().stream()
-                .limit(limit)
+        List<ExecutionResultDto> resultDtos = query.listPage(0, limit).stream()
                 .map(ExecutionResultDto::fromExecution)
                 .toList();
 
@@ -70,8 +68,7 @@ public class RuntimeQueryMcpTools {
 
         var query = queryDto != null ? queryDto.toQuery(runtimeService) : runtimeService.createIncidentQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<IncidentResultDto> resultDtos = query.list().stream()
-                .limit(limit)
+        List<IncidentResultDto> resultDtos = query.listPage(0, limit).stream()
                 .map(IncidentResultDto::fromIncident)
                 .toList();
 
@@ -87,8 +84,7 @@ public class RuntimeQueryMcpTools {
 
         var query = queryDto != null ? queryDto.toQuery(runtimeService) : runtimeService.createEventSubscriptionQuery();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<EventSubscriptionResultDto> resultDtos = query.list().stream()
-                .limit(limit)
+        List<EventSubscriptionResultDto> resultDtos = query.listPage(0, limit).stream()
                 .map(EventSubscriptionResultDto::fromEventSubscription)
                 .toList();
 
@@ -108,8 +104,7 @@ public class RuntimeQueryMcpTools {
         query.disableBinaryFetching();
 
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
-        List<VariableInstanceResultDto> resultDtos = query.list().stream()
-                .limit(limit)
+        List<VariableInstanceResultDto> resultDtos = query.listPage(0, limit).stream()
                 .map(VariableInstanceResultDto::fromVariableInstance)
                 .toList();
 
