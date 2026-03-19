@@ -3,13 +3,17 @@ package org.finos.fluxnova.ai.mcp.query.registry;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.modelcontextprotocol.spec.McpSchema.JsonSchema;
 import org.finos.fluxnova.ai.mcp.query.autoconfigure.QueryToolsProperties;
+import org.finos.fluxnova.ai.mcp.query.model.query.*;
 import org.finos.fluxnova.ai.mcp.query.tools.*;
 import org.finos.fluxnova.ai.mcp.server.registry.ToolConfig;
 import org.finos.fluxnova.ai.mcp.server.registry.ToolRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -27,7 +31,7 @@ public class QueryToolRegistrar {
     private final ToolRegistry toolRegistry;
     private final ObjectMapper objectMapper;
     private final Set<String> excludedTools;
-        private final Set<String> registrarTools;
+    private final Set<String> registrarTools;
 
     public QueryToolRegistrar(ToolRegistry toolRegistry, ObjectMapper objectMapper,
                               QueryToolsProperties properties) {
@@ -43,169 +47,169 @@ public class QueryToolRegistrar {
     public void registerRepositoryTools(RepositoryQueryMcpTools tools) {
         registerQueryTool("queryProcessDefinitions", tools::queryProcessDefinitions,
                 "Query process definitions in the process engine. Returns a list of process definitions matching the given filter criteria. A process definition is a deployed workflow template (e.g. a BPMN 2.0 process) that can be instantiated as a process instance. Use this tool to discover available workflows, find specific versions of a process, or check which definitions are deployed, active, or suspended. All filter parameters are optional.",
-                org.finos.fluxnova.ai.mcp.query.model.query.ProcessDefinitionQueryDto.class);
+                ProcessDefinitionQueryDto.class);
 
         registerQueryTool("queryDeployments", tools::queryDeployments,
                 "Query deployments in the process engine. Returns a list of deployments matching the given filter criteria. A deployment is a container for process definitions, case definitions, decision definitions, and other resources that have been deployed to the engine. Use this tool to find when and what was deployed, or to list deployments by name, source, tenant, or date range. All filter parameters are optional.",
-                org.finos.fluxnova.ai.mcp.query.model.query.DeploymentQueryDto.class);
+                DeploymentQueryDto.class);
 
         registerQueryTool("queryCaseDefinitions", tools::queryCaseDefinitions,
                 "Query case definitions in the process engine. Returns a list of case definitions matching the given filter criteria. A case definition is a deployed CMMN 2.0 case template that represents a plan of work for a case instance. Use this tool to discover available case templates, find specific versions, or check which definitions are deployed. All filter parameters are optional.",
-                org.finos.fluxnova.ai.mcp.query.model.query.CaseDefinitionQueryDto.class);
+                CaseDefinitionQueryDto.class);
 
         registerQueryTool("queryDecisionDefinitions", tools::queryDecisionDefinitions,
                 "Query decision definitions in the process engine. Returns a list of decision definitions matching the given filter criteria. A decision definition is a deployed DMN 1.0 decision table or literal expression that can be evaluated to produce a result. Use this tool to discover available decision logic, find specific versions, or look up definitions by their decision requirements definition. All filter parameters are optional.",
-                org.finos.fluxnova.ai.mcp.query.model.query.DecisionDefinitionQueryDto.class);
+                DecisionDefinitionQueryDto.class);
 
         registerQueryTool("queryDecisionRequirementsDefinitions", tools::queryDecisionRequirementsDefinitions,
                 "Query decision requirements definitions in the process engine. Returns a list of decision requirements definitions matching the given filter criteria. A decision requirements definition is a container for a set of related decision definitions that belong to the same DMN resource (decision requirements graph). Use this tool to discover DMN resources and their versions. All filter parameters are optional.",
-                org.finos.fluxnova.ai.mcp.query.model.query.DecisionRequirementsDefinitionQueryDto.class);
+                DecisionRequirementsDefinitionQueryDto.class);
     }
 
     public void registerRuntimeTools(RuntimeQueryMcpTools tools) {
         registerQueryTool("queryProcessInstances", tools::queryProcessInstances,
                 "Query running process instances in the process engine. Returns a list of process instances matching the given filter criteria. Process instances represent individual executions of a process definition (workflow). Use this tool to find active or suspended process instances by their definition, business key, tenant, incident status, or other attributes. All filter parameters are optional.",
-                org.finos.fluxnova.ai.mcp.query.model.query.ProcessInstanceQueryDto.class);
+                ProcessInstanceQueryDto.class);
 
         registerQueryTool("queryExecutions", tools::queryExecutions,
                 "Query executions in the process engine. Returns a list of executions matching the given filter criteria. An execution represents a path of execution within a process instance - a process instance is itself the root execution. Parallel gateways and multi-instance activities create additional concurrent executions. Use this tool to inspect execution state, find executions waiting for signals or messages, or examine execution-level details. All filter parameters are optional.",
-                org.finos.fluxnova.ai.mcp.query.model.query.ExecutionQueryDto.class);
+                ExecutionQueryDto.class);
 
         registerQueryTool("queryIncidents", tools::queryIncidents,
                 "Query incidents in the process engine. Returns a list of incidents matching the given filter criteria. Incidents represent problems that occurred during process execution, such as failed jobs, failed external tasks, or other error conditions. Use this tool to find and diagnose process execution failures. All filter parameters are optional.",
-                org.finos.fluxnova.ai.mcp.query.model.query.IncidentQueryDto.class);
+                IncidentQueryDto.class);
 
         registerQueryTool("queryEventSubscriptions", tools::queryEventSubscriptions,
                 "Query event subscriptions in the process engine. Returns a list of event subscriptions matching the given filter criteria. Event subscriptions represent points where a process instance is waiting for an external event, such as a message event, signal event, compensation event, or conditional event. Use this tool to find which process instances are waiting for specific events. All filter parameters are optional.",
-                org.finos.fluxnova.ai.mcp.query.model.query.EventSubscriptionQueryDto.class);
+                EventSubscriptionQueryDto.class);
 
         registerQueryTool("queryVariableInstances", tools::queryVariableInstances,
                 "Query variable instances in the process engine. Returns a list of variable instances matching the given filter criteria. Variables store data associated with process instances, executions, tasks, or case instances. Each variable has a name, type, and value. Use this tool to inspect the current state of process data across running or completed activities. All filter parameters are optional.",
-                org.finos.fluxnova.ai.mcp.query.model.query.VariableInstanceQueryDto.class);
+                VariableInstanceQueryDto.class);
     }
 
     public void registerTaskTools(TaskQueryMcpTools tools) {
         registerQueryTool("queryTasks", tools::queryTasks,
                 "Query user tasks in the process engine. Returns a list of tasks matching the given filter criteria. A task represents a piece of work that needs to be done by a human user, typically a user task in a BPMN process or a human task in a CMMN case. Use this tool to find tasks assigned to or available for a specific user or group, filter by process or case context, priority, due dates, follow-up dates, delegation state, or other task attributes. All filter parameters are optional.",
-                org.finos.fluxnova.ai.mcp.query.model.query.TaskQueryDto.class);
+                TaskQueryDto.class);
     }
 
     public void registerHistoryTools(HistoryQueryMcpTools tools) {
         registerHistoryTool("queryHistoricProcessInstances", tools::queryHistoricProcessInstances,
                 "Query historic process instances using the criteria provided in the query DTO. Returns a list of historic process instances that match the specified filters.",
-                org.finos.fluxnova.ai.mcp.query.model.query.HistoricProcessInstanceQueryDto.class);
+                HistoricProcessInstanceQueryDto.class);
 
         registerHistoryTool("queryHistoricActivityInstances", tools::queryHistoricActivityInstances,
                 "Query historic activity instances using the criteria provided in the query DTO. Returns a list of historic activity instances that match the specified filters.",
-                org.finos.fluxnova.ai.mcp.query.model.query.HistoricActivityInstanceQueryDto.class);
+                HistoricActivityInstanceQueryDto.class);
 
         registerHistoryTool("queryHistoricTaskInstances", tools::queryHistoricTaskInstances,
                 "Query historic task instances using the criteria provided in the query DTO. Returns a list of historic task instances that match the specified filters.",
-                org.finos.fluxnova.ai.mcp.query.model.query.HistoricTaskInstanceQueryDto.class);
+                HistoricTaskInstanceQueryDto.class);
 
         registerHistoryTool("queryHistoricDetails", tools::queryHistoricDetails,
                 "Query historic details (variable updates, form fields, and form properties) using the criteria provided in the query DTO. Returns a list of historic details that match the specified filters.",
-                org.finos.fluxnova.ai.mcp.query.model.query.HistoricDetailQueryDto.class);
+                HistoricDetailQueryDto.class);
 
         registerHistoryTool("queryHistoricVariableInstances", tools::queryHistoricVariableInstances,
                 "Query historic variable instances using the criteria provided in the query DTO. Returns a list of historic variable instances that match the specified filters.",
-                org.finos.fluxnova.ai.mcp.query.model.query.HistoricVariableInstanceQueryDto.class);
+                HistoricVariableInstanceQueryDto.class);
 
         registerHistoryTool("queryUserOperationLog", tools::queryUserOperationLog,
                 "Query user operation log entries using the criteria provided in the query DTO. Returns a list of user operation log entries that match the specified filters.",
-                org.finos.fluxnova.ai.mcp.query.model.query.UserOperationLogQueryDto.class);
+                UserOperationLogQueryDto.class);
 
         registerHistoryTool("queryHistoricIncidents", tools::queryHistoricIncidents,
                 "Query historic incidents using the criteria provided in the query DTO. Returns a list of historic incidents that match the specified filters.",
-                org.finos.fluxnova.ai.mcp.query.model.query.HistoricIncidentQueryDto.class);
+                HistoricIncidentQueryDto.class);
 
         registerHistoryTool("queryHistoricIdentityLinkLog", tools::queryHistoricIdentityLinkLog,
                 "Query historic identity link log entries using the criteria provided in the query DTO. Returns a list of historic identity link log entries that match the specified filters.",
-                org.finos.fluxnova.ai.mcp.query.model.query.HistoricIdentityLinkLogQueryDto.class);
+                HistoricIdentityLinkLogQueryDto.class);
 
         registerHistoryTool("queryHistoricCaseInstances", tools::queryHistoricCaseInstances,
                 "Query historic case instances using the criteria provided in the query DTO. Returns a list of historic case instances that match the specified filters.",
-                org.finos.fluxnova.ai.mcp.query.model.query.HistoricCaseInstanceQueryDto.class);
+                HistoricCaseInstanceQueryDto.class);
 
         registerHistoryTool("queryHistoricCaseActivityInstances", tools::queryHistoricCaseActivityInstances,
                 "Query historic case activity instances using the criteria provided in the query DTO. Returns a list of historic case activity instances that match the specified filters.",
-                org.finos.fluxnova.ai.mcp.query.model.query.HistoricCaseActivityInstanceQueryDto.class);
+                HistoricCaseActivityInstanceQueryDto.class);
 
         registerHistoryTool("queryHistoricDecisionInstances", tools::queryHistoricDecisionInstances,
                 "Query historic decision instances using the criteria provided in the query DTO. Returns a list of historic decision instances that match the specified filters.",
-                org.finos.fluxnova.ai.mcp.query.model.query.HistoricDecisionInstanceQueryDto.class);
+                HistoricDecisionInstanceQueryDto.class);
 
         registerHistoryTool("queryHistoricJobLog", tools::queryHistoricJobLog,
                 "Query historic job log entries using the criteria provided in the query DTO. Returns a list of historic job log entries that match the specified filters.",
-                org.finos.fluxnova.ai.mcp.query.model.query.HistoricJobLogQueryDto.class);
+                HistoricJobLogQueryDto.class);
 
         registerHistoryTool("queryHistoricBatches", tools::queryHistoricBatches,
                 "Query historic batches using the criteria provided in the query DTO. Returns a list of historic batches that match the specified filters.",
-                org.finos.fluxnova.ai.mcp.query.model.query.HistoricBatchQueryDto.class);
+                HistoricBatchQueryDto.class);
 
         registerHistoryTool("queryHistoricExternalTaskLog", tools::queryHistoricExternalTaskLog,
                 "Query historic external task log entries using the criteria provided in the query DTO. Returns a list of historic external task log entries that match the specified filters.",
-                org.finos.fluxnova.ai.mcp.query.model.query.HistoricExternalTaskLogQueryDto.class);
+                HistoricExternalTaskLogQueryDto.class);
     }
 
     public void registerExternalTaskTools(ExternalTaskQueryMcpTools tools) {
         registerQueryTool("queryExternalTasks", tools::queryExternalTasks,
                 "Query external tasks in the process engine. Returns a list of external tasks matching the given filter criteria. An external task is created when a service-task-like activity is configured with the external task pattern. The task is placed on a topic and picked up by an external worker that completes it. Use this tool to find pending, locked, or failed external tasks by topic, worker, process instance, priority, or retry status. All filter parameters are optional.",
-                org.finos.fluxnova.ai.mcp.query.model.query.ExternalTaskQueryDto.class);
+                ExternalTaskQueryDto.class);
     }
 
     public void registerAuthorizationTools(AuthorizationQueryMcpTools tools) {
         registerQueryTool("queryAuthorizations", tools::queryAuthorizations,
                 "Query authorizations in the process engine. Returns a list of authorizations matching the given filter criteria. An authorization assigns a set of permissions to a user or group for a specific resource. There are three authorization types: global (0), grant (1), and revoke (2). Use this tool to inspect which permissions users or groups have for specific resources. All filter parameters are optional.",
-                org.finos.fluxnova.ai.mcp.query.model.query.AuthorizationQueryDto.class);
+                AuthorizationQueryDto.class);
     }
 
     public void registerFilterTools(FilterQueryMcpTools tools) {
         registerQueryTool("queryFilters", tools::queryFilters,
                 "Query saved query filters in the process engine. Returns a list of filters matching the given filter criteria. A filter is a saved query (e.g., a saved task query) that can be reused to retrieve a predefined set of results. Filters have a resource type such as 'Task', a name, and an owner. Use this tool to discover what saved filters exist and who owns them. All filter parameters are optional.",
-                org.finos.fluxnova.ai.mcp.query.model.query.FilterQueryDto.class);
+                FilterQueryDto.class);
     }
 
     public void registerCaseTools(CaseQueryMcpTools tools) {
         registerQueryTool("queryCaseInstances", tools::queryCaseInstances,
                 "Query CMMN case instances in the process engine. A case instance is the running execution of a CMMN case definition. Use this tool to find case instances by id, business key, case definition, lifecycle state (active, completed, terminated), super/sub process or case linkage, and tenant. All filter parameters are optional.",
-                org.finos.fluxnova.ai.mcp.query.model.query.CaseInstanceQueryDto.class);
+                CaseInstanceQueryDto.class);
 
         registerQueryTool("queryCaseExecutions", tools::queryCaseExecutions,
                 "Query CMMN case executions in the process engine. A case execution represents a planned item (stage, milestone, human task, or process task) within a running case instance. Use this tool to find executions by id, case instance, case definition, activity, or lifecycle state (available, enabled, active, disabled, required). All filter parameters are optional.",
-                org.finos.fluxnova.ai.mcp.query.model.query.CaseExecutionQueryDto.class);
+                CaseExecutionQueryDto.class);
     }
 
     public void registerIdentityTools(IdentityQueryMcpTools tools) {
         registerQueryTool("queryUsers", tools::queryUsers,
                 "Query users in the process engine identity service. Use this tool to find users by id, name, email, group membership, or tenant membership. Passwords are never included in the results. All filter parameters are optional.",
-                org.finos.fluxnova.ai.mcp.query.model.query.UserQueryDto.class);
+                UserQueryDto.class);
 
         registerQueryTool("queryGroups", tools::queryGroups,
                 "Query groups in the process engine identity service. Use this tool to find groups by id, name, type, member user, or tenant. All filter parameters are optional.",
-                org.finos.fluxnova.ai.mcp.query.model.query.GroupQueryDto.class);
+                GroupQueryDto.class);
 
         registerQueryTool("queryTenants", tools::queryTenants,
                 "Query tenants in the process engine identity service. Use this tool to find tenants by id, name, or by the users and groups that are members of them. All filter parameters are optional.",
-                org.finos.fluxnova.ai.mcp.query.model.query.TenantQueryDto.class);
+                TenantQueryDto.class);
     }
 
     public void registerManagementTools(ManagementQueryMcpTools tools) {
         registerQueryTool("queryJobs", tools::queryJobs,
                 "Query jobs in the process engine. A job is an asynchronous unit of work that is executed by the job executor. Jobs include timers and asynchronous continuations. Use this tool to find jobs by process instance, execution, activity, job definition, retry status, due date, exception status, tenant, and suspension state. All filter parameters are optional.",
-                org.finos.fluxnova.ai.mcp.query.model.query.JobQueryDto.class);
+                JobQueryDto.class);
 
         registerQueryTool("queryJobDefinitions", tools::queryJobDefinitions,
                 "Query job definitions in the process engine. A job definition describes how jobs will be created for a given activity. Use this tool to find job definitions by process definition, activity, job type, configuration, overriding priority, tenant, and suspension state. All filter parameters are optional.",
-                org.finos.fluxnova.ai.mcp.query.model.query.JobDefinitionQueryDto.class);
+                JobDefinitionQueryDto.class);
 
         registerQueryTool("queryBatches", tools::queryBatches,
                 "Query batch operations in the process engine. A batch represents a number of jobs that execute engine commands asynchronously across a large number of process instances. Use this tool to find batches by id, type, tenant, or suspension state. All filter parameters are optional.",
-                org.finos.fluxnova.ai.mcp.query.model.query.BatchQueryDto.class);
+                BatchQueryDto.class);
 
         registerQueryTool("querySchemaLog", tools::querySchemaLog,
                 "Query the database schema version log. Each entry records a schema upgrade applied to the process engine database. Use this tool to retrieve the history of schema versions or check what version is currently active. All filter parameters are optional.",
-                org.finos.fluxnova.ai.mcp.query.model.query.SchemaLogQueryDto.class);
+                SchemaLogQueryDto.class);
     }
 
     public void registerXmlTools(XMLMcpTools tools) {
@@ -234,7 +238,7 @@ public class QueryToolRegistrar {
      * Returns the count of tools registered so far.
      */
     public int getRegisteredToolCount() {
-                return registrarTools.size();
+        return registrarTools.size();
     }
 
     // --- Internal registration methods ---
@@ -270,10 +274,10 @@ public class QueryToolRegistrar {
             return method.execute(queryDto, maxResults);
         });
 
-                if (toolRegistry.register(config)) {
-                        registrarTools.add(toolName);
-                        LOG.debug("MCP - Registered query tool: {}", toolName);
-                }
+        if (toolRegistry.register(config)) {
+            registrarTools.add(toolName);
+            LOG.debug("MCP - Registered query tool: {}", toolName);
+        }
     }
 
     /**
@@ -309,10 +313,10 @@ public class QueryToolRegistrar {
             return method.execute(queryDto);
         });
 
-                if (toolRegistry.register(config)) {
-                        registrarTools.add(toolName);
-                        LOG.debug("MCP - Registered history tool: {}", toolName);
-                }
+        if (toolRegistry.register(config)) {
+            registrarTools.add(toolName);
+            LOG.debug("MCP - Registered history tool: {}", toolName);
+        }
     }
 
     /**
@@ -337,10 +341,10 @@ public class QueryToolRegistrar {
             return method.apply(paramValue);
         });
 
-                if (toolRegistry.register(config)) {
-                        registrarTools.add(toolName);
-                        LOG.debug("MCP - Registered XML tool: {}", toolName);
-                }
+        if (toolRegistry.register(config)) {
+            registrarTools.add(toolName);
+            LOG.debug("MCP - Registered XML tool: {}", toolName);
+        }
     }
 
     /**
