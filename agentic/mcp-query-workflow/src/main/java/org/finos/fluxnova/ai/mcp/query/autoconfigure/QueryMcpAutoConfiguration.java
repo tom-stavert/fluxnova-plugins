@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -33,7 +33,7 @@ import org.springframework.context.annotation.ComponentScan;
  * Tools are registered programmatically with the {@link ToolRegistry} from
  * mcp-server-plugin via the {@link QueryToolRegistrar}.
  */
-@AutoConfigureAfter(McpServerSpringAutoConfiguration.class)
+@AutoConfiguration(after = McpServerSpringAutoConfiguration.class)
 @EnableConfigurationProperties(QueryToolsProperties.class)
 @ComponentScan(basePackages = "org.finos.fluxnova.ai.mcp.query.model")
 public class QueryMcpAutoConfiguration {
