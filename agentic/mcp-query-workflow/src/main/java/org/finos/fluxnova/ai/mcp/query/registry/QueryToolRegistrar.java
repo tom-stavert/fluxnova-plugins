@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -31,14 +30,12 @@ public class QueryToolRegistrar {
     private final ToolRegistry toolRegistry;
     private final ObjectMapper objectMapper;
     private final Set<String> excludedTools;
-    private final Set<String> registrarTools;
 
     public QueryToolRegistrar(ToolRegistry toolRegistry, ObjectMapper objectMapper,
                               QueryToolsProperties properties) {
         this.toolRegistry = toolRegistry;
         this.objectMapper = objectMapper;
         this.excludedTools = properties.getExclude() != null ? properties.getExclude() : Set.of();
-        this.registrarTools = new LinkedHashSet<>();
     }
 
     /**
@@ -234,13 +231,6 @@ public class QueryToolRegistrar {
                 "The ID of the case definition to retrieve the CMMN XML for.");
     }
 
-    /**
-     * Returns the count of tools registered so far.
-     */
-    public int getRegisteredToolCount() {
-        return registrarTools.size();
-    }
-
     // --- Internal registration methods ---
 
     /**
@@ -274,8 +264,7 @@ public class QueryToolRegistrar {
             return method.execute(queryDto, maxResults);
         });
 
-        if (toolRegistry.register(config)) {
-            registrarTools.add(toolName);
+                if (toolRegistry.register(config)) {
             LOG.debug("MCP - Registered query tool: {}", toolName);
         }
     }
@@ -302,8 +291,7 @@ public class QueryToolRegistrar {
             return method.apply(paramValue);
         });
 
-        if (toolRegistry.register(config)) {
-            registrarTools.add(toolName);
+                if (toolRegistry.register(config)) {
             LOG.debug("MCP - Registered XML tool: {}", toolName);
         }
     }

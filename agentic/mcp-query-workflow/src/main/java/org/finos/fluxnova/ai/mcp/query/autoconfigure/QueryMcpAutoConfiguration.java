@@ -69,9 +69,6 @@ public class QueryMcpAutoConfiguration {
             identityTools.ifAvailable(registrar::registerIdentityTools);
             managementTools.ifAvailable(registrar::registerManagementTools);
             xmlTools.ifAvailable(registrar::registerXmlTools);
-
-            log.info("MCP - Query workflow tool registration complete. {} tools registered.",
-                    registrar.getRegisteredToolCount());
         };
     }
 
