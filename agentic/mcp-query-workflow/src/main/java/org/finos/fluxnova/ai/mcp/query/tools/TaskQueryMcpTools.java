@@ -32,7 +32,7 @@ public class TaskQueryMcpTools {
             Integer maxResults) {
         LOG.info("Querying tasks with criteria: {}", queryDto);
 
-        var query = queryDto != null ? queryDto.toQuery(taskService) : taskService.createTaskQuery();
+        var query = queryDto != null ? queryDto.toQuery(taskService) : taskService.createTaskQuery().initializeFormKeys();
         int limit = maxResults != null ? Math.min(maxResults, defaultMaxResults) : defaultMaxResults;
         List<TaskResultDto> resultDtos = query.listPage(0, limit).stream()
                 .map(TaskResultDto::fromTask)

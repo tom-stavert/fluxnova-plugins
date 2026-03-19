@@ -74,6 +74,17 @@ class TaskQueryMcpToolsTest {
         }
 
         @Test
+        void nullDto_callsInitializeFormKeys() {
+            when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
+
+            List<TaskResultDto> result = tools.queryTasks(null, null);
+
+            assertTrue(result.isEmpty());
+            verify(query).initializeFormKeys();
+            verify(query).listPage(anyInt(), anyInt());
+        }
+
+        @Test
         void stringFiltersApplied() {
             when(query.listPage(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
