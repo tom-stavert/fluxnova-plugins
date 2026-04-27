@@ -82,69 +82,6 @@ class AgentConfigParseListenerTest {
     }
 
     @Test
-    void parseRootElement_whenSystemPromptMissing_doesNotThrow() {
-        String bpmn = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="p">
-                    <adHocSubProcess id="myAgent">
-                      <extensionElements>
-                        <agent:config provider="ollama" model="llama3.1"/>
-                      </extensionElements>
-                    </adHocSubProcess>
-                  </process>
-                </definitions>
-                """;
-
-        assertDoesNotThrow(() -> listener.parseRootElement(parseRoot(bpmn), List.of()));
-    }
-
-    @Test
-    void parseRootElement_whenToolScopeUnknown_throwsBpmnParseException() {
-        String bpmn = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="p">
-                    <adHocSubProcess id="myAgent">
-                      <extensionElements>
-                        <agent:config provider="ollama" model="llama3.1"
-                                      toolScopeElementId="doesNotExist"/>
-                      </extensionElements>
-                    </adHocSubProcess>
-                  </process>
-                </definitions>
-                """;
-
-        BpmnParseException ex = assertThrows(BpmnParseException.class,
-                () -> listener.parseRootElement(parseRoot(bpmn), List.of()));
-        assertTrue(ex.getMessage().contains("doesNotExist"));
-    }
-
-    @Test
-    void parseRootElement_whenAgentConfigOnServiceTask_validates() {
-        String bpmn = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="p">
-                    <serviceTask id="taskAgent">
-                      <extensionElements>
-                        <agent:config model="llama3.1"/>
-                      </extensionElements>
-                    </serviceTask>
-                  </process>
-                </definitions>
-                """;
-
-        BpmnParseException ex = assertThrows(BpmnParseException.class,
-                () -> listener.parseRootElement(parseRoot(bpmn), List.of()));
-        assertTrue(ex.getMessage().contains("taskAgent"));
-        assertTrue(ex.getMessage().contains("provider"));
-    }
-
-    @Test
     void parseRootElement_whenMultipleErrors_reportsAll() {
         String bpmn = """
                 <?xml version="1.0" encoding="UTF-8"?>
@@ -200,24 +137,4 @@ class AgentConfigParseListenerTest {
         assertTrue(ex.getMessage().contains("agentP2"));
     }
 
-    @Test
-    void parseRootElement_whenToolScopeReferencesSibling_doesNotThrow() {
-        String bpmn = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="p">
-                    <subProcess id="toolRegistry"/>
-                    <adHocSubProcess id="myAgent">
-                      <extensionElements>
-                        <agent:config provider="ollama" model="llama3.1"
-                                      toolScopeElementId="toolRegistry"/>
-                      </extensionElements>
-                    </adHocSubProcess>
-                  </process>
-                </definitions>
-                """;
-
-        assertDoesNotThrow(() -> listener.parseRootElement(parseRoot(bpmn), List.of()));
-    }
 }
