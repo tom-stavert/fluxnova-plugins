@@ -1,5 +1,6 @@
 package org.finos.fluxnova.bpm.engine.ai.agent.extract;
 
+import org.finos.fluxnova.bpm.engine.ai.agent.AgentModelConstants;
 import org.finos.fluxnova.bpm.engine.shared.xml.BpmnXmlParser;
 import org.finos.fluxnova.bpm.engine.impl.util.xml.Element;
 import org.finos.fluxnova.bpm.engine.impl.util.xml.Parse;
@@ -24,7 +25,7 @@ class AgentConfigValidatorTest {
                 .element("process")
                 .element("adHocSubProcess")
                 .element("extensionElements")
-                .elementNS(AgentConfigExtractor.AGENT_NS, "config");
+                .elementNS(AgentModelConstants.AGENT_NS, "config");
     }
 
     private static final String VALID_CONFIG_BPMN = """

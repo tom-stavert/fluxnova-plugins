@@ -2,8 +2,8 @@ package org.finos.fluxnova.bpm.engine.ai.agent.parser;
 
 import org.finos.fluxnova.bpm.engine.BpmnParseException;
 import org.finos.fluxnova.bpm.engine.ai.agent.extract.AgentConfigElementWalker;
-import org.finos.fluxnova.bpm.engine.ai.agent.extract.AgentConfigExtractor;
 import org.finos.fluxnova.bpm.engine.ai.agent.extract.AgentConfigValidator;
+import org.finos.fluxnova.bpm.engine.ai.agent.AgentModelConstants;
 import org.finos.fluxnova.bpm.engine.impl.bpmn.parser.AbstractBpmnParseListener;
 import org.finos.fluxnova.bpm.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.finos.fluxnova.bpm.engine.impl.util.xml.Element;
@@ -39,7 +39,7 @@ public class AgentConfigParseListener extends AbstractBpmnParseListener {
                 if (ext == null) {
                     continue;
                 }
-                Element config = ext.elementNS(AgentConfigExtractor.AGENT_NS, "config");
+                Element config = ext.elementNS(AgentModelConstants.AGENT_NS, "config");
                 if (config == null) {
                     continue;
                 }

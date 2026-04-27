@@ -3,7 +3,6 @@ package org.finos.fluxnova.bpm.engine.ai.agent.extract;
 import org.finos.fluxnova.bpm.engine.ai.agent.model.AgentConfig;
 import org.finos.fluxnova.bpm.engine.shared.xml.BpmnXmlParser;
 import org.finos.fluxnova.bpm.engine.impl.util.xml.Element;
-import org.finos.fluxnova.bpm.engine.impl.util.xml.Namespace;
 import org.finos.fluxnova.bpm.engine.impl.util.xml.Parse;
 
 import java.io.InputStream;
@@ -11,9 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class AgentConfigExtractor {
+import static org.finos.fluxnova.bpm.engine.ai.agent.AgentModelConstants.AGENT_NS;
 
-    public static final Namespace AGENT_NS = new Namespace("http://fluxnova.finos.org/schema/1.0/ai/agent");
+public class AgentConfigExtractor {
 
     private final AgentConfigElementWalker walker;
 
