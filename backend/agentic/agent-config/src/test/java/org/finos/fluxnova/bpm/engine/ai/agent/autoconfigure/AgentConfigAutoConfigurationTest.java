@@ -39,6 +39,7 @@ class AgentConfigAutoConfigurationTest {
         assertNotNull(context.getBean(AgentConfigExtractor.class));
         assertNotNull(context.getBean(AgentConfigRegistry.class));
         assertNotNull(context.getBean(AgentConfigUndeployListener.class));
+        assertNotNull(context.getBean(AgentConfigEnginePlugin.class));
     }
 
     @Configuration
