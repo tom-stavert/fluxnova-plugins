@@ -1,7 +1,7 @@
 package org.finos.fluxnova.bpm.engine.ai.agent.discovery.registry;
 
 import org.finos.fluxnova.bpm.engine.RepositoryService;
-import org.finos.fluxnova.bpm.engine.ai.agent.discovery.extract.AgentContextSpecExtractor;
+import org.finos.fluxnova.bpm.engine.ai.agent.discovery.extract.BpmnExtensionContextSpecExtractor;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.AgentContextSpec;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.ContextVariableDeclaration;
 import org.finos.fluxnova.bpm.engine.ai.agent.model.AgentConfig;
@@ -71,7 +71,7 @@ class AgentContextSpecRegistryTest {
     @BeforeEach
     void setUp() {
         registry = new AgentContextSpecRegistry(repositoryService, agentConfigRegistry,
-                new AgentContextSpecExtractor());
+                new BpmnExtensionContextSpecExtractor());
     }
 
     private AgentConfig config() {
