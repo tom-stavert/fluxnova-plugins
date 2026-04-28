@@ -10,7 +10,7 @@ import org.finos.fluxnova.bpm.engine.ai.agent.discovery.extract.BpmnExtensionCon
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.lifecycle.AgentDiscoveryUndeployListener;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.registry.AgentContextSpecRegistry;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.registry.AgentToolCatalogueRegistry;
-import org.finos.fluxnova.bpm.engine.ai.agent.discovery.runtime.ContextResolver;
+import org.finos.fluxnova.bpm.engine.ai.agent.discovery.runtime.AgentContextResolver;
 import org.finos.fluxnova.bpm.engine.ai.agent.registry.AgentConfigRegistry;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -51,8 +51,8 @@ public class AgentDiscoveryAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public ContextResolver contextResolver(RuntimeService runtimeService) {
-        return new ContextResolver(runtimeService);
+    public AgentContextResolver agentContextResolver(RuntimeService runtimeService) {
+        return new AgentContextResolver(runtimeService);
     }
 
     @Bean
