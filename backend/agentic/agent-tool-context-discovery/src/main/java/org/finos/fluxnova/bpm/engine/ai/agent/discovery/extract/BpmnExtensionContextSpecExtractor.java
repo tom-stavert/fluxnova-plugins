@@ -8,6 +8,10 @@ import org.finos.fluxnova.bpm.engine.impl.util.xml.Namespace;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Extracts an {@link AgentContextSpec} from a BPMN element's {@code <extensionElements>},
+ * reading declared context variables from an {@code <agent:context>} block.
+ */
 public class BpmnExtensionContextSpecExtractor implements AgentContextSpecExtractor {
 
     private static final Namespace AGENT_NS = new Namespace("http://fluxnova.finos.org/schema/1.0/ai/agent");
