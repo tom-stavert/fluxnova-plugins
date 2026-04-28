@@ -26,6 +26,7 @@ public class BpmnExtensionContextSpecExtractor implements AgentContextSpecExtrac
 
         Element contextElement = extensionElements.elementNS(AGENT_NS, "context");
         if (contextElement == null) {
+            // Context is empty, so adding empty list here adds all process variables to context
             return new AgentContextSpec(processDefinitionId, elementId, List.of());
         }
 
