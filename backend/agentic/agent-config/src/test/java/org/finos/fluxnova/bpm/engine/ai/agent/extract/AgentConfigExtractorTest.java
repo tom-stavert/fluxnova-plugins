@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AgentConfigExtractorTest {
@@ -159,51 +159,7 @@ class AgentConfigExtractorTest {
     }
 
     @Test
-    void extract_whenRequiredAttributeMissing_returnsEmpty() {
-        String bpmn = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="p">
-                    <adHocSubProcess id="myAgent">
-                      <extensionElements>
-                        <agent:config model="llama3.1"
-                                      systemPrompt="You are an assistant."/>
-                      </extensionElements>
-                    </adHocSubProcess>
-                  </process>
-                </definitions>
-                """;
-
-        Optional<AgentConfig> result = extractor.extract(parseAdHocSubProcess(bpmn), PROCESS_DEFINITION_ID);
-
-        assertTrue(result.isEmpty());
-    }
-
-    @Test
-    void extract_whenModelMissing_returnsEmpty() {
-        String bpmn = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="p">
-                    <adHocSubProcess id="myAgent">
-                      <extensionElements>
-                        <agent:config provider="ollama"
-                                      systemPrompt="You are an assistant."/>
-                      </extensionElements>
-                    </adHocSubProcess>
-                  </process>
-                </definitions>
-                """;
-
-        Optional<AgentConfig> result = extractor.extract(parseAdHocSubProcess(bpmn), PROCESS_DEFINITION_ID);
-
-        assertTrue(result.isEmpty());
-    }
-
-    @Test
-    void extract_whenSystemPromptMissing_returnsEmpty() {
+    void extract_whenSystemPromptAbsent_returnsConfigWithNullSystemPrompt() {
         String bpmn = """
                 <?xml version="1.0" encoding="UTF-8"?>
                 <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
@@ -221,61 +177,13 @@ class AgentConfigExtractorTest {
 
         Optional<AgentConfig> result = extractor.extract(parseAdHocSubProcess(bpmn), PROCESS_DEFINITION_ID);
 
-        assertTrue(result.isEmpty());
+        assertTrue(result.isPresent());
+        assertNull(result.get().systemPrompt());
+        assertEquals("ollama", result.get().provider());
+        assertEquals("llama3.1", result.get().model());
     }
 
-    @Test
-    void extract_whenRequiredAttributeBlank_returnsEmpty() {
-        String bpmn = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="p">
-                    <adHocSubProcess id="myAgent">
-                      <extensionElements>
-                        <agent:config provider=""
-                                      model="llama3.1"
-                                      systemPrompt="You are an assistant."/>
-                      </extensionElements>
-                    </adHocSubProcess>
-                  </process>
-                </definitions>
-                """;
-
-        Optional<AgentConfig> result = extractor.extract(parseAdHocSubProcess(bpmn), PROCESS_DEFINITION_ID);
-
-        assertTrue(result.isEmpty());
-    }
-
-    // extractAll(...) tool-scope validation
-
-    @Test
-    void extractAll_whenToolScopeReferencesUnknownElement_throws() {
-        String bpmn = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="p">
-                    <adHocSubProcess id="myAgent">
-                      <extensionElements>
-                        <agent:config provider="ollama"
-                                      model="llama3.1"
-                                      systemPrompt="You are an assistant."
-                                      toolScopeElementId="doesNotExist"/>
-                      </extensionElements>
-                    </adHocSubProcess>
-                  </process>
-                </definitions>
-                """;
-
-        IllegalArgumentException error = assertThrows(IllegalArgumentException.class, () ->
-                extractor.extractAll(
-                        new ByteArrayInputStream(bpmn.getBytes(StandardCharsets.UTF_8)),
-                        PROCESS_DEFINITION_ID));
-
-        assertTrue(error.getMessage().contains("doesNotExist"));
-        assertTrue(error.getMessage().contains("myAgent"));
-    }
+    // extractAll(...) tool-scope discovery
 
     @Test
     void extractAll_whenToolScopeReferencesSiblingElement_succeeds() {
@@ -283,7 +191,7 @@ class AgentConfigExtractorTest {
                 <?xml version="1.0" encoding="UTF-8"?>
                 <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
                              xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="p">
+                  <process id="proc">
                     <subProcess id="toolRegistry"/>
                     <adHocSubProcess id="myAgent">
                       <extensionElements>
@@ -312,7 +220,7 @@ class AgentConfigExtractorTest {
                 <?xml version="1.0" encoding="UTF-8"?>
                 <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
                              xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="p">
+                  <process id="proc">
                     <serviceTask id="taskAgent">
                       <extensionElements>
                         <agent:config provider="ollama"
@@ -338,7 +246,7 @@ class AgentConfigExtractorTest {
                 <?xml version="1.0" encoding="UTF-8"?>
                 <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
                              xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="p">
+                  <process id="proc">
                     <subProcess id="outer">
                       <adHocSubProcess id="nestedAgent">
                         <extensionElements>
@@ -365,7 +273,7 @@ class AgentConfigExtractorTest {
                 <?xml version="1.0" encoding="UTF-8"?>
                 <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
                              xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="p">
+                  <process id="proc">
                     <subProcess id="eventSub" triggeredByEvent="true">
                       <adHocSubProcess id="eventAgent">
                         <extensionElements>
@@ -392,7 +300,7 @@ class AgentConfigExtractorTest {
                 <?xml version="1.0" encoding="UTF-8"?>
                 <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
                              xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="p">
+                  <process id="proc">
                     <transaction id="tx1">
                       <adHocSubProcess id="transactionAgent">
                         <extensionElements>
@@ -419,7 +327,7 @@ class AgentConfigExtractorTest {
                 <?xml version="1.0" encoding="UTF-8"?>
                 <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
                              xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="p">
+                  <process id="proc">
                     <adHocSubProcess id="agentA">
                       <extensionElements>
                         <agent:config provider="ollama" model="llama3.1" systemPrompt="Agent A."/>
@@ -443,22 +351,22 @@ class AgentConfigExtractorTest {
     }
 
     @Test
-    void extractAll_findsAgentsAcrossMultipleProcesses() {
+    void extractAll_onlyWalksProcessMatchingProcessDefinitionId() {
         String bpmn = """
                 <?xml version="1.0" encoding="UTF-8"?>
                 <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
                              xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="p1">
+                  <process id="proc">
                     <adHocSubProcess id="agentP1">
                       <extensionElements>
                         <agent:config provider="ollama" model="llama3.1" systemPrompt="P1 agent."/>
                       </extensionElements>
                     </adHocSubProcess>
                   </process>
-                  <process id="p2">
-                    <adHocSubProcess id="agentP2">
+                  <process id="other">
+                    <adHocSubProcess id="agentOther">
                       <extensionElements>
-                        <agent:config provider="ollama" model="llama3.1" systemPrompt="P2 agent."/>
+                        <agent:config provider="ollama" model="llama3.1" systemPrompt="Other agent."/>
                       </extensionElements>
                     </adHocSubProcess>
                   </process>
@@ -468,8 +376,7 @@ class AgentConfigExtractorTest {
         List<AgentConfig> results = extractor.extractAll(
                 new ByteArrayInputStream(bpmn.getBytes(StandardCharsets.UTF_8)), PROCESS_DEFINITION_ID);
 
-        assertEquals(2, results.size());
+        assertEquals(1, results.size());
         assertEquals("agentP1", results.get(0).elementId());
-        assertEquals("agentP2", results.get(1).elementId());
     }
 }

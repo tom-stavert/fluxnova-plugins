@@ -47,6 +47,7 @@ public class AgentConfigRegistry {
             return Boolean.TRUE;
         } catch (IOException e) {
             LOG.error("Failed to scan process definition '{}' for agent configurations", processDefinitionId, e);
+            // Return null to avoid caching the failure; this allows computeIfAbsent to retry on the next call
             return null;
         }
     }

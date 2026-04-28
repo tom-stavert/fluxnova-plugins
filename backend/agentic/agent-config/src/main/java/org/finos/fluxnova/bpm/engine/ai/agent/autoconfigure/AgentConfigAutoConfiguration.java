@@ -31,4 +31,10 @@ public class AgentConfigAutoConfiguration {
     public AgentConfigUndeployListener agentConfigUndeployListener(AgentConfigRegistry registry) {
         return new AgentConfigUndeployListener(registry);
     }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public AgentConfigEnginePlugin agentConfigEnginePlugin() {
+        return new AgentConfigEnginePlugin();
+    }
 }
