@@ -1,5 +1,6 @@
 package org.finos.fluxnova.bpm.engine.ai.agent.registry;
 
+import org.finos.fluxnova.bpm.engine.ProcessEngineException;
 import org.finos.fluxnova.bpm.engine.RepositoryService;
 import org.finos.fluxnova.bpm.engine.ai.agent.extract.AgentConfigExtractor;
 import org.finos.fluxnova.bpm.engine.ai.agent.model.AgentConfig;
@@ -145,7 +146,23 @@ class AgentConfigRegistryTest {
     }
 
     @Test
-    void resolve_whenScanThrowsUnchecked_propagatesException() throws Exception {
+        void resolve_whenScanThrowsProcessEngineException_retriesWithoutPropagating() throws Exception {
+                when(repositoryService.getProcessModel(PROC_DEF_ID))
+                                .thenThrow(new ProcessEngineException("parse failure"))
+                                .thenReturn(new ByteArrayInputStream(BPMN_WITH_AGENT.getBytes(StandardCharsets.UTF_8)));
+
+                Optional<AgentConfig> first = registry.resolve(PROC_DEF_ID, ELEMENT_ID);
+                assertTrue(first.isEmpty());
+
+                Optional<AgentConfig> second = registry.resolve(PROC_DEF_ID, ELEMENT_ID);
+                assertTrue(second.isPresent());
+                assertEquals("ollama", second.get().provider());
+
+                verify(repositoryService, times(2)).getProcessModel(PROC_DEF_ID);
+        }
+
+        @Test
+        void resolve_whenScanThrowsUnchecked_propagatesException() throws Exception {
         when(repositoryService.getProcessModel(PROC_DEF_ID))
                 .thenThrow(new RuntimeException("unexpected"));
 

@@ -1,5 +1,6 @@
 package org.finos.fluxnova.bpm.engine.ai.agent.registry;
 
+import org.finos.fluxnova.bpm.engine.ProcessEngineException;
 import org.finos.fluxnova.bpm.engine.RepositoryService;
 import org.finos.fluxnova.bpm.engine.ai.agent.extract.AgentConfigExtractor;
 import org.finos.fluxnova.bpm.engine.ai.agent.model.AgentConfig;
@@ -45,7 +46,7 @@ public class AgentConfigRegistry {
             extractor.extractAll(xml, processDefinitionId)
                     .forEach(config -> configs.put(key(processDefinitionId, config.elementId()), config));
             return Boolean.TRUE;
-        } catch (IOException e) {
+        } catch (IOException | ProcessEngineException e) {
             LOG.error("Failed to scan process definition '{}' for agent configurations", processDefinitionId, e);
             // Return null to avoid caching the failure; this allows computeIfAbsent to retry on the next call
             return null;
