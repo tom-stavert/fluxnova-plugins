@@ -32,8 +32,8 @@ public class AgentConfigRegistry {
     }
 
     public void unregisterAll() {
-        scanned.clear();
         configs.clear();
+        scanned.clear();
     }
 
     private void ensureScanned(String processDefinitionId) {
