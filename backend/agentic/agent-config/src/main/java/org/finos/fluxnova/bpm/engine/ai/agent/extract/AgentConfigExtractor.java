@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.finos.fluxnova.bpm.engine.ai.agent.AgentModelConstants.AGENT_NS;
+import static org.finos.fluxnova.bpm.engine.shared.agent.AgentModelConstants.AGENT_NS;
 
 public class AgentConfigExtractor {
 

@@ -1,6 +1,6 @@
 package org.finos.fluxnova.bpm.engine.ai.agent.extract;
 
-import org.finos.fluxnova.bpm.engine.ai.agent.AgentModelConstants;
+import org.finos.fluxnova.bpm.engine.shared.agent.AgentModelConstants;
 import org.finos.fluxnova.bpm.engine.shared.xml.BpmnXmlParser;
 import org.finos.fluxnova.bpm.engine.impl.util.xml.Element;
 import org.finos.fluxnova.bpm.engine.impl.util.xml.Parse;

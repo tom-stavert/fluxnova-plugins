@@ -1,4 +1,4 @@
-package org.finos.fluxnova.bpm.engine.ai.agent;
+package org.finos.fluxnova.bpm.engine.shared.agent;
 
 import org.finos.fluxnova.bpm.engine.impl.util.xml.Namespace;
 
