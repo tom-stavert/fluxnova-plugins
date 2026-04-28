@@ -74,8 +74,8 @@ public class AdHocSubProcessCatalogueBuilder implements AgentToolCatalogueBuilde
 
     private Set<String> collectSequenceFlowTargets(Element scopeElement) {
         Set<String> targets = new HashSet<>();
-        for (Element el : scopeElement.elements("sequenceFlow")) {
-            String targetRef = el.attribute("targetRef");
+        for (Element sequenceFlow : scopeElement.elements("sequenceFlow")) {
+            String targetRef = sequenceFlow.attribute("targetRef");
             if (targetRef != null) {
                 targets.add(targetRef);
             }
@@ -95,26 +95,26 @@ public class AdHocSubProcessCatalogueBuilder implements AgentToolCatalogueBuilde
     }
 
     private Set<String> extractReads(Element element) {
-        Element ext = element.element("extensionElements");
-        if (ext == null) return Set.of();
-        Element io = ext.elementNS(CAMUNDA_NS, "inputOutput");
-        if (io == null) return Set.of();
+        Element extensionElements = element.element("extensionElements");
+        if (extensionElements == null) return Set.of();
+        Element inputOutputElement = extensionElements.elementNS(CAMUNDA_NS, "inputOutput");
+        if (inputOutputElement == null) return Set.of();
 
         Set<String> reads = new LinkedHashSet<>();
-        for (Element inputParam : io.elementsNS(CAMUNDA_NS, "inputParameter")) {
+        for (Element inputParam : inputOutputElement.elementsNS(CAMUNDA_NS, "inputParameter")) {
             collectReads(inputParam, reads);
         }
         return reads;
     }
 
     private Set<String> extractWrites(Element element) {
-        Element ext = element.element("extensionElements");
-        if (ext == null) return Set.of();
-        Element io = ext.elementNS(CAMUNDA_NS, "inputOutput");
-        if (io == null) return Set.of();
+        Element extensionElements = element.element("extensionElements");
+        if (extensionElements == null) return Set.of();
+        Element inputOutputElement = extensionElements.elementNS(CAMUNDA_NS, "inputOutput");
+        if (inputOutputElement == null) return Set.of();
 
         Set<String> writes = new LinkedHashSet<>();
-        for (Element outputParam : io.elementsNS(CAMUNDA_NS, "outputParameter")) {
+        for (Element outputParam : inputOutputElement.elementsNS(CAMUNDA_NS, "outputParameter")) {
             String name = outputParam.attribute("name");
             if (name != null) {
                 writes.add(name);
@@ -125,8 +125,8 @@ public class AdHocSubProcessCatalogueBuilder implements AgentToolCatalogueBuilde
 
     static Optional<String> scopeReadFor(String expression) {
         if (expression == null) return Optional.empty();
-        Matcher m = SIMPLE_EL.matcher(expression);
-        return m.matches() ? Optional.of(m.group(1)) : Optional.empty();
+        Matcher matcher = SIMPLE_EL.matcher(expression);
+        return matcher.matches() ? Optional.of(matcher.group(1)) : Optional.empty();
     }
 
     static void collectReads(Element node, Set<String> out) {

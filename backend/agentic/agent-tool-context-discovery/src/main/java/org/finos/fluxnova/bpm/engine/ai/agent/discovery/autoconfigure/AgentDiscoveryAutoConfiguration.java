@@ -37,8 +37,8 @@ public class AgentDiscoveryAutoConfiguration {
     @ConditionalOnMissingBean
     public AgentToolCatalogueRegistry agentToolCatalogueRegistry(RepositoryService repositoryService,
                                                                   AgentConfigRegistry agentConfigRegistry,
-                                                                  AgentToolCatalogueBuilder builder) {
-        return new AgentToolCatalogueRegistry(repositoryService, agentConfigRegistry, builder);
+                                                                  AgentToolCatalogueBuilder catalogueBuilder) {
+        return new AgentToolCatalogueRegistry(repositoryService, agentConfigRegistry, catalogueBuilder);
     }
 
     @Bean
