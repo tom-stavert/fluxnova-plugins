@@ -134,14 +134,14 @@ public class AdHocSubProcessCatalogueBuilder implements AgentToolCatalogueBuilde
     }
 
     private static void walk(Element node, Set<String> out) {
-        if (isCamundaScript(node)) return;
-        if (isCamundaList(node)) {
+        if (isFluxnovaScript(node)) return;
+        if (isFluxnovaList(node)) {
             for (Element value : node.elementsNS(CAMUNDA_NS, "value")) {
                 walk(value, out);
             }
             return;
         }
-        if (isCamundaMap(node)) {
+        if (isFluxnovaMap(node)) {
             for (Element entry : node.elementsNS(CAMUNDA_NS, "entry")) {
                 walk(entry, out);
             }
@@ -149,7 +149,7 @@ public class AdHocSubProcessCatalogueBuilder implements AgentToolCatalogueBuilde
         }
         // Check for composite children (list, map, script) before falling through to text
         for (Element child : node.elements()) {
-            if (isCamundaList(child) || isCamundaMap(child) || isCamundaScript(child)) {
+            if (isFluxnovaList(child) || isFluxnovaMap(child) || isFluxnovaScript(child)) {
                 walk(child, out);
                 return;
             }
@@ -157,17 +157,17 @@ public class AdHocSubProcessCatalogueBuilder implements AgentToolCatalogueBuilde
         scopeReadFor(node.getText()).ifPresent(out::add);
     }
 
-    private static boolean isCamundaScript(Element node) {
+    private static boolean isFluxnovaScript(Element node) {
         return "script".equals(node.getTagName())
                 && CAMUNDA_NS.getNamespaceUri().equals(node.getUri());
     }
 
-    private static boolean isCamundaList(Element node) {
+    private static boolean isFluxnovaList(Element node) {
         return "list".equals(node.getTagName())
                 && CAMUNDA_NS.getNamespaceUri().equals(node.getUri());
     }
 
-    private static boolean isCamundaMap(Element node) {
+    private static boolean isFluxnovaMap(Element node) {
         return "map".equals(node.getTagName())
                 && CAMUNDA_NS.getNamespaceUri().equals(node.getUri());
     }
