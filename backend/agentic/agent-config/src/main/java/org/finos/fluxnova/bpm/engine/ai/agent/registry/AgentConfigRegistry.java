@@ -47,11 +47,11 @@ public class AgentConfigRegistry {
                     .forEach(config -> configs.put(key(processDefinitionId, config.elementId()), config));
             return Boolean.TRUE;
         } catch (IOException e) {
-            LOG.error("Failed to read process model for '{}' while scanning agent configurations", processDefinitionId, e);
+            LOG.error("I/O error while scanning agent configurations for process definition '{}'", processDefinitionId, e);
             // Return null to avoid caching the failure; this allows computeIfAbsent to retry on the next call
             return null;
         } catch (ProcessEngineException e) {
-            LOG.error("Failed to parse or process BPMN model for '{}' while scanning agent configurations", processDefinitionId, e);
+            LOG.error("Engine error while scanning agent configurations for process definition '{}'", processDefinitionId, e);
             // Return null to avoid caching the failure; this allows computeIfAbsent to retry on the next call
             return null;
         }
