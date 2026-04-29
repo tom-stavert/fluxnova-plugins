@@ -149,8 +149,13 @@ class AgentConfigRegistryTest {
                 .thenThrow(new ProcessEngineException("parse failure"))
                 .thenReturn(new ByteArrayInputStream(BPMN_WITH_AGENT.getBytes(StandardCharsets.UTF_8)));
 
-        // First call — exception propagates (no longer swallowed)
-        assertThrows(ProcessEngineException.class, () -> registry.resolve(PROC_DEF_ID, ELEMENT_ID));
+        // First call — exception is rethrown with process-definition context
+        ProcessEngineException thrown = assertThrows(ProcessEngineException.class,
+                () -> registry.resolve(PROC_DEF_ID, ELEMENT_ID));
+        assertTrue(thrown.getMessage().contains(PROC_DEF_ID));
+        assertTrue(thrown.getMessage().contains("resolving agent configuration"));
+        assertNotNull(thrown.getCause());
+        assertEquals("parse failure", thrown.getCause().getMessage());
 
         // Second call — the failure was not marked as scanned, so we retry and succeed
         Optional<AgentConfig> second = registry.resolve(PROC_DEF_ID, ELEMENT_ID);
