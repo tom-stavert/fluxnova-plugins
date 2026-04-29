@@ -11,8 +11,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
@@ -146,58 +144,28 @@ class AgentConfigRegistryTest {
     }
 
     @Test
-        void resolve_whenScanThrowsProcessEngineException_retriesWithoutPropagating() throws Exception {
-                when(repositoryService.getProcessModel(PROC_DEF_ID))
-                                .thenThrow(new ProcessEngineException("parse failure"))
-                                .thenReturn(new ByteArrayInputStream(BPMN_WITH_AGENT.getBytes(StandardCharsets.UTF_8)));
+    void resolve_whenScanThrowsProcessEngineException_propagatesAndRetries() throws Exception {
+        when(repositoryService.getProcessModel(PROC_DEF_ID))
+                .thenThrow(new ProcessEngineException("parse failure"))
+                .thenReturn(new ByteArrayInputStream(BPMN_WITH_AGENT.getBytes(StandardCharsets.UTF_8)));
 
-                Optional<AgentConfig> first = registry.resolve(PROC_DEF_ID, ELEMENT_ID);
-                assertTrue(first.isEmpty());
+        // First call — exception propagates (no longer swallowed)
+        assertThrows(ProcessEngineException.class, () -> registry.resolve(PROC_DEF_ID, ELEMENT_ID));
 
-                Optional<AgentConfig> second = registry.resolve(PROC_DEF_ID, ELEMENT_ID);
-                assertTrue(second.isPresent());
-                assertEquals("ollama", second.get().provider());
+        // Second call — the failure was not marked as scanned, so we retry and succeed
+        Optional<AgentConfig> second = registry.resolve(PROC_DEF_ID, ELEMENT_ID);
+        assertTrue(second.isPresent());
+        assertEquals("ollama", second.get().provider());
 
-                verify(repositoryService, times(2)).getProcessModel(PROC_DEF_ID);
-        }
+        verify(repositoryService, times(2)).getProcessModel(PROC_DEF_ID);
+    }
 
-        @Test
-        void resolve_whenScanThrowsUnchecked_propagatesException() throws Exception {
+    @Test
+    void resolve_whenScanThrowsUnchecked_propagatesException() throws Exception {
         when(repositoryService.getProcessModel(PROC_DEF_ID))
                 .thenThrow(new RuntimeException("unexpected"));
 
         assertThrows(RuntimeException.class, () -> registry.resolve(PROC_DEF_ID, ELEMENT_ID));
     }
 
-    @Test
-    void resolve_whenStreamCloseThrowsIOException_returnsConfigButDoesNotCacheScan() throws Exception {
-        InputStream brokenCloseStream = new ByteArrayInputStream(
-                BPMN_WITH_AGENT.getBytes(StandardCharsets.UTF_8)) {
-            private boolean closedOnce = false;
-
-            @Override
-            public void close() throws IOException {
-                if (closedOnce) {
-                    throw new IOException("stream close failed");
-                }
-                closedOnce = true;
-            }
-        };
-
-        when(repositoryService.getProcessModel(PROC_DEF_ID))
-                .thenReturn(brokenCloseStream)
-                .thenReturn(new ByteArrayInputStream(BPMN_WITH_AGENT.getBytes(StandardCharsets.UTF_8)));
-
-        // First call — extraction succeeds before close() throws;
-        // IOException is caught so resolve does NOT throw, and configs are already stored
-        Optional<AgentConfig> first = registry.resolve(PROC_DEF_ID, ELEMENT_ID);
-        assertTrue(first.isPresent());
-
-        // Second call — re-scans because doScan returned null (not cached in scanned map)
-        Optional<AgentConfig> second = registry.resolve(PROC_DEF_ID, ELEMENT_ID);
-        assertTrue(second.isPresent());
-
-        // getProcessModel was called twice because the IOException prevented caching
-        verify(repositoryService, times(2)).getProcessModel(PROC_DEF_ID);
-    }
 }

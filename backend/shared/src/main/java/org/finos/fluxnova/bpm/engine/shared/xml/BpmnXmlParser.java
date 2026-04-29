@@ -1,6 +1,5 @@
 package org.finos.fluxnova.bpm.engine.shared.xml;
 
-import org.finos.fluxnova.bpm.engine.ProcessEngineException;
 import org.finos.fluxnova.bpm.engine.impl.util.xml.Parse;
 import org.finos.fluxnova.bpm.engine.impl.util.xml.Parser;
 import org.xml.sax.SAXException;
@@ -17,16 +16,10 @@ public class BpmnXmlParser extends Parser {
     }
 
     @Override
-    protected SAXParser getSaxParser() throws Exception {
+    protected SAXParser getSaxParser() throws ParserConfigurationException, SAXException {
         SAXParserFactory factory = SAXParserFactory.newInstance();
         factory.setNamespaceAware(true);
         setXxeProcessing(factory);
-        try {
-            return factory.newSAXParser();
-        } catch (ParserConfigurationException | SAXException exception) {
-            throw new ProcessEngineException(
-                    "Unable to create namespace-aware SAX parser for BPMN XML parsing",
-                    exception);
-        }
+        return factory.newSAXParser();
     }
 }
