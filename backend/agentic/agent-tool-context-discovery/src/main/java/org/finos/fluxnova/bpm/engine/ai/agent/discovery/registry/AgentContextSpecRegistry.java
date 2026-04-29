@@ -82,7 +82,7 @@ public class AgentContextSpecRegistry {
             return null; // transient failure — don't cache, retry next time
         } catch (NotFoundException e) {
             LOG.error("Process definition '{}' not found", processDefinitionId, e);
-            return Optional.empty();
+            throw e;
         }
     }
 
