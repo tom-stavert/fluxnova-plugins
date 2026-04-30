@@ -81,6 +81,7 @@ public class AgentContextSpecRegistry {
             throw e;
         } catch (AuthorizationException e) {
             LOG.error("Unauthorized process definition access attempt on '{}'", processDefinitionId, e);
+            throw e;
         }
     }
 

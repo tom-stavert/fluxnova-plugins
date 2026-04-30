@@ -1,5 +1,6 @@
 package org.finos.fluxnova.bpm.engine.ai.agent.discovery.registry;
 
+import org.finos.fluxnova.bpm.engine.AuthorizationException;
 import org.finos.fluxnova.bpm.engine.RepositoryService;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.extract.AgentToolCatalogueBuilder;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.AgentContextSpec;
@@ -80,6 +81,9 @@ public class AgentToolCatalogueRegistry {
             return null; // transient failure — don't cache, retry next time
         } catch (NotFoundException e) {
             LOG.error("Process definition '{}' not found", processDefinitionId, e);
+            throw e;
+        } catch (AuthorizationException e) {
+            LOG.error("Unauthorized process definition access attempt on '{}'", processDefinitionId, e);
             throw e;
         }
     }
