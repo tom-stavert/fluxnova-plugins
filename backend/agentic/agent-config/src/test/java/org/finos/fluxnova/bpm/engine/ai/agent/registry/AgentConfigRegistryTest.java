@@ -1,9 +1,10 @@
 package org.finos.fluxnova.bpm.engine.ai.agent.registry;
 
-import org.finos.fluxnova.bpm.engine.ProcessEngineException;
+import org.finos.fluxnova.bpm.engine.AuthorizationException;
 import org.finos.fluxnova.bpm.engine.RepositoryService;
 import org.finos.fluxnova.bpm.engine.ai.agent.extract.AgentConfigExtractor;
 import org.finos.fluxnova.bpm.engine.ai.agent.model.AgentConfig;
+import org.finos.fluxnova.bpm.engine.exception.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,8 +12,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
@@ -146,58 +145,27 @@ class AgentConfigRegistryTest {
     }
 
     @Test
-        void resolve_whenScanThrowsProcessEngineException_retriesWithoutPropagating() throws Exception {
-                when(repositoryService.getProcessModel(PROC_DEF_ID))
-                                .thenThrow(new ProcessEngineException("parse failure"))
-                                .thenReturn(new ByteArrayInputStream(BPMN_WITH_AGENT.getBytes(StandardCharsets.UTF_8)));
+    void resolve_whenScanThrowsNotFoundException_propagates() throws Exception {
+        when(repositoryService.getProcessModel(PROC_DEF_ID))
+                .thenThrow(new NotFoundException("not found"));
 
-                Optional<AgentConfig> first = registry.resolve(PROC_DEF_ID, ELEMENT_ID);
-                assertTrue(first.isEmpty());
+        assertThrows(NotFoundException.class, () -> registry.resolve(PROC_DEF_ID, ELEMENT_ID));
+    }
 
-                Optional<AgentConfig> second = registry.resolve(PROC_DEF_ID, ELEMENT_ID);
-                assertTrue(second.isPresent());
-                assertEquals("ollama", second.get().provider());
+    @Test
+    void resolve_whenScanThrowsAuthorizationException_propagates() throws Exception {
+        when(repositoryService.getProcessModel(PROC_DEF_ID))
+                .thenThrow(new AuthorizationException("forbidden"));
 
-                verify(repositoryService, times(2)).getProcessModel(PROC_DEF_ID);
-        }
+        assertThrows(AuthorizationException.class, () -> registry.resolve(PROC_DEF_ID, ELEMENT_ID));
+    }
 
-        @Test
-        void resolve_whenScanThrowsUnchecked_propagatesException() throws Exception {
+    @Test
+    void resolve_whenScanThrowsUnchecked_propagatesException() throws Exception {
         when(repositoryService.getProcessModel(PROC_DEF_ID))
                 .thenThrow(new RuntimeException("unexpected"));
 
         assertThrows(RuntimeException.class, () -> registry.resolve(PROC_DEF_ID, ELEMENT_ID));
     }
 
-    @Test
-    void resolve_whenStreamCloseThrowsIOException_returnsConfigButDoesNotCacheScan() throws Exception {
-        InputStream brokenCloseStream = new ByteArrayInputStream(
-                BPMN_WITH_AGENT.getBytes(StandardCharsets.UTF_8)) {
-            private boolean closedOnce = false;
-
-            @Override
-            public void close() throws IOException {
-                if (closedOnce) {
-                    throw new IOException("stream close failed");
-                }
-                closedOnce = true;
-            }
-        };
-
-        when(repositoryService.getProcessModel(PROC_DEF_ID))
-                .thenReturn(brokenCloseStream)
-                .thenReturn(new ByteArrayInputStream(BPMN_WITH_AGENT.getBytes(StandardCharsets.UTF_8)));
-
-        // First call — extraction succeeds before close() throws;
-        // IOException is caught so resolve does NOT throw, and configs are already stored
-        Optional<AgentConfig> first = registry.resolve(PROC_DEF_ID, ELEMENT_ID);
-        assertTrue(first.isPresent());
-
-        // Second call — re-scans because doScan returned null (not cached in scanned map)
-        Optional<AgentConfig> second = registry.resolve(PROC_DEF_ID, ELEMENT_ID);
-        assertTrue(second.isPresent());
-
-        // getProcessModel was called twice because the IOException prevented caching
-        verify(repositoryService, times(2)).getProcessModel(PROC_DEF_ID);
-    }
 }

@@ -1,14 +1,15 @@
 package org.finos.fluxnova.bpm.engine.ai.agent.registry;
 
-import org.finos.fluxnova.bpm.engine.ProcessEngineException;
+import org.finos.fluxnova.bpm.engine.AuthorizationException;
 import org.finos.fluxnova.bpm.engine.RepositoryService;
 import org.finos.fluxnova.bpm.engine.ai.agent.extract.AgentConfigExtractor;
 import org.finos.fluxnova.bpm.engine.ai.agent.model.AgentConfig;
+import org.finos.fluxnova.bpm.engine.exception.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -16,8 +17,7 @@ public class AgentConfigRegistry {
 
     private static final Logger LOG = LoggerFactory.getLogger(AgentConfigRegistry.class);
 
-    private final ConcurrentHashMap<String, AgentConfig> configs = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, Boolean> scanned = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, HashMap<String, AgentConfig>> configCache = new ConcurrentHashMap<>();
 
     private final RepositoryService repositoryService;
     private final AgentConfigExtractor extractor;
@@ -28,36 +28,29 @@ public class AgentConfigRegistry {
     }
 
     public Optional<AgentConfig> resolve(String processDefinitionId, String elementId) {
-        ensureScanned(processDefinitionId);
-        return Optional.ofNullable(configs.get(key(processDefinitionId, elementId)));
+        HashMap<String, AgentConfig> definitionConfigs = configCache.computeIfAbsent(
+                processDefinitionId, this::doScan);
+        return Optional.ofNullable(definitionConfigs.get(elementId));
     }
 
     public void unregisterAll() {
-        configs.clear();
-        scanned.clear();
+        configCache.clear();
     }
 
-    private void ensureScanned(String processDefinitionId) {
-        scanned.computeIfAbsent(processDefinitionId, this::doScan);
-    }
-
-    private Boolean doScan(String processDefinitionId) {
-        try (InputStream xml = repositoryService.getProcessModel(processDefinitionId)) {
-            extractor.extractAll(xml, processDefinitionId)
-                    .forEach(config -> configs.put(key(processDefinitionId, config.elementId()), config));
-            return Boolean.TRUE;
-        } catch (IOException e) {
-            LOG.error("I/O error while scanning agent configurations for process definition '{}'", processDefinitionId, e);
-            // Return null to avoid caching the failure; this allows computeIfAbsent to retry on the next call
-            return null;
-        } catch (ProcessEngineException e) {
-            LOG.error("Engine error while scanning agent configurations for process definition '{}'", processDefinitionId, e);
-            // Return null to avoid caching the failure; this allows computeIfAbsent to retry on the next call
-            return null;
+    private HashMap<String, AgentConfig> doScan(String processDefinitionId) {
+        InputStream xml;
+        try {
+            xml = repositoryService.getProcessModel(processDefinitionId);
+        } catch (NotFoundException e) {
+            LOG.error("Process definition '{}' not found", processDefinitionId, e);
+            throw e;
+        } catch (AuthorizationException e) {
+            LOG.error("Unauthorized process definition access attempt on '{}'", processDefinitionId, e);
+            throw e;
         }
-    }
-
-    private static String key(String processDefinitionId, String elementId) {
-        return processDefinitionId + "#" + elementId;
+        HashMap<String, AgentConfig> result = new HashMap<>();
+        extractor.extractAll(xml, processDefinitionId)
+                .forEach(config -> result.put(config.elementId(), config));
+        return result;
     }
 }
