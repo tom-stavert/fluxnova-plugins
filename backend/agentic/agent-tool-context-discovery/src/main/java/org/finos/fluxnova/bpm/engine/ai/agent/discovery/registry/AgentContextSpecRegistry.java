@@ -67,7 +67,8 @@ public class AgentContextSpecRegistry {
 
             Element agentSubprocessElement = findElementById(root, elementId);
             if (agentSubprocessElement == null) {
-                LOG.warn("Ad-hoc subprocess element '{}' not found in process definition '{}'", elementId, processDefinitionId);
+                LOG.warn("Ad-hoc subprocess element '{}' not found in process definition '{}'", elementId,
+                        processDefinitionId);
                 return null;
             }
 
