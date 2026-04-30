@@ -38,13 +38,10 @@ public class AgentContextSpecRegistry {
     }
 
     public AgentContextSpec resolve(String processDefinitionId, String elementId) {
-        HashMap<String, AgentContextSpec> cachedContextMap = cache.containsKey(processDefinitionId)
-            ? cache.get(processDefinitionId)
-                : new HashMap<String, AgentContextSpec>();
+        HashMap<String, AgentContextSpec> cachedContextMap = cache.getOrDefault(processDefinitionId, new HashMap<>());
                 
         AgentContextSpec result = cachedContextMap.computeIfAbsent(elementId,
                 ignored -> doScan(processDefinitionId, elementId));
-        // The null result hasn't been stored, but return an empty optional until the rescan (DISCUSS)
         return result;
     }
 
