@@ -105,7 +105,7 @@ class AdHocSubProcessCatalogueBuilderTest {
         }
 
         @Test
-        void build_whenNoActivities_throwsProcessEngineException() {
+      void build_whenNoActivities_returnsEmptyCatalogue() {
             String bpmn = """
                     <?xml version="1.0" encoding="UTF-8"?>
                     <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL">
@@ -117,10 +117,8 @@ class AdHocSubProcessCatalogueBuilderTest {
                     </definitions>
                     """;
 
-            Element scope = parseAdHocSubProcess(bpmn);
-            ProcessEngineException ex = assertThrows(ProcessEngineException.class,
-                    () -> builder.build(scope, PROC_DEF_ID));
-            assertTrue(ex.getMessage().contains("No eligible tools found"));
+          AgentToolCatalogue catalogue = builder.build(parseAdHocSubProcess(bpmn), PROC_DEF_ID);
+          assertTrue(catalogue.tools().isEmpty());
         }
 
         @Test
@@ -908,7 +906,7 @@ class AdHocSubProcessCatalogueBuilderTest {
     class InvalidAndEdgeCases {
 
         @Test
-        void build_completelyEmptyScope_throwsProcessEngineException() {
+    void build_completelyEmptyScope_returnsEmptyCatalogue() {
             String bpmn = """
                     <?xml version="1.0" encoding="UTF-8"?>
                     <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL">
@@ -918,11 +916,9 @@ class AdHocSubProcessCatalogueBuilderTest {
                     </definitions>
                     """;
 
-            Element scope = parseAdHocSubProcess(bpmn);
-            ProcessEngineException ex = assertThrows(ProcessEngineException.class,
-                    () -> builder.build(scope, PROC_DEF_ID));
-            assertTrue(ex.getMessage().contains("No eligible tools found"));
-            assertTrue(ex.getMessage().contains("agent1"));
+      AgentToolCatalogue catalogue = builder.build(parseAdHocSubProcess(bpmn), PROC_DEF_ID);
+      assertTrue(catalogue.tools().isEmpty());
+      assertEquals("agent1", catalogue.elementId());
         }
 
         @Test
@@ -940,8 +936,8 @@ class AdHocSubProcessCatalogueBuilderTest {
                     """;
 
             Element scope = parseAdHocSubProcess(bpmn);
-            ProcessEngineException ex = assertThrows(ProcessEngineException.class,
-                    () -> builder.build(scope, PROC_DEF_ID));
+      ProcessEngineException ex =
+          assertThrows(ProcessEngineException.class, () -> builder.build(scope, PROC_DEF_ID));
             assertTrue(ex.getMessage().contains("missing id"));
         }
 
@@ -960,13 +956,13 @@ class AdHocSubProcessCatalogueBuilderTest {
                     """;
 
             Element scope = parseAdHocSubProcess(bpmn);
-            ProcessEngineException ex = assertThrows(ProcessEngineException.class,
-                    () -> builder.build(scope, PROC_DEF_ID));
+      ProcessEngineException ex =
+          assertThrows(ProcessEngineException.class, () -> builder.build(scope, PROC_DEF_ID));
             assertTrue(ex.getMessage().contains("missing id"));
         }
 
         @Test
-        void build_allToolsFilteredBySequenceFlows_throwsProcessEngineException() {
+    void build_allToolsFilteredBySequenceFlows_returnsEmptyCatalogue() {
             String bpmn = """
                     <?xml version="1.0" encoding="UTF-8"?>
                     <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL">
@@ -981,10 +977,8 @@ class AdHocSubProcessCatalogueBuilderTest {
                     </definitions>
                     """;
 
-            Element scope = parseAdHocSubProcess(bpmn);
-            ProcessEngineException ex = assertThrows(ProcessEngineException.class,
-                    () -> builder.build(scope, PROC_DEF_ID));
-            assertTrue(ex.getMessage().contains("No eligible tools found"));
+      AgentToolCatalogue catalogue = builder.build(parseAdHocSubProcess(bpmn), PROC_DEF_ID);
+      assertTrue(catalogue.tools().isEmpty());
         }
 
         @Test
