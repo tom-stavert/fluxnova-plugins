@@ -92,8 +92,4 @@ public class AgentContextSpecRegistry {
         }
         return null;
     }
-
-    private static String key(String processDefinitionId, String elementId) {
-        return processDefinitionId + "#" + elementId;
-    }
 }
