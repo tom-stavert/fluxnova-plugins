@@ -3,7 +3,6 @@ package org.finos.fluxnova.bpm.engine.ai.agent.discovery.registry;
 import org.finos.fluxnova.bpm.engine.AuthorizationException;
 import org.finos.fluxnova.bpm.engine.RepositoryService;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.extract.AgentToolCatalogueBuilder;
-import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.AgentContextSpec;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.AgentToolCatalogue;
 import org.finos.fluxnova.bpm.engine.shared.xml.BpmnXmlParser;
 import org.finos.fluxnova.bpm.engine.ai.agent.model.AgentConfig;
