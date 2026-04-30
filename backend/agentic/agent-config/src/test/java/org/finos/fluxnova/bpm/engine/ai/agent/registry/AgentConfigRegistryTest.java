@@ -1,9 +1,10 @@
 package org.finos.fluxnova.bpm.engine.ai.agent.registry;
 
-import org.finos.fluxnova.bpm.engine.ProcessEngineException;
+import org.finos.fluxnova.bpm.engine.AuthorizationException;
 import org.finos.fluxnova.bpm.engine.RepositoryService;
 import org.finos.fluxnova.bpm.engine.ai.agent.extract.AgentConfigExtractor;
 import org.finos.fluxnova.bpm.engine.ai.agent.model.AgentConfig;
+import org.finos.fluxnova.bpm.engine.exception.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -144,25 +145,19 @@ class AgentConfigRegistryTest {
     }
 
     @Test
-    void resolve_whenScanThrowsProcessEngineException_propagatesAndRetries() throws Exception {
+    void resolve_whenScanThrowsNotFoundException_propagates() throws Exception {
         when(repositoryService.getProcessModel(PROC_DEF_ID))
-                .thenThrow(new ProcessEngineException("parse failure"))
-                .thenReturn(new ByteArrayInputStream(BPMN_WITH_AGENT.getBytes(StandardCharsets.UTF_8)));
+                .thenThrow(new NotFoundException("not found"));
 
-        // First call — exception is rethrown with process-definition context
-        ProcessEngineException thrown = assertThrows(ProcessEngineException.class,
-                () -> registry.resolve(PROC_DEF_ID, ELEMENT_ID));
-        assertTrue(thrown.getMessage().contains(PROC_DEF_ID));
-        assertTrue(thrown.getMessage().contains("resolving agent configuration"));
-        assertNotNull(thrown.getCause());
-        assertEquals("parse failure", thrown.getCause().getMessage());
+        assertThrows(NotFoundException.class, () -> registry.resolve(PROC_DEF_ID, ELEMENT_ID));
+    }
 
-        // Second call — the failure was not marked as scanned, so we retry and succeed
-        Optional<AgentConfig> second = registry.resolve(PROC_DEF_ID, ELEMENT_ID);
-        assertTrue(second.isPresent());
-        assertEquals("ollama", second.get().provider());
+    @Test
+    void resolve_whenScanThrowsAuthorizationException_propagates() throws Exception {
+        when(repositoryService.getProcessModel(PROC_DEF_ID))
+                .thenThrow(new AuthorizationException("forbidden"));
 
-        verify(repositoryService, times(2)).getProcessModel(PROC_DEF_ID);
+        assertThrows(AuthorizationException.class, () -> registry.resolve(PROC_DEF_ID, ELEMENT_ID));
     }
 
     @Test
