@@ -38,10 +38,11 @@ public class AgentContextSpecRegistry {
     }
 
     public AgentContextSpec resolve(String processDefinitionId, String elementId) {
-        HashMap<String, AgentContextSpec> cachedContextMap = cache.getOrDefault(processDefinitionId, new HashMap<>());
+        HashMap<String, AgentContextSpec> cachedContextMap 
+                = cache.computeIfAbsent(processDefinitionId, keyId -> new HashMap<>());
                 
         AgentContextSpec result = cachedContextMap.computeIfAbsent(elementId,
-                ignored -> doScan(processDefinitionId, elementId));
+                keyId -> doScan(processDefinitionId, keyId));
         return result;
     }
 
