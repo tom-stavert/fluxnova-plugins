@@ -6,14 +6,13 @@ import org.finos.fluxnova.bpm.engine.ai.agent.extract.AgentConfigExtractor;
 import org.finos.fluxnova.bpm.engine.ai.agent.model.AgentConfig;
 
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class AgentConfigRegistry {
 
-    private final ConcurrentHashMap<String, AgentConfig> configs = new ConcurrentHashMap<>();
-    private final Set<String> scanned = ConcurrentHashMap.newKeySet();
+    private final ConcurrentHashMap<String, HashMap<String, AgentConfig>> configCache = new ConcurrentHashMap<>();
 
     private final RepositoryService repositoryService;
     private final AgentConfigExtractor extractor;
@@ -24,23 +23,16 @@ public class AgentConfigRegistry {
     }
 
     public Optional<AgentConfig> resolve(String processDefinitionId, String elementId) {
-        ensureScanned(processDefinitionId);
-        return Optional.ofNullable(configs.get(key(processDefinitionId, elementId)));
+        HashMap<String, AgentConfig> definitionConfigs = configCache.computeIfAbsent(
+                processDefinitionId, this::doScan);
+        return Optional.ofNullable(definitionConfigs.get(elementId));
     }
 
     public void unregisterAll() {
-        configs.clear();
-        scanned.clear();
+        configCache.clear();
     }
 
-    private void ensureScanned(String processDefinitionId) {
-        if (!scanned.contains(processDefinitionId)) {
-            doScan(processDefinitionId);
-            scanned.add(processDefinitionId);
-        }
-    }
-
-    private void doScan(String processDefinitionId) {
+    private HashMap<String, AgentConfig> doScan(String processDefinitionId) {
         InputStream xml;
         try {
             xml = repositoryService.getProcessModel(processDefinitionId);
@@ -50,11 +42,9 @@ public class AgentConfigRegistry {
                             + "' while resolving agent configuration",
                     e);
         }
+        HashMap<String, AgentConfig> result = new HashMap<>();
         extractor.extractAll(xml, processDefinitionId)
-                .forEach(config -> configs.put(key(processDefinitionId, config.elementId()), config));
-    }
-
-    private static String key(String processDefinitionId, String elementId) {
-        return processDefinitionId + "#" + elementId;
+                .forEach(config -> result.put(config.elementId(), config));
+        return result;
     }
 }
