@@ -37,26 +37,32 @@ class AgentConfigExtractorTest {
                 .element("adHocSubProcess");
     }
 
+    private String wrapInProcess(String innerXml) {
+        return """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
+                  <process id="proc">
+                    %s
+                  </process>
+                </definitions>
+                """.formatted(innerXml);
+    }
+
     // extract(Element, ...) valid config and defaulting
 
     @Test
     void extract_whenValidAgentConfig_returnsPopulatedAgentConfig() {
-        String bpmn = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="p">
-                    <adHocSubProcess id="creditCheckAgent">
-                      <extensionElements>
-                        <agent:config provider="ollama"
-                                      model="llama3.1"
-                                      systemPrompt="You are a credit analyst."
-                                      toolScopeElementId="creditCheckAgent"/>
-                      </extensionElements>
-                    </adHocSubProcess>
-                  </process>
-                </definitions>
-                """;
+        String bpmn = wrapInProcess("""
+                <adHocSubProcess id="creditCheckAgent">
+                  <extensionElements>
+                    <agent:config provider="ollama"
+                                  model="llama3.1"
+                                  systemPrompt="You are a credit analyst."
+                                  toolScopeElementId="creditCheckAgent"/>
+                  </extensionElements>
+                </adHocSubProcess>
+                """);
 
         Optional<AgentConfig> result = extractor.extract(parseAdHocSubProcess(bpmn), PROCESS_DEFINITION_ID);
 
@@ -72,21 +78,15 @@ class AgentConfigExtractorTest {
 
     @Test
     void extract_whenToolScopeAbsent_defaultsToElementId() {
-        String bpmn = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="p">
-                    <adHocSubProcess id="myAgent">
-                      <extensionElements>
-                        <agent:config provider="ollama"
-                                      model="llama3.1"
-                                      systemPrompt="You are an assistant."/>
-                      </extensionElements>
-                    </adHocSubProcess>
-                  </process>
-                </definitions>
-                """;
+        String bpmn = wrapInProcess("""
+                <adHocSubProcess id="myAgent">
+                  <extensionElements>
+                    <agent:config provider="ollama"
+                                  model="llama3.1"
+                                  systemPrompt="You are an assistant."/>
+                  </extensionElements>
+                </adHocSubProcess>
+                """);
 
         Optional<AgentConfig> result = extractor.extract(parseAdHocSubProcess(bpmn), PROCESS_DEFINITION_ID);
 
@@ -96,22 +96,16 @@ class AgentConfigExtractorTest {
 
     @Test
     void extract_whenToolScopeBlank_defaultsToElementId() {
-        String bpmn = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="p">
-                    <adHocSubProcess id="myAgent">
-                      <extensionElements>
-                        <agent:config provider="ollama"
-                                      model="llama3.1"
-                                      systemPrompt="You are an assistant."
-                                      toolScopeElementId=""/>
-                      </extensionElements>
-                    </adHocSubProcess>
-                  </process>
-                </definitions>
-                """;
+        String bpmn = wrapInProcess("""
+                <adHocSubProcess id="myAgent">
+                  <extensionElements>
+                    <agent:config provider="ollama"
+                                  model="llama3.1"
+                                  systemPrompt="You are an assistant."
+                                  toolScopeElementId=""/>
+                  </extensionElements>
+                </adHocSubProcess>
+                """);
 
         Optional<AgentConfig> result = extractor.extract(parseAdHocSubProcess(bpmn), PROCESS_DEFINITION_ID);
 
@@ -123,14 +117,9 @@ class AgentConfigExtractorTest {
 
     @Test
     void extract_whenNoExtensionElements_returnsEmpty() {
-        String bpmn = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL">
-                  <process id="p">
-                    <adHocSubProcess id="sub1"/>
-                  </process>
-                </definitions>
-                """;
+        String bpmn = wrapInProcess("""
+                <adHocSubProcess id="sub1"/>
+                """);
 
         Optional<AgentConfig> result = extractor.extract(parseAdHocSubProcess(bpmn), PROCESS_DEFINITION_ID);
 
@@ -160,20 +149,14 @@ class AgentConfigExtractorTest {
 
     @Test
     void extract_whenSystemPromptAbsent_returnsConfigWithNullSystemPrompt() {
-        String bpmn = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="p">
-                    <adHocSubProcess id="myAgent">
-                      <extensionElements>
-                        <agent:config provider="ollama"
-                                      model="llama3.1"/>
-                      </extensionElements>
-                    </adHocSubProcess>
-                  </process>
-                </definitions>
-                """;
+        String bpmn = wrapInProcess("""
+                <adHocSubProcess id="myAgent">
+                  <extensionElements>
+                    <agent:config provider="ollama"
+                                  model="llama3.1"/>
+                  </extensionElements>
+                </adHocSubProcess>
+                """);
 
         Optional<AgentConfig> result = extractor.extract(parseAdHocSubProcess(bpmn), PROCESS_DEFINITION_ID);
 
@@ -187,23 +170,17 @@ class AgentConfigExtractorTest {
 
     @Test
     void extractAll_whenToolScopeReferencesSiblingElement_succeeds() {
-        String bpmn = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="proc">
-                    <subProcess id="toolRegistry"/>
-                    <adHocSubProcess id="myAgent">
-                      <extensionElements>
-                        <agent:config provider="ollama"
-                                      model="llama3.1"
-                                      systemPrompt="You are an assistant."
-                                      toolScopeElementId="toolRegistry"/>
-                      </extensionElements>
-                    </adHocSubProcess>
-                  </process>
-                </definitions>
-                """;
+        String bpmn = wrapInProcess("""
+                <subProcess id="toolRegistry"/>
+                <adHocSubProcess id="myAgent">
+                  <extensionElements>
+                    <agent:config provider="ollama"
+                                  model="llama3.1"
+                                  systemPrompt="You are an assistant."
+                                  toolScopeElementId="toolRegistry"/>
+                  </extensionElements>
+                </adHocSubProcess>
+                """);
 
         List<AgentConfig> results = extractor.extractAll(
                 new ByteArrayInputStream(bpmn.getBytes(StandardCharsets.UTF_8)), PROCESS_DEFINITION_ID);
@@ -216,21 +193,15 @@ class AgentConfigExtractorTest {
 
     @Test
     void extractAll_findsAgentConfigOnServiceTask() {
-        String bpmn = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="proc">
-                    <serviceTask id="taskAgent">
-                      <extensionElements>
-                        <agent:config provider="ollama"
-                                      model="llama3.1"
-                                      systemPrompt="Task agent."/>
-                      </extensionElements>
-                    </serviceTask>
-                  </process>
-                </definitions>
-                """;
+        String bpmn = wrapInProcess("""
+                <serviceTask id="taskAgent">
+                  <extensionElements>
+                    <agent:config provider="ollama"
+                                  model="llama3.1"
+                                  systemPrompt="Task agent."/>
+                  </extensionElements>
+                </serviceTask>
+                """);
 
         List<AgentConfig> results = extractor.extractAll(
                 new ByteArrayInputStream(bpmn.getBytes(StandardCharsets.UTF_8)), PROCESS_DEFINITION_ID);
@@ -242,23 +213,17 @@ class AgentConfigExtractorTest {
 
     @Test
     void extractAll_findsAdHocSubProcessInsideSubProcess() {
-        String bpmn = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="proc">
-                    <subProcess id="outer">
-                      <adHocSubProcess id="nestedAgent">
-                        <extensionElements>
-                          <agent:config provider="ollama"
-                                        model="llama3.1"
-                                        systemPrompt="Nested agent."/>
-                        </extensionElements>
-                      </adHocSubProcess>
-                    </subProcess>
-                  </process>
-                </definitions>
-                """;
+        String bpmn = wrapInProcess("""
+                <subProcess id="outer">
+                  <adHocSubProcess id="nestedAgent">
+                    <extensionElements>
+                      <agent:config provider="ollama"
+                                    model="llama3.1"
+                                    systemPrompt="Nested agent."/>
+                    </extensionElements>
+                  </adHocSubProcess>
+                </subProcess>
+                """);
 
         List<AgentConfig> results = extractor.extractAll(
                 new ByteArrayInputStream(bpmn.getBytes(StandardCharsets.UTF_8)), PROCESS_DEFINITION_ID);
@@ -269,23 +234,17 @@ class AgentConfigExtractorTest {
 
     @Test
     void extractAll_findsAdHocSubProcessInsideEventSubProcess() {
-        String bpmn = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="proc">
-                    <subProcess id="eventSub" triggeredByEvent="true">
-                      <adHocSubProcess id="eventAgent">
-                        <extensionElements>
-                          <agent:config provider="ollama"
-                                        model="llama3.1"
-                                        systemPrompt="Event agent."/>
-                        </extensionElements>
-                      </adHocSubProcess>
-                    </subProcess>
-                  </process>
-                </definitions>
-                """;
+        String bpmn = wrapInProcess("""
+                <subProcess id="eventSub" triggeredByEvent="true">
+                  <adHocSubProcess id="eventAgent">
+                    <extensionElements>
+                      <agent:config provider="ollama"
+                                    model="llama3.1"
+                                    systemPrompt="Event agent."/>
+                    </extensionElements>
+                  </adHocSubProcess>
+                </subProcess>
+                """);
 
         List<AgentConfig> results = extractor.extractAll(
                 new ByteArrayInputStream(bpmn.getBytes(StandardCharsets.UTF_8)), PROCESS_DEFINITION_ID);
@@ -296,23 +255,17 @@ class AgentConfigExtractorTest {
 
     @Test
     void extractAll_findsAdHocSubProcessInsideTransaction() {
-        String bpmn = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="proc">
-                    <transaction id="tx1">
-                      <adHocSubProcess id="transactionAgent">
-                        <extensionElements>
-                          <agent:config provider="ollama"
-                                        model="llama3.1"
-                                        systemPrompt="Transaction agent."/>
-                        </extensionElements>
-                      </adHocSubProcess>
-                    </transaction>
-                  </process>
-                </definitions>
-                """;
+        String bpmn = wrapInProcess("""
+                <transaction id="tx1">
+                  <adHocSubProcess id="transactionAgent">
+                    <extensionElements>
+                      <agent:config provider="ollama"
+                                    model="llama3.1"
+                                    systemPrompt="Transaction agent."/>
+                    </extensionElements>
+                  </adHocSubProcess>
+                </transaction>
+                """);
 
         List<AgentConfig> results = extractor.extractAll(
                 new ByteArrayInputStream(bpmn.getBytes(StandardCharsets.UTF_8)), PROCESS_DEFINITION_ID);
@@ -323,24 +276,18 @@ class AgentConfigExtractorTest {
 
     @Test
     void extractAll_findsMultipleAdHocSubProcessesInOneProcess() {
-        String bpmn = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="proc">
-                    <adHocSubProcess id="agentA">
-                      <extensionElements>
-                        <agent:config provider="ollama" model="llama3.1" systemPrompt="Agent A."/>
-                      </extensionElements>
-                    </adHocSubProcess>
-                    <adHocSubProcess id="agentB">
-                      <extensionElements>
-                        <agent:config provider="ollama" model="llama3.1" systemPrompt="Agent B."/>
-                      </extensionElements>
-                    </adHocSubProcess>
-                  </process>
-                </definitions>
-                """;
+        String bpmn = wrapInProcess("""
+                <adHocSubProcess id="agentA">
+                  <extensionElements>
+                    <agent:config provider="ollama" model="llama3.1" systemPrompt="Agent A."/>
+                  </extensionElements>
+                </adHocSubProcess>
+                <adHocSubProcess id="agentB">
+                  <extensionElements>
+                    <agent:config provider="ollama" model="llama3.1" systemPrompt="Agent B."/>
+                  </extensionElements>
+                </adHocSubProcess>
+                """);
 
         List<AgentConfig> results = extractor.extractAll(
                 new ByteArrayInputStream(bpmn.getBytes(StandardCharsets.UTF_8)), PROCESS_DEFINITION_ID);

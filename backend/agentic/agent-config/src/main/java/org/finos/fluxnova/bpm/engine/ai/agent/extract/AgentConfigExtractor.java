@@ -62,14 +62,14 @@ public class AgentConfigExtractor {
         String systemPrompt = config.attribute("systemPrompt");
 
         String toolScopeElementId = config.attribute("toolScopeElementId");
-        if (isBlank(toolScopeElementId)) {
+        if (isBlankOrNull(toolScopeElementId)) {
             toolScopeElementId = elementId;
         }
 
         return Optional.of(new AgentConfig(processDefinitionId, elementId, provider, model, systemPrompt, toolScopeElementId));
     }
 
-    private static boolean isBlank(String value) {
+    private static boolean isBlankOrNull(String value) {
         return value == null || value.isBlank();
     }
 }
