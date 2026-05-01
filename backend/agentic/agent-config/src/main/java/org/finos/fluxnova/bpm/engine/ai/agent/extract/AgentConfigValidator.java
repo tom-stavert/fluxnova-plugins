@@ -13,15 +13,15 @@ public final class AgentConfigValidator {
     public static List<String> validate(Element configElement, String elementId, Set<String> processElementIds) {
         List<String> errors = new ArrayList<>();
 
-        if (isBlank(configElement.attribute("provider"))) {
+        if (isBlankOrNull(configElement.attribute("provider"))) {
             errors.add("agent:config on element '" + elementId + "' is missing required attribute 'provider'");
         }
-        if (isBlank(configElement.attribute("model"))) {
+        if (isBlankOrNull(configElement.attribute("model"))) {
             errors.add("agent:config on element '" + elementId + "' is missing required attribute 'model'");
         }
 
         String toolScopeElementId = configElement.attribute("toolScopeElementId");
-        if (!isBlank(toolScopeElementId) && !processElementIds.contains(toolScopeElementId)) {
+        if (!isBlankOrNull(toolScopeElementId) && !processElementIds.contains(toolScopeElementId)) {
             errors.add("agent:config on element '" + elementId
                     + "' references unknown toolScopeElementId '" + toolScopeElementId + "'");
         }
@@ -29,7 +29,7 @@ public final class AgentConfigValidator {
         return errors;
     }
 
-    private static boolean isBlank(String value) {
+    private static boolean isBlankOrNull(String value) {
         return value == null || value.isBlank();
     }
 }

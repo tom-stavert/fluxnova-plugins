@@ -28,11 +28,21 @@ class AgentConfigValidatorTest {
                 .elementNS(AgentModelConstants.AGENT_NS, "config");
     }
 
-    private static final String VALID_CONFIG_BPMN = """
-            <?xml version="1.0" encoding="UTF-8"?>
-            <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                         xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-              <process id="p">
+    private String wrapInProcess(String innerXml) {
+        return """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
+                  <process id="p">
+                    %s
+                  </process>
+                </definitions>
+                """.formatted(innerXml);
+    }
+
+    @Test
+    void validate_whenAllRequiredAttrsPresent_returnsNoErrors() {
+        String bpmn = wrapInProcess("""
                 <adHocSubProcess id="myAgent">
                   <extensionElements>
                     <agent:config provider="ollama"
@@ -40,13 +50,8 @@ class AgentConfigValidatorTest {
                                   systemPrompt="You are an assistant."/>
                   </extensionElements>
                 </adHocSubProcess>
-              </process>
-            </definitions>
-            """;
-
-    @Test
-    void validate_whenAllRequiredAttrsPresent_returnsNoErrors() {
-        Element config = parseConfigElement(VALID_CONFIG_BPMN);
+                """);
+        Element config = parseConfigElement(bpmn);
 
         List<String> errors = AgentConfigValidator.validate(config, "myAgent", Set.of("p", "myAgent"));
 
@@ -55,19 +60,13 @@ class AgentConfigValidatorTest {
 
     @Test
     void validate_whenSystemPromptMissing_returnsNoErrors() {
-        String bpmn = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="p">
-                    <adHocSubProcess id="myAgent">
-                      <extensionElements>
-                        <agent:config provider="ollama" model="llama3.1"/>
-                      </extensionElements>
-                    </adHocSubProcess>
-                  </process>
-                </definitions>
-                """;
+        String bpmn = wrapInProcess("""
+                <adHocSubProcess id="myAgent">
+                  <extensionElements>
+                    <agent:config provider="ollama" model="llama3.1"/>
+                  </extensionElements>
+                </adHocSubProcess>
+                """);
         Element config = parseConfigElement(bpmn);
 
         List<String> errors = AgentConfigValidator.validate(config, "myAgent", Set.of("p", "myAgent"));
@@ -77,19 +76,13 @@ class AgentConfigValidatorTest {
 
     @Test
     void validate_whenProviderMissing_returnsError() {
-        String bpmn = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="p">
-                    <adHocSubProcess id="myAgent">
-                      <extensionElements>
-                        <agent:config model="llama3.1" systemPrompt="x"/>
-                      </extensionElements>
-                    </adHocSubProcess>
-                  </process>
-                </definitions>
-                """;
+        String bpmn = wrapInProcess("""
+                <adHocSubProcess id="myAgent">
+                  <extensionElements>
+                    <agent:config model="llama3.1" systemPrompt="x"/>
+                  </extensionElements>
+                </adHocSubProcess>
+                """);
         Element config = parseConfigElement(bpmn);
 
         List<String> errors = AgentConfigValidator.validate(config, "myAgent", Set.of("p", "myAgent"));
@@ -101,19 +94,13 @@ class AgentConfigValidatorTest {
 
     @Test
     void validate_whenProviderBlank_returnsError() {
-        String bpmn = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="p">
-                    <adHocSubProcess id="myAgent">
-                      <extensionElements>
-                        <agent:config provider="" model="llama3.1" systemPrompt="x"/>
-                      </extensionElements>
-                    </adHocSubProcess>
-                  </process>
-                </definitions>
-                """;
+        String bpmn = wrapInProcess("""
+                <adHocSubProcess id="myAgent">
+                  <extensionElements>
+                    <agent:config provider="" model="llama3.1" systemPrompt="x"/>
+                  </extensionElements>
+                </adHocSubProcess>
+                """);
         Element config = parseConfigElement(bpmn);
 
         List<String> errors = AgentConfigValidator.validate(config, "myAgent", Set.of("p", "myAgent"));
@@ -124,19 +111,13 @@ class AgentConfigValidatorTest {
 
     @Test
     void validate_whenModelMissing_returnsError() {
-        String bpmn = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="p">
-                    <adHocSubProcess id="myAgent">
-                      <extensionElements>
-                        <agent:config provider="ollama" systemPrompt="x"/>
-                      </extensionElements>
-                    </adHocSubProcess>
-                  </process>
-                </definitions>
-                """;
+        String bpmn = wrapInProcess("""
+                <adHocSubProcess id="myAgent">
+                  <extensionElements>
+                    <agent:config provider="ollama" systemPrompt="x"/>
+                  </extensionElements>
+                </adHocSubProcess>
+                """);
         Element config = parseConfigElement(bpmn);
 
         List<String> errors = AgentConfigValidator.validate(config, "myAgent", Set.of("p", "myAgent"));
@@ -148,19 +129,13 @@ class AgentConfigValidatorTest {
 
     @Test
     void validate_whenProviderAndModelBothMissing_returnsBothErrors() {
-        String bpmn = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="p">
-                    <adHocSubProcess id="myAgent">
-                      <extensionElements>
-                        <agent:config systemPrompt="x"/>
-                      </extensionElements>
-                    </adHocSubProcess>
-                  </process>
-                </definitions>
-                """;
+        String bpmn = wrapInProcess("""
+                <adHocSubProcess id="myAgent">
+                  <extensionElements>
+                    <agent:config systemPrompt="x"/>
+                  </extensionElements>
+                </adHocSubProcess>
+                """);
         Element config = parseConfigElement(bpmn);
 
         List<String> errors = AgentConfigValidator.validate(config, "myAgent", Set.of("p", "myAgent"));
@@ -172,20 +147,14 @@ class AgentConfigValidatorTest {
 
     @Test
     void validate_whenToolScopeElementIdReferencesUnknownElement_returnsError() {
-        String bpmn = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="p">
-                    <adHocSubProcess id="myAgent">
-                      <extensionElements>
-                        <agent:config provider="ollama" model="llama3.1"
-                                      toolScopeElementId="doesNotExist"/>
-                      </extensionElements>
-                    </adHocSubProcess>
-                  </process>
-                </definitions>
-                """;
+        String bpmn = wrapInProcess("""
+                <adHocSubProcess id="myAgent">
+                  <extensionElements>
+                    <agent:config provider="ollama" model="llama3.1"
+                                  toolScopeElementId="doesNotExist"/>
+                  </extensionElements>
+                </adHocSubProcess>
+                """);
         Element config = parseConfigElement(bpmn);
 
         List<String> errors = AgentConfigValidator.validate(config, "myAgent", Set.of("p", "myAgent"));
@@ -197,19 +166,13 @@ class AgentConfigValidatorTest {
 
     @Test
     void validate_whenToolScopeElementIdAbsent_doesNotValidateReference() {
-        String bpmn = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="p">
-                    <adHocSubProcess id="myAgent">
-                      <extensionElements>
-                        <agent:config provider="ollama" model="llama3.1"/>
-                      </extensionElements>
-                    </adHocSubProcess>
-                  </process>
-                </definitions>
-                """;
+        String bpmn = wrapInProcess("""
+                <adHocSubProcess id="myAgent">
+                  <extensionElements>
+                    <agent:config provider="ollama" model="llama3.1"/>
+                  </extensionElements>
+                </adHocSubProcess>
+                """);
         Element config = parseConfigElement(bpmn);
 
         List<String> errors = AgentConfigValidator.validate(config, "myAgent", Set.of("p", "myAgent"));
@@ -219,20 +182,14 @@ class AgentConfigValidatorTest {
 
     @Test
     void validate_whenToolScopeElementIdBlank_doesNotValidateReference() {
-        String bpmn = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="p">
-                    <adHocSubProcess id="myAgent">
-                      <extensionElements>
-                        <agent:config provider="ollama" model="llama3.1"
-                                      toolScopeElementId=""/>
-                      </extensionElements>
-                    </adHocSubProcess>
-                  </process>
-                </definitions>
-                """;
+        String bpmn = wrapInProcess("""
+                <adHocSubProcess id="myAgent">
+                  <extensionElements>
+                    <agent:config provider="ollama" model="llama3.1"
+                                  toolScopeElementId=""/>
+                  </extensionElements>
+                </adHocSubProcess>
+                """);
         Element config = parseConfigElement(bpmn);
 
         List<String> errors = AgentConfigValidator.validate(config, "myAgent", Set.of("p", "myAgent"));
@@ -242,20 +199,14 @@ class AgentConfigValidatorTest {
 
     @Test
     void validate_whenToolScopeElementIdReferencesSibling_returnsNoErrors() {
-        String bpmn = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
-                  <process id="p">
-                    <adHocSubProcess id="myAgent">
-                      <extensionElements>
-                        <agent:config provider="ollama" model="llama3.1"
-                                      toolScopeElementId="toolRegistry"/>
-                      </extensionElements>
-                    </adHocSubProcess>
-                  </process>
-                </definitions>
-                """;
+        String bpmn = wrapInProcess("""
+                <adHocSubProcess id="myAgent">
+                  <extensionElements>
+                    <agent:config provider="ollama" model="llama3.1"
+                                  toolScopeElementId="toolRegistry"/>
+                  </extensionElements>
+                </adHocSubProcess>
+                """);
         Element config = parseConfigElement(bpmn);
 
         List<String> errors = AgentConfigValidator.validate(config, "myAgent",
