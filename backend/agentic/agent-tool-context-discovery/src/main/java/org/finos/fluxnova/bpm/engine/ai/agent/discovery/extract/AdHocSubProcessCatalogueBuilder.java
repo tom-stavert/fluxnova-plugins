@@ -34,26 +34,16 @@ public class AdHocSubProcessCatalogueBuilder implements AgentToolCatalogueBuilde
 
     @Override
     public AgentToolCatalogue build(Element scopeElement, String processDefinitionId) {
-        List<AgentToolEntry> tools = new ArrayList<>();
-        List<String> errors = new ArrayList<>();
         Set<String> sequenceFlowTargets = collectSequenceFlowTargets(scopeElement);
 
-        for (Element child : scopeElement.elements()) {
-            if (!isActivityElement(child)) continue;
-            String id = child.attribute("id");
-            if (id == null || id.isBlank()) {
-                errors.add("Activity element with missing id in scope '" + scopeElement.attribute("id") + "'");
-                continue;
-            }
-            if (sequenceFlowTargets.contains(id)) continue;
+        List<Element> activityElements = scopeElement.elements().stream()
+                .filter(this::isActivityElement)
+                .toList();
 
-            String name = child.attribute("name");
-            String description = extractDocumentation(child);
-            Set<String> reads = extractReads(child);
-            Set<String> writes = extractWrites(child);
-
-            tools.add(new AgentToolEntry(id, name, description, reads, writes));
-        }
+        List<String> errors = activityElements.stream()
+                .filter(child -> child.attribute("id") == null || child.attribute("id").isBlank())
+                .map(child -> "Activity element with missing id in scope '" + scopeElement.attribute("id") + "'")
+                .toList();
 
         if (!errors.isEmpty()) {
             throw new ProcessEngineException(
@@ -61,6 +51,16 @@ public class AdHocSubProcessCatalogueBuilder implements AgentToolCatalogueBuilde
                             + "' for process definition '" + processDefinitionId + "': "
                             + String.join("; ", errors));
         }
+
+        List<AgentToolEntry> tools = activityElements.stream()
+                .filter(child -> !sequenceFlowTargets.contains(child.attribute("id")))
+                .map(child -> new AgentToolEntry(
+                        child.attribute("id"),
+                        child.attribute("name"),
+                        extractDocumentation(child),
+                        extractReads(child),
+                        extractWrites(child)))
+                .toList();
 
         return new AgentToolCatalogue(processDefinitionId, scopeElement.attribute("id"), tools);
     }
