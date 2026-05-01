@@ -5,7 +5,6 @@ import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.ContextVariableDec
 import org.finos.fluxnova.bpm.engine.shared.xml.BpmnXmlParser;
 import org.finos.fluxnova.bpm.engine.impl.util.xml.Element;
 import org.finos.fluxnova.bpm.engine.impl.util.xml.Parse;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -18,13 +17,6 @@ import static org.junit.jupiter.api.Assertions.*;
 class BpmnExtensionContextSpecBuilderTest {
 
     private static final String PROC_DEF_ID = "proc:1";
-
-    private BpmnExtensionContextSpecBuilder builder;
-
-    @BeforeEach
-    void setUp() {
-        builder = new BpmnExtensionContextSpecBuilder();
-    }
 
     private Element parseAdHocSubProcess(String bpmn) {
         Parse parse = new BpmnXmlParser().createParse()
@@ -51,7 +43,7 @@ class BpmnExtensionContextSpecBuilderTest {
                     </definitions>
                     """;
 
-            AgentContextSpec spec = builder.build(parseAdHocSubProcess(bpmn), PROC_DEF_ID);
+            AgentContextSpec spec = new BpmnExtensionContextSpecBuilder().build(parseAdHocSubProcess(bpmn), PROC_DEF_ID);
 
             assertEquals(PROC_DEF_ID, spec.processDefinitionId());
             assertEquals("agent1", spec.elementId());
@@ -74,7 +66,7 @@ class BpmnExtensionContextSpecBuilderTest {
                     </definitions>
                     """;
 
-            AgentContextSpec spec = builder.build(parseAdHocSubProcess(bpmn), PROC_DEF_ID);
+            AgentContextSpec spec = new BpmnExtensionContextSpecBuilder().build(parseAdHocSubProcess(bpmn), PROC_DEF_ID);
 
             assertTrue(spec.declaredVariables().isEmpty());
         }
@@ -96,7 +88,7 @@ class BpmnExtensionContextSpecBuilderTest {
                     </definitions>
                     """;
 
-            AgentContextSpec spec = builder.build(parseAdHocSubProcess(bpmn), PROC_DEF_ID);
+            AgentContextSpec spec = new BpmnExtensionContextSpecBuilder().build(parseAdHocSubProcess(bpmn), PROC_DEF_ID);
 
             assertTrue(spec.declaredVariables().isEmpty());
         }
@@ -120,7 +112,7 @@ class BpmnExtensionContextSpecBuilderTest {
                     </definitions>
                     """;
 
-            AgentContextSpec spec = builder.build(parseAdHocSubProcess(bpmn), PROC_DEF_ID);
+            AgentContextSpec spec = new BpmnExtensionContextSpecBuilder().build(parseAdHocSubProcess(bpmn), PROC_DEF_ID);
 
             assertEquals(2, spec.declaredVariables().size());
             assertEquals("customerId", spec.declaredVariables().get(0).name());
@@ -143,7 +135,7 @@ class BpmnExtensionContextSpecBuilderTest {
                     </definitions>
                     """;
 
-            AgentContextSpec spec = builder.build(parseAdHocSubProcess(bpmn), PROC_DEF_ID);
+            AgentContextSpec spec = new BpmnExtensionContextSpecBuilder().build(parseAdHocSubProcess(bpmn), PROC_DEF_ID);
 
             assertTrue(spec.declaredVariables().isEmpty());
         }
@@ -168,7 +160,7 @@ class BpmnExtensionContextSpecBuilderTest {
                     </definitions>
                     """;
 
-            AgentContextSpec spec = builder.build(parseAdHocSubProcess(bpmn), PROC_DEF_ID);
+            AgentContextSpec spec = new BpmnExtensionContextSpecBuilder().build(parseAdHocSubProcess(bpmn), PROC_DEF_ID);
 
             List<String> names = spec.declaredVariables().stream()
                     .map(ContextVariableDeclaration::name).toList();
@@ -194,7 +186,7 @@ class BpmnExtensionContextSpecBuilderTest {
                     </definitions>
                     """;
 
-            AgentContextSpec spec = builder.build(parseAdHocSubProcess(bpmn), PROC_DEF_ID);
+            AgentContextSpec spec = new BpmnExtensionContextSpecBuilder().build(parseAdHocSubProcess(bpmn), PROC_DEF_ID);
 
             assertEquals(1, spec.declaredVariables().size());
             assertEquals("customerId", spec.declaredVariables().get(0).name());
@@ -218,7 +210,7 @@ class BpmnExtensionContextSpecBuilderTest {
                     </definitions>
                     """;
 
-            AgentContextSpec spec = builder.build(parseAdHocSubProcess(bpmn), PROC_DEF_ID);
+            AgentContextSpec spec = new BpmnExtensionContextSpecBuilder().build(parseAdHocSubProcess(bpmn), PROC_DEF_ID);
 
             assertTrue(spec.declaredVariables().isEmpty());
         }
