@@ -105,7 +105,7 @@ class AgentUtilityRegistryTest {
     }
 
     @Test
-    void unregisterAll_clearsCache() {
+    void resolve_unregisterAll_clearsCache() {
         when(agentConfigRegistry.resolve(PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.of(config()));
         when(repositoryService.getProcessModel(PROC_DEF_ID)).thenReturn(bpmnStream());
         when(builder.build(any(Element.class), eq(PROC_DEF_ID))).thenReturn(SENTINEL);
@@ -180,7 +180,7 @@ class AgentUtilityRegistryTest {
         when(repositoryService.getProcessModel(PROC_DEF_ID)).thenReturn(throwingStream);
         when(builder.build(any(Element.class), eq(PROC_DEF_ID))).thenReturn(SENTINEL);
 
-        // IOException is caught → null returned → not cached
+        // IOException → TransientScanException → not cached, retry next time
         assertTrue(registry.resolve(PROC_DEF_ID, ELEMENT_ID).isEmpty());
 
         // Second call retries and succeeds
@@ -188,5 +188,39 @@ class AgentUtilityRegistryTest {
         assertTrue(registry.resolve(PROC_DEF_ID, ELEMENT_ID).isPresent());
 
         verify(repositoryService, times(2)).getProcessModel(PROC_DEF_ID);
+    }
+
+    @Test
+    void resolve_whenNoAgentConfig_isCached_doesNotRescanOnSecondCall() {
+        when(agentConfigRegistry.resolve(PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.empty());
+
+        registry.resolve(PROC_DEF_ID, ELEMENT_ID);
+        registry.resolve(PROC_DEF_ID, ELEMENT_ID);
+
+        verify(agentConfigRegistry, times(1)).resolve(PROC_DEF_ID, ELEMENT_ID);
+    }
+
+    @Test
+    void resolve_whenGetProcessModelReturnsNull_isCached_doesNotRescanOnSecondCall() {
+        when(agentConfigRegistry.resolve(PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.of(config()));
+        when(repositoryService.getProcessModel(PROC_DEF_ID)).thenReturn(null);
+
+        registry.resolve(PROC_DEF_ID, ELEMENT_ID);
+        registry.resolve(PROC_DEF_ID, ELEMENT_ID);
+
+        verify(repositoryService, times(1)).getProcessModel(PROC_DEF_ID);
+    }
+
+    @Test
+    void resolve_whenToolScopeElementNotFound_isCached_doesNotRescanOnSecondCall() {
+        AgentConfig configWithMissingScope = new AgentConfig(PROC_DEF_ID, ELEMENT_ID,
+                "anthropic", "claude-sonnet-4-6", "prompt", "nonExistentScope");
+        when(agentConfigRegistry.resolve(PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.of(configWithMissingScope));
+        when(repositoryService.getProcessModel(PROC_DEF_ID)).thenReturn(bpmnStream());
+
+        registry.resolve(PROC_DEF_ID, ELEMENT_ID);
+        registry.resolve(PROC_DEF_ID, ELEMENT_ID);
+
+        verify(repositoryService, times(1)).getProcessModel(PROC_DEF_ID);
     }
 }
