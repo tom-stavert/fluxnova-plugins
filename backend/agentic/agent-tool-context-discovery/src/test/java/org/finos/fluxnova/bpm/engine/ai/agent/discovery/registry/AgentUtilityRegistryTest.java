@@ -70,8 +70,6 @@ class AgentUtilityRegistryTest {
         return new ByteArrayInputStream(BPMN.getBytes(StandardCharsets.UTF_8));
     }
 
-    // --- no agent config ---
-
     @Test
     void resolve_whenNoAgentConfig_returnsEmpty() {
         when(agentConfigRegistry.resolve(PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.empty());
@@ -81,8 +79,6 @@ class AgentUtilityRegistryTest {
         assertTrue(result.isEmpty());
         verifyNoInteractions(repositoryService);
     }
-
-    // --- happy path ---
 
     @Test
     void resolve_whenAgentConfigExists_returnsBuilderResult() {
@@ -96,8 +92,6 @@ class AgentUtilityRegistryTest {
         assertEquals(SENTINEL, result.get());
     }
 
-    // --- caching ---
-
     @Test
     void resolve_calledTwice_scansOnlyOnce() {
         when(agentConfigRegistry.resolve(PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.of(config()));
@@ -109,8 +103,6 @@ class AgentUtilityRegistryTest {
 
         verify(repositoryService, times(1)).getProcessModel(PROC_DEF_ID);
     }
-
-    // --- unregisterAll ---
 
     @Test
     void unregisterAll_clearsCache() {
@@ -140,8 +132,6 @@ class AgentUtilityRegistryTest {
         verify(repositoryService, times(2)).getProcessModel(PROC_DEF_ID);
     }
 
-    // --- element lookup ---
-
     @Test
     void resolve_whenToolScopeElementNotFound_returnsEmpty() {
         AgentConfig configWithMissingScope = new AgentConfig(PROC_DEF_ID, ELEMENT_ID,
@@ -153,8 +143,6 @@ class AgentUtilityRegistryTest {
         verifyNoInteractions(builder);
     }
 
-    // --- null / missing process model ---
-
     @Test
     void resolve_whenGetProcessModelReturnsNull_returnsEmpty() {
         when(agentConfigRegistry.resolve(PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.of(config()));
@@ -162,8 +150,6 @@ class AgentUtilityRegistryTest {
 
         assertTrue(registry.resolve(PROC_DEF_ID, ELEMENT_ID).isEmpty());
     }
-
-    // --- exception handling ---
 
     @Test
     void resolve_whenBuilderThrowsProcessEngineException_propagates() {

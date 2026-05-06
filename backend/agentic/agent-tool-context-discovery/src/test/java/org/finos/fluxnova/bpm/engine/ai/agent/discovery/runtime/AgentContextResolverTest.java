@@ -45,8 +45,6 @@ class AgentContextResolverTest {
         return vars;
     }
 
-    // ---------- Undeclared scope (expose all non-agent vars) ----------
-
     @Nested
     class UndeclaredScope {
 
@@ -126,8 +124,6 @@ class AgentContextResolverTest {
             assertEquals(Map.of("k", "v"), result.variables().get("data"));
         }
     }
-
-    // ---------- Declared scope (filter to named subset) ----------
 
     @Nested
     class DeclaredScope {
