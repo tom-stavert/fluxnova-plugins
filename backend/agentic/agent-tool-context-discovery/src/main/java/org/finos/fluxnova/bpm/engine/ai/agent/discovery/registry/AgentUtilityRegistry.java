@@ -94,3 +94,7 @@ public abstract class AgentUtilityRegistry<T> {
         return null;
     }
 }
+    
+final class TransientException extends RuntimeException {
+    TransientException(Exception cause) { super(cause); }
+}
