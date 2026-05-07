@@ -1,0 +1,191 @@
+package org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.job;
+
+import org.finos.fluxnova.bpm.engine.RuntimeService;
+import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.AgentContextSpec;
+import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.AgentToolCatalogue;
+import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.ResolvedContext;
+import org.finos.fluxnova.bpm.engine.ai.agent.discovery.registry.AgentContextSpecRegistry;
+import org.finos.fluxnova.bpm.engine.ai.agent.discovery.registry.AgentToolCatalogueRegistry;
+import org.finos.fluxnova.bpm.engine.ai.agent.discovery.runtime.AgentContextResolver;
+import org.finos.fluxnova.bpm.engine.ai.agent.model.AgentConfig;
+import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.model.AgentOrchestrationConfig;
+import org.finos.fluxnova.bpm.engine.shared.agent.model.ConversationEntry;
+import org.finos.fluxnova.bpm.engine.shared.agent.model.LlmResponse;
+import org.finos.fluxnova.bpm.engine.shared.agent.model.ToolCallRequest;
+import org.finos.fluxnova.bpm.engine.shared.agent.model.ToolInvocationResult;
+import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.model.ToolResult;
+import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.LlmOrchestrationService;
+import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.ToolInvocationService;
+import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.state.AgentStateManager;
+import org.finos.fluxnova.bpm.engine.ai.agent.registry.AgentConfigRegistry;
+import org.finos.fluxnova.bpm.engine.impl.interceptor.CommandContext;
+import org.finos.fluxnova.bpm.engine.impl.jobexecutor.JobHandler;
+import org.finos.fluxnova.bpm.engine.impl.persistence.entity.ExecutionEntity;
+import org.finos.fluxnova.bpm.engine.impl.persistence.entity.JobEntity;
+import org.finos.fluxnova.bpm.engine.impl.persistence.entity.MessageEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+public class AgentOrchestrationJobHandler implements JobHandler<AgentOrchestrationConfig> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AgentOrchestrationJobHandler.class);
+
+    public static final String TYPE = "agent-orchestration-step";
+
+    private final AgentConfigRegistry agentConfigRegistry;
+    private final AgentToolCatalogueRegistry toolCatalogueRegistry;
+    private final AgentContextSpecRegistry contextSpecRegistry;
+    private final AgentContextResolver contextResolver;
+    private final LlmOrchestrationService llmOrchestrationService;
+    private final ToolInvocationService toolInvocationService;
+    private final AgentStateManager stateManager;
+    private final RuntimeService runtimeService;
+
+    public AgentOrchestrationJobHandler(AgentConfigRegistry agentConfigRegistry,
+                                        AgentToolCatalogueRegistry toolCatalogueRegistry,
+                                        AgentContextSpecRegistry contextSpecRegistry,
+                                        AgentContextResolver contextResolver,
+                                        LlmOrchestrationService llmOrchestrationService,
+                                        ToolInvocationService toolInvocationService,
+                                        AgentStateManager stateManager,
+                                        RuntimeService runtimeService) {
+        this.agentConfigRegistry = agentConfigRegistry;
+        this.toolCatalogueRegistry = toolCatalogueRegistry;
+        this.contextSpecRegistry = contextSpecRegistry;
+        this.contextResolver = contextResolver;
+        this.llmOrchestrationService = llmOrchestrationService;
+        this.toolInvocationService = toolInvocationService;
+        this.stateManager = stateManager;
+        this.runtimeService = runtimeService;
+    }
+
+    @Override
+    public String getType() {
+        return TYPE;
+    }
+
+    @Override
+    public void execute(AgentOrchestrationConfig config, ExecutionEntity execution,
+                        CommandContext commandContext, String tenantId) {
+        String scopeExecutionId = config.getScopeExecutionId();
+
+        if (!execution.isActive()) {
+            LOG.debug("Scope execution '{}' is no longer active, skipping orchestration step", scopeExecutionId);
+            return;
+        }
+
+        AgentConfig agentConfig = agentConfigRegistry
+                .resolve(execution.getProcessDefinitionId(), execution.getActivityId())
+                .orElseThrow(() -> new IllegalStateException(
+                        "No AgentConfig found for " + execution.getProcessDefinitionId()
+                                + "/" + execution.getActivityId()));
+        AgentToolCatalogue catalogue = toolCatalogueRegistry
+                .resolve(execution.getProcessDefinitionId(), execution.getActivityId())
+                .orElseThrow(() -> new IllegalStateException(
+                        "No AgentToolCatalogue found for " + execution.getProcessDefinitionId()
+                                + "/" + execution.getActivityId()));
+
+        if (config.hasToolResult()) {
+            ToolResult result = config.getToolResult();
+            Set<String> pending = stateManager.loadPendingToolCalls(scopeExecutionId);
+
+            if (!pending.contains(result.toolCallId())) {
+                LOG.debug("ToolResult '{}' not in pending set, discarding (duplicate or late arrival)",
+                        result.toolCallId());
+                return;
+            }
+
+            pending.remove(result.toolCallId());
+            stateManager.savePendingToolCalls(scopeExecutionId, pending);
+            stateManager.appendToResultBuffer(scopeExecutionId, result);
+
+            if (!pending.isEmpty()) {
+                return;
+            }
+            // All pending tools done — fall through to next LLM call
+        }
+
+        // Build history with tool results appended, then call Component 3
+        List<ToolResult> buffer = stateManager.loadToolResultBuffer(scopeExecutionId);
+        List<ConversationEntry> history = stateManager.loadHistory(scopeExecutionId);
+        history = appendToolResults(history, buffer);
+        stateManager.clearToolResultBuffer(scopeExecutionId);
+
+        AgentContextSpec contextSpec = contextSpecRegistry
+                .resolve(execution.getProcessDefinitionId(), execution.getActivityId())
+                .orElseThrow();
+        ResolvedContext context = contextResolver.resolve(scopeExecutionId, contextSpec);
+
+        LlmResponse response = llmOrchestrationService.call(agentConfig, catalogue, context, history);
+        stateManager.saveHistory(scopeExecutionId, response.updatedHistory());
+
+        if (response.toolCalls().isEmpty()) {
+            // this currently doesn't exist (will be a part of Chris' implementation)
+            runtimeService.completeAdHocSubprocess(scopeExecutionId);
+            return;
+        }
+
+        dispatch(scopeExecutionId, catalogue, response.toolCalls(), execution, commandContext);
+    }
+
+    @Override
+    public AgentOrchestrationConfig newConfiguration(String canonicalString) {
+        return AgentOrchestrationConfig.fromCanonicalString(canonicalString);
+    }
+
+    @Override
+    public void onDelete(AgentOrchestrationConfig configuration, JobEntity jobEntity) {
+        // No cleanup needed
+    }
+
+    private void dispatch(String scopeExecutionId, AgentToolCatalogue catalogue,
+                          List<ToolCallRequest> toolCalls, ExecutionEntity execution,
+                          CommandContext commandContext) {
+        // Parallel: dispatch all at once
+        Set<String> pending = new HashSet<>();
+        List<ToolResult> failures = new ArrayList<>();
+
+        for (ToolCallRequest tc : toolCalls) {
+            ToolInvocationResult result = toolInvocationService.invoke(scopeExecutionId, catalogue, tc);
+            if (result.success()) {
+                pending.add(tc.toolCallId());
+            } else {
+                failures.add(ToolResult.error(tc.toolCallId(), result.errorMessage()));
+            }
+        }
+        stateManager.savePendingToolCalls(scopeExecutionId, pending);
+
+        if (pending.isEmpty() && !failures.isEmpty()) {
+            stateManager.appendAllToResultBuffer(scopeExecutionId, failures);
+            scheduleNextStep(scopeExecutionId, execution, commandContext);
+        }
+    }
+
+    private void scheduleNextStep(String scopeExecutionId, ExecutionEntity execution,
+                                  CommandContext commandContext) {
+        MessageEntity job = new MessageEntity();
+        job.setExecution(execution);
+        job.setJobHandlerType(TYPE);
+        job.setJobHandlerConfigurationRaw(
+                AgentOrchestrationConfig.forEntry(scopeExecutionId).toCanonicalString());
+
+        commandContext.getJobManager().insertAndHintJobExecutor(job);
+    }
+
+    private List<ConversationEntry> appendToolResults(List<ConversationEntry> history, List<ToolResult> results) {
+        List<ConversationEntry> updated = new ArrayList<>(history);
+        for (ToolResult result : results) {
+            Map<String, Object> resultContent = result.isError()
+                    ? Map.of("error", result.errorMessage())
+                    : result.outputs();
+            updated.add(ConversationEntry.tool(result.toolCallId(), resultContent));
+        }
+        return updated;
+    }
+}
