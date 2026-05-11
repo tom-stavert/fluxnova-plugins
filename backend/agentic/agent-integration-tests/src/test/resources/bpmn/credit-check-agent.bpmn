@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Primary integration-test fixture.
+
+  creditCheckAgent is an agentic ad-hoc subprocess with:
+    - agent:config declaring provider, model, and systemPrompt
+    - agent:context declaring customerId and applicationAmount as visible variables
+
+  Tool catalogue (activities that are NOT sequence-flow targets):
+    - fetchCreditScore  reads=[customerId]  writes=[creditScore]
+    - checkBlacklist    reads=[customerId]  writes=[blacklisted]
+
+  assessRisk has incoming sequence flows from both tools and is therefore NOT triggerable
+  by the LLM; it must be excluded from the catalogue.
+-->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn">
+  <process id="creditCheck">
+    <adHocSubProcess id="creditCheckAgent" name="Credit Check Agent">
+      <extensionElements>
+        <agent:config provider="anthropic"
+                      model="claude-sonnet-4-6"
+                      systemPrompt="You are a credit analyst. Use the available tools to assess credit risk."/>
+        <agent:context>
+          <agent:variable name="customerId"/>
+          <agent:variable name="applicationAmount"/>
+        </agent:context>
+      </extensionElements>
+
+      <serviceTask id="fetchCreditScore" name="Fetch Credit Score">
+        <documentation>Retrieves the credit score for the applicant from the credit bureau. Requires customerId in scope.</documentation>
+        <extensionElements>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="cid">${customerId}</camunda:inputParameter>
+            <camunda:outputParameter name="creditScore">${creditScore}</camunda:outputParameter>
+          </camunda:inputOutput>
+        </extensionElements>
+      </serviceTask>
+
+      <serviceTask id="checkBlacklist" name="Check Blacklist">
+        <documentation>Checks whether the applicant appears on a credit blacklist. Requires customerId in scope.</documentation>
+        <extensionElements>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="cid">${customerId}</camunda:inputParameter>
+            <camunda:outputParameter name="blacklisted">${blacklisted}</camunda:outputParameter>
+          </camunda:inputOutput>
+        </extensionElements>
+      </serviceTask>
+
+      <!--
+        assessRisk is intentionally a sequence-flow target (from both tools above) and must
+        NOT appear in the LLM tool catalogue — the engine triggers it automatically once
+        both upstream tools have completed.
+      -->
+      <serviceTask id="assessRisk" name="Assess Risk">
+        <documentation>Produces a final risk assessment. Triggered automatically after fetchCreditScore and checkBlacklist.</documentation>
+        <extensionElements>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="score">${creditScore}</camunda:inputParameter>
+            <camunda:inputParameter name="bl">${blacklisted}</camunda:inputParameter>
+            <camunda:outputParameter name="riskAssessment">${riskAssessment}</camunda:outputParameter>
+          </camunda:inputOutput>
+        </extensionElements>
+      </serviceTask>
+
+      <sequenceFlow id="f1" sourceRef="fetchCreditScore" targetRef="assessRisk"/>
+      <sequenceFlow id="f2" sourceRef="checkBlacklist"   targetRef="assessRisk"/>
+    </adHocSubProcess>
+  </process>
+</definitions>

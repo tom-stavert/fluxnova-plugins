@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Plain process fixture — no agent configuration.
+
+  Used in tests that verify registries return empty when a process definition
+  carries no agent:config elements. Also used in lifecycle tests as the
+  post-undeploy BPMN to confirm that clearing the cache forces a fresh scan.
+-->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL">
+  <process id="plain">
+    <adHocSubProcess id="plainSub" name="Plain Sub"/>
+  </process>
+</definitions>
