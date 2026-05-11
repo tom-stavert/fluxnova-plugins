@@ -9,9 +9,9 @@ import java.util.List;
 
 public class AgentOrchestratorEnginePlugin extends AbstractProcessEnginePlugin {
 
-    private final AgentOrchestrationParseListener parseListener;
+    private final BpmnParseListener parseListener;
 
-    public AgentOrchestratorEnginePlugin(AgentOrchestrationParseListener parseListener) {
+    public AgentOrchestratorEnginePlugin(BpmnParseListener parseListener) {
         this.parseListener = parseListener;
     }
 
