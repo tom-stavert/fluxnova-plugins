@@ -7,12 +7,12 @@ import org.finos.fluxnova.bpm.engine.impl.pvm.process.ScopeImpl;
 import org.finos.fluxnova.bpm.engine.impl.util.xml.Element;
 import org.finos.fluxnova.bpm.engine.shared.agent.AgentModelConstants;
 
-public class AgentOrchestrationParseListener extends AbstractBpmnParseListener {
+public class AdHocAgentOrchestrationParseListener extends AbstractBpmnParseListener {
 
     private final AgentSubprocessEntryListener subprocessEntryListener;
     private final ToolCompletionListener toolCompletionListener;
 
-    public AgentOrchestrationParseListener(AgentSubprocessEntryListener subprocessEntryListener,
+    public AdHocAgentOrchestrationParseListener(AgentSubprocessEntryListener subprocessEntryListener,
             ToolCompletionListener toolCompletionListener) {
         this.subprocessEntryListener = subprocessEntryListener;
         this.toolCompletionListener = toolCompletionListener;
