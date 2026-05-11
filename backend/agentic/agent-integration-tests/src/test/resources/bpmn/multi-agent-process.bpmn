@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Multi-agent process fixture.
+
+  Two independent agentic subprocesses live in the same process definition.
+  This verifies that each agent resolves its own catalogue in isolation and that
+  resolving one agent does not pollute the cached data for the other.
+
+  agentA catalogue: [toolA1]       (1 tool)
+  agentB catalogue: [toolB1, toolB2] (2 tools)
+-->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
+  <process id="multiAgent">
+    <adHocSubProcess id="agentA" name="Agent A">
+      <extensionElements>
+        <agent:config provider="anthropic"
+                      model="claude-sonnet-4-6"
+                      systemPrompt="You are Agent A."/>
+      </extensionElements>
+      <serviceTask id="toolA1" name="Tool A1">
+        <documentation>First and only tool available to Agent A.</documentation>
+      </serviceTask>
+    </adHocSubProcess>
+
+    <adHocSubProcess id="agentB" name="Agent B">
+      <extensionElements>
+        <agent:config provider="ollama"
+                      model="llama3.1"
+                      systemPrompt="You are Agent B."/>
+      </extensionElements>
+      <serviceTask id="toolB1" name="Tool B1">
+        <documentation>First tool available to Agent B.</documentation>
+      </serviceTask>
+      <serviceTask id="toolB2" name="Tool B2">
+        <documentation>Second tool available to Agent B.</documentation>
+      </serviceTask>
+    </adHocSubProcess>
+  </process>
+</definitions>

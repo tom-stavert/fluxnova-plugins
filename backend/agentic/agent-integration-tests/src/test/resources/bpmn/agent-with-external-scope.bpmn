@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  External tool-scope fixture.
+
+  agentSubProcess carries agent:config with toolScopeElementId="toolRegistry", delegating
+  tool discovery to a sibling subProcess element rather than its own children.
+
+  Expected catalogue when resolving agentSubProcess:
+    - lookupCustomer  (from toolRegistry, no incoming flows)
+    - validateAddress (from toolRegistry, no incoming flows)
+
+  The agentSubProcess element itself has no activity children, so if the tool scope were
+  incorrectly defaulted to the agent element rather than "toolRegistry", the catalogue
+  would be empty — allowing tests to distinguish the two code paths.
+-->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:agent="http://fluxnova.finos.org/schema/1.0/ai/agent">
+  <process id="externalScope">
+    <adHocSubProcess id="agentSubProcess" name="Agent">
+      <extensionElements>
+        <agent:config provider="anthropic"
+                      model="claude-sonnet-4-6"
+                      systemPrompt="Use the tools."
+                      toolScopeElementId="toolRegistry"/>
+      </extensionElements>
+    </adHocSubProcess>
+
+    <!--
+      Sibling subProcess acting as the tool registry.
+      Both tasks are triggerable (no incoming sequence flows within this scope).
+    -->
+    <subProcess id="toolRegistry" name="Tool Registry">
+      <serviceTask id="lookupCustomer"  name="Lookup Customer">
+        <documentation>Finds the customer record by the customerId variable in scope.</documentation>
+      </serviceTask>
+      <serviceTask id="validateAddress" name="Validate Address">
+        <documentation>Validates the customer's registered address against external records.</documentation>
+      </serviceTask>
+    </subProcess>
+  </process>
+</definitions>
