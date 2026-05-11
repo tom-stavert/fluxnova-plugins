@@ -1,6 +1,5 @@
 package org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.job;
 
-import org.finos.fluxnova.bpm.engine.RuntimeService;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.AgentContextSpec;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.AgentToolCatalogue;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.ResolvedContext;
@@ -14,6 +13,7 @@ import org.finos.fluxnova.bpm.engine.shared.agent.model.LlmResponse;
 import org.finos.fluxnova.bpm.engine.shared.agent.model.ToolCallRequest;
 import org.finos.fluxnova.bpm.engine.shared.agent.model.ToolInvocationResult;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.model.ToolResult;
+import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.AgentScopeCompleter;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.LlmOrchestrationService;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.ToolInvocationService;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.state.AgentStateManager;
@@ -45,7 +45,7 @@ public class AgentOrchestrationJobHandler implements JobHandler<AgentOrchestrati
     private final LlmOrchestrationService llmOrchestrationService;
     private final ToolInvocationService toolInvocationService;
     private final AgentStateManager stateManager;
-    private final RuntimeService runtimeService;
+    private final AgentScopeCompleter agentScopeCompleter;
 
     public AgentOrchestrationJobHandler(AgentConfigRegistry agentConfigRegistry,
                                         AgentToolCatalogueRegistry toolCatalogueRegistry,
@@ -54,7 +54,7 @@ public class AgentOrchestrationJobHandler implements JobHandler<AgentOrchestrati
                                         LlmOrchestrationService llmOrchestrationService,
                                         ToolInvocationService toolInvocationService,
                                         AgentStateManager stateManager,
-                                        RuntimeService runtimeService) {
+                                        AgentScopeCompleter agentScopeCompleter) {
         this.agentConfigRegistry = agentConfigRegistry;
         this.toolCatalogueRegistry = toolCatalogueRegistry;
         this.contextSpecRegistry = contextSpecRegistry;
@@ -62,7 +62,7 @@ public class AgentOrchestrationJobHandler implements JobHandler<AgentOrchestrati
         this.llmOrchestrationService = llmOrchestrationService;
         this.toolInvocationService = toolInvocationService;
         this.stateManager = stateManager;
-        this.runtimeService = runtimeService;
+        this.agentScopeCompleter = agentScopeCompleter;
     }
 
     @Override
@@ -127,7 +127,7 @@ public class AgentOrchestrationJobHandler implements JobHandler<AgentOrchestrati
 
         if (response.toolCalls().isEmpty()) {
             // this currently doesn't exist (will be a part of Chris' implementation)
-            runtimeService.completeAdHocSubprocess(scopeExecutionId);
+            agentScopeCompleter.complete(scopeExecutionId);
             return;
         }
 
