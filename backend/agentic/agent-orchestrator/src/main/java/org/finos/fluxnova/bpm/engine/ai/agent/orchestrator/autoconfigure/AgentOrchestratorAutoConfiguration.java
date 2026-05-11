@@ -6,11 +6,13 @@ import org.finos.fluxnova.bpm.engine.ai.agent.discovery.autoconfigure.AgentDisco
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.registry.AgentContextSpecRegistry;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.registry.AgentToolCatalogueRegistry;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.runtime.AgentContextResolver;
-import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine.AgentOrchestrationParseListener;
+import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine.AdHocAgentOrchestrationParseListener;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine.AgentOrchestratorEnginePlugin;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine.AgentSubprocessEntryListener;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine.ToolCompletionListener;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.job.AgentOrchestrationJobHandler;
+import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.AdHocSubprocessCompleter;
+import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.AgentScopeCompleter;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.LlmOrchestrationService;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.ToolInvocationService;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.state.AgentStateManager;
@@ -44,6 +46,12 @@ public class AgentOrchestratorAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    public AgentScopeCompleter adHocSubprocessCompleter(RuntimeService runtimeService) {
+        return new AdHocSubprocessCompleter(runtimeService);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
     public AgentOrchestrationJobHandler agentOrchestrationJobHandler(
             AgentConfigRegistry agentConfigRegistry,
             AgentToolCatalogueRegistry toolCatalogueRegistry,
@@ -52,25 +60,25 @@ public class AgentOrchestratorAutoConfiguration {
             LlmOrchestrationService llmOrchestrationService,
             ToolInvocationService toolInvocationService,
             AgentStateManager stateManager,
-            RuntimeService runtimeService) {
+            AgentScopeCompleter scopeCompleter) {
         return new AgentOrchestrationJobHandler(
                 agentConfigRegistry, toolCatalogueRegistry, contextSpecRegistry,
                 contextResolver, llmOrchestrationService, toolInvocationService,
-                stateManager, runtimeService);
+                stateManager, scopeCompleter);
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public AgentOrchestrationParseListener agentOrchestrationParseListener(
+    public AdHocAgentOrchestrationParseListener AdHocAgentOrchestrationParseListener(
             AgentSubprocessEntryListener entryListener,
             ToolCompletionListener completionListener) {
-        return new AgentOrchestrationParseListener(entryListener, completionListener);
+        return new AdHocAgentOrchestrationParseListener(entryListener, completionListener);
     }
 
     @Bean
     @ConditionalOnMissingBean
     public AgentOrchestratorEnginePlugin agentOrchestratorEnginePlugin(
-            AgentOrchestrationParseListener parseListener) {
+            AdHocAgentOrchestrationParseListener parseListener) {
         return new AgentOrchestratorEnginePlugin(parseListener);
     }
 }
