@@ -128,7 +128,7 @@ public class AgentOrchestrationJobHandler implements JobHandler<AgentOrchestrati
         stateManager.saveHistory(scopeExecutionId, response.updatedHistory());
 
         if (response.toolCalls().isEmpty()) {
-            // this currently doesn't exist (will be a part of Chris' implementation)
+            // Complete the process if tool call is empty
             agentScopeCompleter.complete(scopeExecutionId);
             return;
         }
