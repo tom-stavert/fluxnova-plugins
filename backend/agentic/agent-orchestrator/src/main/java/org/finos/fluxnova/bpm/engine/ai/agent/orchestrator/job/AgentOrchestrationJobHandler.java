@@ -80,6 +80,7 @@ public class AgentOrchestrationJobHandler implements JobHandler<AgentOrchestrati
             return;
         }
 
+        // Not sure if this is the best way of handling these?
         AgentConfig agentConfig = agentConfigRegistry
                 .resolve(execution.getProcessDefinitionId(), execution.getActivityId())
                 .orElseThrow(() -> new IllegalStateException(
@@ -117,9 +118,10 @@ public class AgentOrchestrationJobHandler implements JobHandler<AgentOrchestrati
         history = appendToolResults(history, buffer);
         stateManager.clearToolResultBuffer(scopeExecutionId);
 
+        // Fallback to empty spec if no context is declared — resolver will include all process variables
         AgentContextSpec contextSpec = contextSpecRegistry
                 .resolve(execution.getProcessDefinitionId(), execution.getActivityId())
-                .orElseThrow();
+                .orElse(new AgentContextSpec(execution.getProcessDefinitionId(), execution.getActivityId(), List.of()));
         ResolvedContext context = contextResolver.resolve(scopeExecutionId, contextSpec);
 
         LlmResponse response = llmOrchestrationService.call(agentConfig, catalogue, context, history);
