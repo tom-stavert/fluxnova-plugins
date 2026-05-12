@@ -10,6 +10,8 @@ import org.finos.fluxnova.bpm.engine.delegate.ExecutionListener;
 import org.finos.fluxnova.bpm.engine.impl.context.Context;
 import org.finos.fluxnova.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.finos.fluxnova.bpm.engine.impl.persistence.entity.MessageEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Set;
@@ -17,6 +19,8 @@ import java.util.Set;
 import static java.util.stream.Collectors.toMap;
 
 public class ToolCompletionListener implements ExecutionListener {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ToolCompletionListener.class);
 
     private final AgentToolCatalogueRegistry toolCatalogueRegistry;
 
@@ -28,6 +32,7 @@ public class ToolCompletionListener implements ExecutionListener {
     public void notify(DelegateExecution execution) {
         String toolCallId = (String) execution.getVariableLocal("_agentToolCallId");
         if (toolCallId == null) {
+            LOG.warn("Skipping tool result processing for execution '{}' - no toolCallId found", execution.getId())
             return;
         }
 
