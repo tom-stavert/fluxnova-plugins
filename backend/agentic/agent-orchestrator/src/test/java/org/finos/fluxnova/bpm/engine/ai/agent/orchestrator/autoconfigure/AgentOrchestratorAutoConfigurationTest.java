@@ -8,7 +8,7 @@ import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine.AdHocAgentOrch
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine.AgentOrchestratorEnginePlugin;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine.AgentSubprocessEntryListener;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine.SubprocessToolCompletionListener;
-import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.job.AgenticAdHocSubprocessJobHandler;
+import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.job.AgentOrchestrationJobHandler;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.AdHocSubprocessCompleter;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.AgentTerminationHandler;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.LlmOrchestrationService;
@@ -80,7 +80,7 @@ class AgentOrchestratorAutoConfigurationTest {
             assertNotNull(context.getBean(AgentSubprocessEntryListener.class));
             assertNotNull(context.getBean(SubprocessToolCompletionListener.class));
             assertNotNull(context.getBean(AgentTerminationHandler.class));
-            assertNotNull(context.getBean(AgenticAdHocSubprocessJobHandler.class));
+            assertNotNull(context.getBean(AgentOrchestrationJobHandler.class));
             assertNotNull(context.getBean(AdHocAgentOrchestrationParseListener.class));
             assertNotNull(context.getBean(AgentOrchestratorEnginePlugin.class));
         }
