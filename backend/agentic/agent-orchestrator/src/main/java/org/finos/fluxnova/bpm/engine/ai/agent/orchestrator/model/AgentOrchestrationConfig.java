@@ -6,19 +6,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.finos.fluxnova.bpm.engine.impl.jobexecutor.JobHandlerConfiguration;
 
-public class AgentOrchestrationConfig implements JobHandlerConfiguration {
+public record AgentOrchestrationConfig(
+        String scopeExecutionId,
+        ToolResult toolResult
+) implements JobHandlerConfiguration {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-
-    private final String scopeExecutionId;
-    private final ToolResult toolResult;
 
     @JsonCreator
     public AgentOrchestrationConfig(
             @JsonProperty("scopeExecutionId") String scopeExecutionId,
             @JsonProperty("toolResult") ToolResult toolResult) {
-        this.scopeExecutionId = scopeExecutionId;
-        this.toolResult = toolResult;
     }
 
     public static AgentOrchestrationConfig forEntry(String scopeExecutionId) {
@@ -27,14 +25,6 @@ public class AgentOrchestrationConfig implements JobHandlerConfiguration {
 
     public static AgentOrchestrationConfig forToolCompletion(String scopeExecutionId, ToolResult result) {
         return new AgentOrchestrationConfig(scopeExecutionId, result);
-    }
-
-    public String getScopeExecutionId() {
-        return scopeExecutionId;
-    }
-
-    public ToolResult getToolResult() {
-        return toolResult;
     }
 
     public boolean hasToolResult() {
