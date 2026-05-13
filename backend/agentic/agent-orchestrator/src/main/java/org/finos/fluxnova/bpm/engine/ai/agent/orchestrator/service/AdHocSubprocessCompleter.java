@@ -7,7 +7,7 @@ import org.finos.fluxnova.bpm.engine.RuntimeService;
  * 
  * <p>Completes the ad-hoc subprocess scope using the engine's ad-hoc completion mechanism.
  */
-public class AdHocSubprocessCompleter implements AgentScopeCompleter {
+public class AdHocSubprocessCompleter implements AgentTerminationHandler {
 
     private final RuntimeService runtimeService;
 

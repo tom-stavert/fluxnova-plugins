@@ -12,7 +12,7 @@ import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine.AgentSubproces
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine.SubprocessToolCompletionListener;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.job.AgenticAdHocSubprocessJobHandler;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.AdHocSubprocessCompleter;
-import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.AgentScopeCompleter;
+import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.AgentTerminationHandler;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.LlmOrchestrationService;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.ToolInvocationService;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.state.AgentStateManager;
@@ -46,7 +46,7 @@ public class AgentOrchestratorAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public AgentScopeCompleter adHocSubprocessCompleter(RuntimeService runtimeService) {
+    public AgentTerminationHandler adHocSubprocessCompleter(RuntimeService runtimeService) {
         return new AdHocSubprocessCompleter(runtimeService);
     }
 
@@ -60,7 +60,7 @@ public class AgentOrchestratorAutoConfiguration {
             LlmOrchestrationService llmOrchestrationService,
             ToolInvocationService toolInvocationService,
             AgentStateManager stateManager,
-            AgentScopeCompleter scopeCompleter) {
+            AgentTerminationHandler scopeCompleter) {
         return new AgenticAdHocSubprocessJobHandler(
                 agentConfigRegistry, toolCatalogueRegistry, contextSpecRegistry,
                 contextResolver, llmOrchestrationService, toolInvocationService,

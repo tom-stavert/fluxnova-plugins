@@ -10,7 +10,7 @@ import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine.AgentSubproces
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine.SubprocessToolCompletionListener;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.job.AgenticAdHocSubprocessJobHandler;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.AdHocSubprocessCompleter;
-import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.AgentScopeCompleter;
+import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.AgentTerminationHandler;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.LlmOrchestrationService;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.ToolInvocationService;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.state.AgentStateManager;
@@ -49,7 +49,7 @@ class AgentOrchestratorAutoConfigurationTest {
         @Bean AgentToolCatalogueRegistry agentToolCatalogueRegistry() { return mock(AgentToolCatalogueRegistry.class); }
         @Bean AgentContextSpecRegistry agentContextSpecRegistry() { return mock(AgentContextSpecRegistry.class); }
         @Bean AgentContextResolver agentContextResolver() { return mock(AgentContextResolver.class); }
-        @Bean AgentScopeCompleter agentScopeCompleter() { return mock(AgentScopeCompleter.class); }
+        @Bean AgentTerminationHandler AgentTerminationHandler() { return mock(AgentTerminationHandler.class); }
     }
 
     @Configuration
@@ -79,7 +79,7 @@ class AgentOrchestratorAutoConfigurationTest {
             assertNotNull(context.getBean(AgentStateManager.class));
             assertNotNull(context.getBean(AgentSubprocessEntryListener.class));
             assertNotNull(context.getBean(SubprocessToolCompletionListener.class));
-            assertNotNull(context.getBean(AgentScopeCompleter.class));
+            assertNotNull(context.getBean(AgentTerminationHandler.class));
             assertNotNull(context.getBean(AgenticAdHocSubprocessJobHandler.class));
             assertNotNull(context.getBean(AdHocAgentOrchestrationParseListener.class));
             assertNotNull(context.getBean(AgentOrchestratorEnginePlugin.class));
@@ -88,7 +88,7 @@ class AgentOrchestratorAutoConfigurationTest {
         @Test
         void scopeCompleter_isAdHocSubprocessImpl() {
             assertInstanceOf(AdHocSubprocessCompleter.class,
-                    context.getBean(AgentScopeCompleter.class));
+                    context.getBean(AgentTerminationHandler.class));
         }
     }
 
@@ -107,7 +107,7 @@ class AgentOrchestratorAutoConfigurationTest {
             context = new AnnotationConfigApplicationContext(
                     CustomScopeCompleterOverride.class, AgentOrchestratorAutoConfiguration.class);
 
-            assertFalse(context.getBean(AgentScopeCompleter.class)
+            assertFalse(context.getBean(AgentTerminationHandler.class)
                     instanceof AdHocSubprocessCompleter);
         }
     }

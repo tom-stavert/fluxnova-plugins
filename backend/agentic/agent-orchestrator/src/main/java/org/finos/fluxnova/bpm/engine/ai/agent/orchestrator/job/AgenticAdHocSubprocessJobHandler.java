@@ -13,7 +13,7 @@ import org.finos.fluxnova.bpm.engine.shared.agent.model.LlmResponse;
 import org.finos.fluxnova.bpm.engine.shared.agent.model.ToolCallRequest;
 import org.finos.fluxnova.bpm.engine.shared.agent.model.ToolInvocationResult;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.model.ToolResult;
-import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.AgentScopeCompleter;
+import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.AgentTerminationHandler;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.LlmOrchestrationService;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.ToolInvocationService;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.state.AgentStateManager;
@@ -45,7 +45,7 @@ public class AgenticAdHocSubprocessJobHandler implements JobHandler<AgentOrchest
     private final LlmOrchestrationService llmOrchestrationService;
     private final ToolInvocationService toolInvocationService;
     private final AgentStateManager stateManager;
-    private final AgentScopeCompleter agentScopeCompleter;
+    private final AgentTerminationHandler AgentTerminationHandler;
 
     public AgenticAdHocSubprocessJobHandler(AgentConfigRegistry agentConfigRegistry,
                                         AgentToolCatalogueRegistry toolCatalogueRegistry,
@@ -54,7 +54,7 @@ public class AgenticAdHocSubprocessJobHandler implements JobHandler<AgentOrchest
                                         LlmOrchestrationService llmOrchestrationService,
                                         ToolInvocationService toolInvocationService,
                                         AgentStateManager stateManager,
-                                        AgentScopeCompleter agentScopeCompleter) {
+                                        AgentTerminationHandler AgentTerminationHandler) {
         this.agentConfigRegistry = agentConfigRegistry;
         this.toolCatalogueRegistry = toolCatalogueRegistry;
         this.contextSpecRegistry = contextSpecRegistry;
@@ -62,7 +62,7 @@ public class AgenticAdHocSubprocessJobHandler implements JobHandler<AgentOrchest
         this.llmOrchestrationService = llmOrchestrationService;
         this.toolInvocationService = toolInvocationService;
         this.stateManager = stateManager;
-        this.agentScopeCompleter = agentScopeCompleter;
+        this.AgentTerminationHandler = AgentTerminationHandler;
     }
 
     @Override
@@ -129,7 +129,7 @@ public class AgenticAdHocSubprocessJobHandler implements JobHandler<AgentOrchest
 
         if (response.toolCalls().isEmpty()) {
             // Complete the process if tool call is empty
-            agentScopeCompleter.complete(scopeExecutionId);
+            AgentTerminationHandler.complete(scopeExecutionId);
             return;
         }
 

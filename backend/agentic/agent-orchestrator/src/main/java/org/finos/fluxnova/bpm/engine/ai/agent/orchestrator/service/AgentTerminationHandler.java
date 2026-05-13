@@ -6,7 +6,7 @@ package org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service;
  * <p>This interface allows different proposals (ad-hoc subprocess, event subprocess, etc.)
  * to define how they complete the scope when the agent loop finishes.
  */
-public interface AgentScopeCompleter {
+public interface AgentTerminationHandler {
 
     void complete(String scopeExecutionId);
 }
