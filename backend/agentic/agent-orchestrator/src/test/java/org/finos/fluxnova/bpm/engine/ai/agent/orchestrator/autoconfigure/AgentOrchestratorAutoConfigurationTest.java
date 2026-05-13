@@ -11,8 +11,8 @@ import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine.SubprocessTool
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.job.AgenticAdHocSubprocessJobHandler;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.AdHocSubprocessCompleter;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.AgentTerminationHandler;
-import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.LlmOrchestrationService;
-import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.ToolInvocationService;
+import org.finos.fluxnova.bpm.engine.ai.agent.llm.service.LlmService;
+import org.finos.fluxnova.bpm.engine.ai.agent.service.ToolInvocationService;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.state.AgentStateManager;
 import org.finos.fluxnova.bpm.engine.ai.agent.registry.AgentConfigRegistry;
 import org.junit.jupiter.api.AfterEach;
@@ -32,7 +32,7 @@ class AgentOrchestratorAutoConfigurationTest {
     @Configuration
     static class MockInfrastructure {
         @Bean RuntimeService runtimeService() { return mock(RuntimeService.class); }
-        @Bean LlmOrchestrationService llmOrchestrationService() { return mock(LlmOrchestrationService.class); }
+        @Bean LlmService llmOrchestrationService() { return mock(LlmService.class); }
         @Bean ToolInvocationService toolInvocationService() { return mock(ToolInvocationService.class); }
         @Bean AgentConfigRegistry agentConfigRegistry() { return mock(AgentConfigRegistry.class); }
         @Bean AgentToolCatalogueRegistry agentToolCatalogueRegistry() { return mock(AgentToolCatalogueRegistry.class); }
@@ -43,7 +43,7 @@ class AgentOrchestratorAutoConfigurationTest {
     @Configuration
     static class CustomScopeCompleterOverride {
         @Bean RuntimeService runtimeService() { return mock(RuntimeService.class); }
-        @Bean LlmOrchestrationService llmOrchestrationService() { return mock(LlmOrchestrationService.class); }
+        @Bean LlmService llmOrchestrationService() { return mock(LlmService.class); }
         @Bean ToolInvocationService toolInvocationService() { return mock(ToolInvocationService.class); }
         @Bean AgentConfigRegistry agentConfigRegistry() { return mock(AgentConfigRegistry.class); }
         @Bean AgentToolCatalogueRegistry agentToolCatalogueRegistry() { return mock(AgentToolCatalogueRegistry.class); }
@@ -123,7 +123,7 @@ class AgentOrchestratorAutoConfigurationTest {
         }
 
         @Test
-        void autoConfigurationDoesNotActivate_whenLlmOrchestrationServiceIsAbsent() {
+        void autoConfigurationDoesNotActivate_whenLlmServiceIsAbsent() {
             context = new AnnotationConfigApplicationContext(
                     MissingLlmService.class, AgentOrchestratorAutoConfiguration.class);
 
