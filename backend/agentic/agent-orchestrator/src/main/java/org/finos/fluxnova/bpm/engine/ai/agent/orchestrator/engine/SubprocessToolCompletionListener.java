@@ -18,13 +18,13 @@ import java.util.Set;
 
 import static java.util.stream.Collectors.toMap;
 
-public class ToolCompletionListener implements ExecutionListener {
+public class SubprocessToolCompletionListener implements ExecutionListener {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ToolCompletionListener.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SubprocessToolCompletionListener.class);
 
     private final AgentToolCatalogueRegistry toolCatalogueRegistry;
 
-    public ToolCompletionListener(AgentToolCatalogueRegistry toolCatalogueRegistry) {
+    public SubprocessToolCompletionListener(AgentToolCatalogueRegistry toolCatalogueRegistry) {
         this.toolCatalogueRegistry = toolCatalogueRegistry;
     }
 

@@ -10,12 +10,12 @@ import org.finos.fluxnova.bpm.engine.shared.agent.AgentModelConstants;
 public class AdHocAgentOrchestrationParseListener extends AbstractBpmnParseListener {
 
     private final AgentSubprocessEntryListener subprocessEntryListener;
-    private final ToolCompletionListener toolCompletionListener;
+    private final SubprocessToolCompletionListener subprocessToolCompletionListener;
 
     public AdHocAgentOrchestrationParseListener(AgentSubprocessEntryListener subprocessEntryListener,
-            ToolCompletionListener toolCompletionListener) {
+            SubprocessToolCompletionListener subprocessToolCompletionListener) {
         this.subprocessEntryListener = subprocessEntryListener;
-        this.toolCompletionListener = toolCompletionListener;
+        this.subprocessToolCompletionListener = subprocessToolCompletionListener;
     }
 
     // this override will only work properly when ad-hoc subprocesses are implemented
@@ -35,7 +35,7 @@ public class AdHocAgentOrchestrationParseListener extends AbstractBpmnParseListe
             if (!child.getIncomingTransitions().isEmpty()) {
                 continue;
             }
-            child.addBuiltInListener(PvmEvent.EVENTNAME_END, toolCompletionListener);
+            child.addBuiltInListener(PvmEvent.EVENTNAME_END, subprocessToolCompletionListener);
         }
     }
 }

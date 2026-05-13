@@ -9,7 +9,7 @@ import org.finos.fluxnova.bpm.engine.ai.agent.discovery.runtime.AgentContextReso
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine.AdHocAgentOrchestrationParseListener;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine.AgentOrchestratorEnginePlugin;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine.AgentSubprocessEntryListener;
-import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine.ToolCompletionListener;
+import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine.SubprocessToolCompletionListener;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.job.AgenticAdHocSubProcessJobHandler;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.AdHocSubprocessCompleter;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.AgentScopeCompleter;
@@ -40,8 +40,8 @@ public class AgentOrchestratorAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public ToolCompletionListener toolCompletionListener(AgentToolCatalogueRegistry toolCatalogueRegistry) {
-        return new ToolCompletionListener(toolCatalogueRegistry);
+    public SubprocessToolCompletionListener subprocessToolCompletionListener(AgentToolCatalogueRegistry toolCatalogueRegistry) {
+        return new SubprocessToolCompletionListener(toolCatalogueRegistry);
     }
 
     @Bean
@@ -71,7 +71,7 @@ public class AgentOrchestratorAutoConfiguration {
     @ConditionalOnMissingBean
     public AdHocAgentOrchestrationParseListener AdHocAgentOrchestrationParseListener(
             AgentSubprocessEntryListener entryListener,
-            ToolCompletionListener completionListener) {
+            SubprocessToolCompletionListener completionListener) {
         return new AdHocAgentOrchestrationParseListener(entryListener, completionListener);
     }
 
