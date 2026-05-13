@@ -2,7 +2,7 @@ package org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine;
 
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.AgentToolEntry;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.registry.AgentToolCatalogueRegistry;
-import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.job.AgenticAdHocSubProcessJobHandler;
+import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.job.AgenticAdHocSubprocessJobHandler;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.model.AgentOrchestrationConfig;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.model.ToolResult;
 import org.finos.fluxnova.bpm.engine.delegate.DelegateExecution;
@@ -54,7 +54,7 @@ public class SubprocessToolCompletionListener implements ExecutionListener {
 
         MessageEntity job = new MessageEntity();
         job.setExecution(scope);
-        job.setJobHandlerType(AgenticAdHocSubProcessJobHandler.TYPE);
+        job.setJobHandlerType(AgenticAdHocSubprocessJobHandler.TYPE);
         job.setJobHandlerConfigurationRaw(
                 AgentOrchestrationConfig.forToolCompletion(scopeExecutionId, result).toCanonicalString());
 
