@@ -182,7 +182,7 @@ public class AgentOrchestrationJobHandler implements JobHandler<AgentOrchestrati
         for (ToolResult result : results) {
             Map<String, Object> resultContent = result.isError()
                     ? Map.of("error", result.errorMessage())
-                    : result.outputs();
+                    : Map.of("status", "ok");
             updated.add(ConversationEntry.tool(result.toolCallId(), resultContent));
         }
         return updated;

@@ -3,8 +3,6 @@ package org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.model;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.util.Map;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class AgentOrchestrationConfigTest {
@@ -29,7 +27,7 @@ class AgentOrchestrationConfigTest {
 
         @Test
         void forToolCompletion_roundTrips() {
-            ToolResult result = new ToolResult("tc-42", "creditCheck", Map.of("score", 750), null);
+            ToolResult result = new ToolResult("tc-42", "creditCheck", null);
             AgentOrchestrationConfig config = AgentOrchestrationConfig.forToolCompletion(result);
 
             String json = config.toCanonicalString();
@@ -38,7 +36,6 @@ class AgentOrchestrationConfigTest {
             assertTrue(restored.hasToolResult());
             assertEquals("tc-42", restored.toolResult().toolCallId());
             assertEquals("creditCheck", restored.toolResult().toolElementId());
-            assertEquals(750, restored.toolResult().outputs().get("score"));
             assertNull(restored.toolResult().errorMessage());
         }
 
@@ -53,7 +50,6 @@ class AgentOrchestrationConfigTest {
             assertTrue(restored.hasToolResult());
             assertEquals("tc-99", restored.toolResult().toolCallId());
             assertNull(restored.toolResult().toolElementId());
-            assertTrue(restored.toolResult().outputs().isEmpty());
             assertEquals("Tool not found", restored.toolResult().errorMessage());
         }
     }

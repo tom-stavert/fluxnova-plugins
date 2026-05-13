@@ -135,8 +135,8 @@ class AgentStateManagerTest {
 
         @Test
         void appendToResultBuffer_addsToExistingBuffer() {
-            ToolResult result1 = new ToolResult("tc1", "taskA", Map.of("score", 750), null);
-            ToolResult result2 = new ToolResult("tc2", "taskB", Map.of("approved", true), null);
+            ToolResult result1 = new ToolResult("tc1", "taskA", null);
+            ToolResult result2 = new ToolResult("tc2", "taskB", null);
 
             when(runtimeService.getVariableLocal(EXECUTION_ID, "_agentToolResultBuffer"))
                     .thenReturn(null);

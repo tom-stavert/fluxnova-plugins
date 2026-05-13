@@ -1,7 +1,5 @@
 package org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine;
 
-import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.AgentToolEntry;
-import org.finos.fluxnova.bpm.engine.ai.agent.discovery.registry.AgentToolCatalogueRegistry;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.job.AgentOrchestrationJobHandler;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.model.AgentOrchestrationConfig;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.model.ToolResult;
@@ -13,20 +11,9 @@ import org.finos.fluxnova.bpm.engine.impl.persistence.entity.MessageEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-import java.util.Set;
-
-import static java.util.stream.Collectors.toMap;
-
 public class SubprocessToolCompletionListener implements ExecutionListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(SubprocessToolCompletionListener.class);
-
-    private final AgentToolCatalogueRegistry toolCatalogueRegistry;
-
-    public SubprocessToolCompletionListener(AgentToolCatalogueRegistry toolCatalogueRegistry) {
-        this.toolCatalogueRegistry = toolCatalogueRegistry;
-    }
 
     @Override
     public void notify(DelegateExecution execution) {
@@ -40,17 +27,7 @@ public class SubprocessToolCompletionListener implements ExecutionListener {
         ExecutionEntity execEntity = (ExecutionEntity) execution;
         ExecutionEntity scope = execEntity.getParent();
 
-        Set<String> declaredWrites = toolCatalogueRegistry
-                .resolve(execution.getProcessDefinitionId(), scope.getActivityId())
-                .flatMap(cat -> cat.findById(execution.getCurrentActivityId()))
-                .map(AgentToolEntry::writes)
-                .orElse(Set.of());
-
-        Map<String, Object> outputs = declaredWrites.stream()
-                .filter(name -> scope.getVariable(name) != null)
-                .collect(toMap(name -> name, scope::getVariable, (a, b) -> b));
-
-        ToolResult result = new ToolResult(toolCallId, execution.getCurrentActivityId(), outputs, null);
+        ToolResult result = new ToolResult(toolCallId, execution.getCurrentActivityId(), null);
 
         MessageEntity job = new MessageEntity();
         job.setExecution(scope);

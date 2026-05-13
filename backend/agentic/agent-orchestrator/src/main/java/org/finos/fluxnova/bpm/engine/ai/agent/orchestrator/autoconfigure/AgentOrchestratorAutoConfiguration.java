@@ -40,8 +40,8 @@ public class AgentOrchestratorAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public SubprocessToolCompletionListener subprocessToolCompletionListener(AgentToolCatalogueRegistry toolCatalogueRegistry) {
-        return new SubprocessToolCompletionListener(toolCatalogueRegistry);
+    public SubprocessToolCompletionListener subprocessToolCompletionListener() {
+        return new SubprocessToolCompletionListener();
     }
 
     @Bean

@@ -222,7 +222,7 @@ class AgentOrchestrationJobHandlerTest {
 
         @Test
         void execute_absorbsResultAndWaitsForMore() {
-            ToolResult toolResult = new ToolResult("tc1", "taskA", Map.of("resultA", "value"), null);
+            ToolResult toolResult = new ToolResult("tc1", "taskA", null);
             Set<String> pending = new HashSet<>(Set.of("tc1", "tc2"));
             when(stateManager.loadPendingToolCalls(SCOPE_EXECUTION_ID)).thenReturn(pending);
 
@@ -237,7 +237,7 @@ class AgentOrchestrationJobHandlerTest {
         @Test
         void execute_allDone_callsLlm() {
             stubRegistries();
-            ToolResult toolResult = new ToolResult("tc1", "taskA", Map.of("resultA", "value"), null);
+            ToolResult toolResult = new ToolResult("tc1", "taskA", null);
             Set<String> pending = new HashSet<>(Set.of("tc1"));
             when(stateManager.loadPendingToolCalls(SCOPE_EXECUTION_ID)).thenReturn(pending);
 
@@ -266,7 +266,7 @@ class AgentOrchestrationJobHandlerTest {
 
         @Test
         void execute_duplicateToolCallId_discarded() {
-            ToolResult toolResult = new ToolResult("tc-unknown", "taskA", Map.of(), null);
+            ToolResult toolResult = new ToolResult("tc-unknown", "taskA", null);
             Set<String> pending = new HashSet<>(Set.of("tc1"));
             when(stateManager.loadPendingToolCalls(SCOPE_EXECUTION_ID)).thenReturn(pending);
 
