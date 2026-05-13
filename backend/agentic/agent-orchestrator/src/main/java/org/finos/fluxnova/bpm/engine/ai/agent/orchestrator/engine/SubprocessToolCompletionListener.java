@@ -32,7 +32,8 @@ public class SubprocessToolCompletionListener implements ExecutionListener {
     public void notify(DelegateExecution execution) {
         String toolCallId = (String) execution.getVariableLocal("_agentToolCallId");
         if (toolCallId == null) {
-            LOG.warn("Skipping tool result processing for execution '{}' - no toolCallId found", execution.getId())
+            LOG.warn("Skipping tool result processing for execution '{}' - no toolCallId found",
+                    execution.getId());
             return;
         }
 
