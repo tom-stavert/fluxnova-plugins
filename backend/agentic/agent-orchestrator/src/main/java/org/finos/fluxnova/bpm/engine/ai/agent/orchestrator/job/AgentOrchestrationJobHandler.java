@@ -156,36 +156,27 @@ public class AgentOrchestrationJobHandler implements JobHandler<AgentOrchestrati
     private void dispatch(String scopeExecutionId, AgentToolCatalogue catalogue,
                           List<ToolCallRequest> toolCalls, ExecutionEntity execution,
                           CommandContext commandContext) {
-        // Parallel: dispatch all at once
         Set<String> pending = new HashSet<>();
-        List<ToolResult> failures = new ArrayList<>();
 
         for (ToolCallRequest tc : toolCalls) {
+            pending.add(tc.toolCallId());
             ToolInvocationResult result = toolInvocationService.invoke(scopeExecutionId, catalogue, tc);
-            if (result.success()) {
-                pending.add(tc.toolCallId());
-            } else {
-                failures.add(ToolResult.error(tc.toolCallId(), result.errorMessage()));
+            if (!result.success()) {
+                // Synchronous failure — no BPMN activity will complete, so no listener will fire.
+                // Instantiate an equivalent completion job so the failure travels through the same
+                // tool-completion path as listener-driven results, keeping the pending set consistent.
+                ToolResult failure = ToolResult.error(tc.toolCallId(), result.errorMessage());
+                MessageEntity job = new MessageEntity();
+                job.setExecution(execution);
+                job.setJobHandlerType(TYPE);
+                job.setJobHandlerConfigurationRaw(
+                        AgentOrchestrationConfig.forToolCompletion(failure).toCanonicalString());
+                commandContext.getJobManager().insertAndHintJobExecutor(job);
             }
         }
         stateManager.savePendingToolCalls(scopeExecutionId, pending);
-
-        if (pending.isEmpty() && !failures.isEmpty()) {
-            stateManager.appendAllToResultBuffer(scopeExecutionId, failures);
-            scheduleNextStep(scopeExecutionId, execution, commandContext);
-        }
     }
 
-    private void scheduleNextStep(String scopeExecutionId, ExecutionEntity execution,
-                                  CommandContext commandContext) {
-        MessageEntity job = new MessageEntity();
-        job.setExecution(execution);
-        job.setJobHandlerType(TYPE);
-        job.setJobHandlerConfigurationRaw(
-                AgentOrchestrationConfig.forEntry().toCanonicalString());
-
-        commandContext.getJobManager().insertAndHintJobExecutor(job);
-    }
 
     private List<ConversationEntry> appendToolResults(List<ConversationEntry> history, List<ToolResult> results) {
         List<ConversationEntry> updated = new ArrayList<>(history);
