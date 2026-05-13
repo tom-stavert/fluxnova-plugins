@@ -11,7 +11,7 @@ import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine.AgentOrchestra
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine.AgentSubprocessEntryListener;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine.SubprocessToolCompletionListener;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.job.AgentOrchestrationJobHandler;
-import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.AdHocSubprocessCompleter;
+import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.AdHocSubprocessTerminator;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.AgentTerminationHandler;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.LlmOrchestrationService;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.ToolInvocationService;
@@ -46,8 +46,8 @@ public class AgentOrchestratorAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public AgentTerminationHandler adHocSubprocessCompleter(RuntimeService runtimeService) {
-        return new AdHocSubprocessCompleter(runtimeService);
+    public AgentTerminationHandler adHocSubprocessTerminator(RuntimeService runtimeService) {
+        return new AdHocSubprocessTerminator(runtimeService);
     }
 
     @Bean
