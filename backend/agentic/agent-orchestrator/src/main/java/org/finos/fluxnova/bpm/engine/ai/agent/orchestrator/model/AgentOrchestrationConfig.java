@@ -17,6 +17,8 @@ public record AgentOrchestrationConfig(
     public AgentOrchestrationConfig(
             @JsonProperty("scopeExecutionId") String scopeExecutionId,
             @JsonProperty("toolResult") ToolResult toolResult) {
+        this.scopeExecutionId = scopeExecutionId;
+        this.toolResult = toolResult;
     }
 
     public static AgentOrchestrationConfig forEntry(String scopeExecutionId) {
