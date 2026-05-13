@@ -1,6 +1,6 @@
 package org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine;
 
-import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.job.AgenticAdHocSubprocessJobHandler;
+import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.job.AgentOrchestrationJobHandler;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.model.AgentOrchestrationConfig;
 import org.finos.fluxnova.bpm.engine.delegate.DelegateExecution;
 import org.finos.fluxnova.bpm.engine.delegate.ExecutionListener;
@@ -14,7 +14,7 @@ public class AgentSubprocessEntryListener implements ExecutionListener {
     public void notify(DelegateExecution execution) {
         MessageEntity job = new MessageEntity();
         job.setExecution((ExecutionEntity) execution);
-        job.setJobHandlerType(AgenticAdHocSubprocessJobHandler.TYPE);
+        job.setJobHandlerType(AgentOrchestrationJobHandler.TYPE);
         job.setJobHandlerConfigurationRaw(
                 AgentOrchestrationConfig.forEntry().toCanonicalString());
 

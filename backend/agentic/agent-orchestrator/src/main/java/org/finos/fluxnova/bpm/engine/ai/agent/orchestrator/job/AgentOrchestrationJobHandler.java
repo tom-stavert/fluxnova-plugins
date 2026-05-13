@@ -32,9 +32,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class AgenticAdHocSubprocessJobHandler implements JobHandler<AgentOrchestrationConfig> {
+public class AgentOrchestrationJobHandler implements JobHandler<AgentOrchestrationConfig> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(AgenticAdHocSubprocessJobHandler.class);
+    private static final Logger LOG = LoggerFactory.getLogger(AgentOrchestrationJobHandler.class);
 
     public static final String TYPE = "agent-orchestration-step";
 
@@ -47,7 +47,7 @@ public class AgenticAdHocSubprocessJobHandler implements JobHandler<AgentOrchest
     private final AgentStateManager stateManager;
     private final AgentTerminationHandler AgentTerminationHandler;
 
-    public AgenticAdHocSubprocessJobHandler(AgentConfigRegistry agentConfigRegistry,
+    public AgentOrchestrationJobHandler(AgentConfigRegistry agentConfigRegistry,
                                         AgentToolCatalogueRegistry toolCatalogueRegistry,
                                         AgentContextSpecRegistry contextSpecRegistry,
                                         AgentContextResolver contextResolver,
