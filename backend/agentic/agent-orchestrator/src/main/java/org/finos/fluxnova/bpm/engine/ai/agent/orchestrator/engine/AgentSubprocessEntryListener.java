@@ -12,13 +12,11 @@ public class AgentSubprocessEntryListener implements ExecutionListener {
 
     @Override
     public void notify(DelegateExecution execution) {
-        String scopeExecutionId = execution.getId();
-
         MessageEntity job = new MessageEntity();
         job.setExecution((ExecutionEntity) execution);
         job.setJobHandlerType(AgenticAdHocSubprocessJobHandler.TYPE);
         job.setJobHandlerConfigurationRaw(
-                AgentOrchestrationConfig.forEntry(scopeExecutionId).toCanonicalString());
+                AgentOrchestrationConfig.forEntry().toCanonicalString());
 
         Context.getCommandContext().getJobManager().insertAndHintJobExecutor(job);
     }

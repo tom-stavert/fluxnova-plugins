@@ -38,7 +38,6 @@ public class SubprocessToolCompletionListener implements ExecutionListener {
 
         ExecutionEntity execEntity = (ExecutionEntity) execution;
         ExecutionEntity scope = execEntity.getParent();
-        String scopeExecutionId = scope.getId();
 
         Set<String> declaredWrites = toolCatalogueRegistry
                 .resolve(execution.getProcessDefinitionId(), scope.getActivityId())
@@ -56,7 +55,7 @@ public class SubprocessToolCompletionListener implements ExecutionListener {
         job.setExecution(scope);
         job.setJobHandlerType(AgenticAdHocSubprocessJobHandler.TYPE);
         job.setJobHandlerConfigurationRaw(
-                AgentOrchestrationConfig.forToolCompletion(scopeExecutionId, result).toCanonicalString());
+                AgentOrchestrationConfig.forToolCompletion(result).toCanonicalString());
 
         Context.getCommandContext().getJobManager().insertAndHintJobExecutor(job);
     }

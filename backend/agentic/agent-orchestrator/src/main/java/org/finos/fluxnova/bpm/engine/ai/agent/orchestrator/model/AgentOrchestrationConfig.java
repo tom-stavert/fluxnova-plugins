@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.finos.fluxnova.bpm.engine.impl.jobexecutor.JobHandlerConfiguration;
 
 public record AgentOrchestrationConfig(
-        String scopeExecutionId,
         ToolResult toolResult
 ) implements JobHandlerConfiguration {
 
@@ -15,18 +14,16 @@ public record AgentOrchestrationConfig(
 
     @JsonCreator
     public AgentOrchestrationConfig(
-            @JsonProperty("scopeExecutionId") String scopeExecutionId,
             @JsonProperty("toolResult") ToolResult toolResult) {
-        this.scopeExecutionId = scopeExecutionId;
         this.toolResult = toolResult;
     }
 
-    public static AgentOrchestrationConfig forEntry(String scopeExecutionId) {
-        return new AgentOrchestrationConfig(scopeExecutionId, null);
+    public static AgentOrchestrationConfig forEntry() {
+        return new AgentOrchestrationConfig(null);
     }
 
-    public static AgentOrchestrationConfig forToolCompletion(String scopeExecutionId, ToolResult result) {
-        return new AgentOrchestrationConfig(scopeExecutionId, result);
+    public static AgentOrchestrationConfig forToolCompletion(ToolResult result) {
+        return new AgentOrchestrationConfig(result);
     }
 
     public boolean hasToolResult() {

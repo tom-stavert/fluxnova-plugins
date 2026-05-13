@@ -73,7 +73,7 @@ public class AgenticAdHocSubprocessJobHandler implements JobHandler<AgentOrchest
     @Override
     public void execute(AgentOrchestrationConfig orchestratorConfig, ExecutionEntity execution,
                         CommandContext commandContext, String tenantId) {
-        String scopeExecutionId = orchestratorConfig.scopeExecutionId();
+        String scopeExecutionId = execution.getId();
 
         if (!execution.isActive()) {
             LOG.debug("Scope execution '{}' is no longer active, skipping orchestration step", scopeExecutionId);
@@ -175,7 +175,7 @@ public class AgenticAdHocSubprocessJobHandler implements JobHandler<AgentOrchest
         job.setExecution(execution);
         job.setJobHandlerType(TYPE);
         job.setJobHandlerConfigurationRaw(
-                AgentOrchestrationConfig.forEntry(scopeExecutionId).toCanonicalString());
+                AgentOrchestrationConfig.forEntry().toCanonicalString());
 
         commandContext.getJobManager().insertAndHintJobExecutor(job);
     }
