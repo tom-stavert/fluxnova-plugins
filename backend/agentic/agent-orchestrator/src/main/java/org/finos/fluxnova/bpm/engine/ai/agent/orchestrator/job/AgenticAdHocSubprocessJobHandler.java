@@ -97,7 +97,8 @@ public class AgenticAdHocSubprocessJobHandler implements JobHandler<AgentOrchest
             Set<String> pending = stateManager.loadPendingToolCalls(scopeExecutionId);
 
             if (!pending.contains(result.toolCallId())) {
-                LOG.debug("ToolResult '{}' not in pending set, discarding (duplicate or late arrival)",
+                LOG.debug(
+                        "ToolResult '{}' not in pending set, discarding (duplicate or late arrival)",
                         result.toolCallId());
                 return;
             }
@@ -112,7 +113,6 @@ public class AgenticAdHocSubprocessJobHandler implements JobHandler<AgentOrchest
             // All pending tools done — fall through to next LLM call
         }
 
-        // Build history with tool results appended, then call Component 3
         List<ToolResult> buffer = stateManager.loadToolResultBuffer(scopeExecutionId);
         List<ConversationEntry> history = stateManager.loadHistory(scopeExecutionId);
         history = appendToolResults(history, buffer);
