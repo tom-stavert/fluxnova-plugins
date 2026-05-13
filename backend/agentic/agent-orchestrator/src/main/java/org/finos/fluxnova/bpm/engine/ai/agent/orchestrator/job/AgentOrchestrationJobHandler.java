@@ -80,25 +80,6 @@ public class AgentOrchestrationJobHandler implements JobHandler<AgentOrchestrati
             return;
         }
 
-        // Not sure if this is the best way of handling these?
-        AgentConfig agentConfig = agentConfigRegistry
-                .resolve(execution.getProcessDefinitionId(), execution.getActivityId())
-                .orElseThrow(() -> new IllegalStateException(
-                        "No AgentConfig found for " + execution.getProcessDefinitionId()
-                                + "/" + execution.getActivityId()));
-        AgentToolCatalogue catalogue = toolCatalogueRegistry
-                .resolve(execution.getProcessDefinitionId(), execution.getActivityId())
-                .orElseThrow(() -> new IllegalStateException(
-                        "No AgentToolCatalogue found for " + execution.getProcessDefinitionId()
-                                + "/" + execution.getActivityId()));
-        
-        if (catalogue.tools().isEmpty()) {
-            LOG.warn("Tool catalogue is empty for activity '{}' in process '{}', terminating execution '{}'", 
-                execution.getActivityId(), execution.getProcessDefinitionId(), scopeExecutionId);
-            AgentTerminationHandler.complete(scopeExecutionId);
-            return;
-        }
-
         if (orchestratorConfig.hasToolResult()) {
             ToolResult result = orchestratorConfig.toolResult();
             Set<String> pending = stateManager.loadPendingToolCalls(scopeExecutionId);
@@ -124,6 +105,24 @@ public class AgentOrchestrationJobHandler implements JobHandler<AgentOrchestrati
         List<ConversationEntry> history = stateManager.loadHistory(scopeExecutionId);
         history = appendToolResults(history, buffer);
         stateManager.clearToolResultBuffer(scopeExecutionId);
+
+        AgentConfig agentConfig = agentConfigRegistry
+                .resolve(execution.getProcessDefinitionId(), execution.getActivityId())
+                .orElseThrow(() -> new IllegalStateException(
+                        "No AgentConfig found for " + execution.getProcessDefinitionId()
+                                + "/" + execution.getActivityId()));
+        AgentToolCatalogue catalogue = toolCatalogueRegistry
+                .resolve(execution.getProcessDefinitionId(), execution.getActivityId())
+                .orElseThrow(() -> new IllegalStateException(
+                        "No AgentToolCatalogue found for " + execution.getProcessDefinitionId()
+                                + "/" + execution.getActivityId()));
+
+        if (catalogue.tools().isEmpty()) {
+            LOG.warn("Tool catalogue is empty for activity '{}' in process '{}', terminating execution '{}'",
+                execution.getActivityId(), execution.getProcessDefinitionId(), scopeExecutionId);
+            AgentTerminationHandler.complete(scopeExecutionId);
+            return;
+        }
 
         // Fallback to empty spec if no context is declared — resolver will include all process variables
         AgentContextSpec contextSpec = contextSpecRegistry
