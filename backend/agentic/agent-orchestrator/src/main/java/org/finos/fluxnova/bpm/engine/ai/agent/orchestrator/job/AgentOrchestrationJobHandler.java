@@ -71,9 +71,9 @@ public class AgenticAdHocSubProcessJobHandler implements JobHandler<AgentOrchest
     }
 
     @Override
-    public void execute(AgentOrchestrationConfig config, ExecutionEntity execution,
+    public void execute(AgentOrchestrationConfig orchestratorConfig, ExecutionEntity execution,
                         CommandContext commandContext, String tenantId) {
-        String scopeExecutionId = config.scopeExecutionId();
+        String scopeExecutionId = orchestratorConfig.scopeExecutionId();
 
         if (!execution.isActive()) {
             LOG.debug("Scope execution '{}' is no longer active, skipping orchestration step", scopeExecutionId);
@@ -92,8 +92,8 @@ public class AgenticAdHocSubProcessJobHandler implements JobHandler<AgentOrchest
                         "No AgentToolCatalogue found for " + execution.getProcessDefinitionId()
                                 + "/" + execution.getActivityId()));
 
-        if (config.hasToolResult()) {
-            ToolResult result = config.toolResult();
+        if (orchestratorConfig.hasToolResult()) {
+            ToolResult result = orchestratorConfig.toolResult();
             Set<String> pending = stateManager.loadPendingToolCalls(scopeExecutionId);
 
             if (!pending.contains(result.toolCallId())) {
