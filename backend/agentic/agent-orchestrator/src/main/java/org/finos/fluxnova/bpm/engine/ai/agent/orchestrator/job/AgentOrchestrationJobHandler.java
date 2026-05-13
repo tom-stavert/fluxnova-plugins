@@ -96,6 +96,7 @@ public class AgentOrchestrationJobHandler implements JobHandler<AgentOrchestrati
             LOG.warn("Tool catalogue is empty for activity '{}' in process '{}', terminating execution '{}'", 
                 execution.getActivityId(), execution.getProcessDefinitionId(), scopeExecutionId);
             AgentTerminationHandler.complete(scopeExecutionId);
+            return;
         }
 
         if (orchestratorConfig.hasToolResult()) {
