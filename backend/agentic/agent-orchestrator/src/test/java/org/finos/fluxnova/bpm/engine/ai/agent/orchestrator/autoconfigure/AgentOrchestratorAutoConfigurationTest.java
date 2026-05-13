@@ -58,8 +58,6 @@ class AgentOrchestratorAutoConfigurationTest {
         @Bean ToolInvocationService toolInvocationService() { return mock(ToolInvocationService.class); }
     }
 
-    // ---------- Default beans ----------
-
     @Nested
     class DefaultBeans {
 
@@ -94,8 +92,6 @@ class AgentOrchestratorAutoConfigurationTest {
         }
     }
 
-    // ---------- @ConditionalOnMissingBean overrides ----------
-
     @Nested
     class ConditionalOnMissingBean {
 
@@ -115,8 +111,6 @@ class AgentOrchestratorAutoConfigurationTest {
                     instanceof AdHocSubprocessTerminator);
         }
     }
-
-    // ---------- @ConditionalOnBean guard ----------
 
     @Nested
     class ConditionalOnBeanGuard {
