@@ -91,6 +91,12 @@ public class AgenticAdHocSubprocessJobHandler implements JobHandler<AgentOrchest
                 .orElseThrow(() -> new IllegalStateException(
                         "No AgentToolCatalogue found for " + execution.getProcessDefinitionId()
                                 + "/" + execution.getActivityId()));
+        
+        if (catalogue.tools().isEmpty()) {
+            LOG.warn("Tool catalogue is empty for activity '{}' in process '{}', terminating execution '{}'", 
+                execution.getActivityId(), execution.getProcessDefinitionId(), scopeExecutionId);
+            AgentTerminationHandler.complete(scopeExecutionId);
+        }
 
         if (orchestratorConfig.hasToolResult()) {
             ToolResult result = orchestratorConfig.toolResult();
