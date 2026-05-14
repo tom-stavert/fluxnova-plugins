@@ -53,7 +53,7 @@ class AgentToolInvocationAutoConfigurationTest {
     }
 
     @Test
-    void conditionalOnMissingBean_allowsConsumerToOverrideCatalogueBuilder() {
+    void conditionalOnMissingBean_allowsConsumerToOverrideToolInvocationService() {
         context = new AnnotationConfigApplicationContext(CustomBuilderOverride.class, AgentToolInvocationAutoConfiguration.class);
 
         ToolInvocationService service = context.getBean(ToolInvocationService.class);

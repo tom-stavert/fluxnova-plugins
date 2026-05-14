@@ -1,4 +1,4 @@
-package org.finos.fluxnova.bpm.engine.ai.agent.model;
+package org.finos.fluxnova.bpm.engine.shared.model;
 
 public record ToolInvocationResult(
         String toolCallId,
