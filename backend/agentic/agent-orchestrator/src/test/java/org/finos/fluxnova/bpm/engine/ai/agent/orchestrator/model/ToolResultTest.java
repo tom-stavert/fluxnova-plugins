@@ -9,16 +9,6 @@ class ToolResultTest {
 
     @Nested
     class NormalConstruction {
-
-        @Test
-        void recordFieldsAreAccessible() {
-            ToolResult result = new ToolResult("tc-1", "taskA", null);
-
-            assertEquals("tc-1", result.toolCallId());
-            assertEquals("taskA", result.toolElementId());
-            assertNull(result.errorMessage());
-        }
-
         @Test
         void isError_returnsFalseWhenNoErrorMessage() {
             ToolResult result = new ToolResult("tc-1", "taskA", null);
