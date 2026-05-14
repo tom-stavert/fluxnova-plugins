@@ -5,6 +5,7 @@ import org.finos.fluxnova.bpm.engine.ai.agent.llm.service.LlmService;
 import org.finos.fluxnova.bpm.engine.ai.agent.llm.tool.AgentToolSchemaConverter;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
@@ -31,14 +32,46 @@ class AgentLlmOrchestratorAutoConfigurationTest {
     }
 
     @Test
-    void skippedWhenNoChatModelOnContext() {
-        runner.run(context -> assertThat(context).doesNotHaveBean(LlmService.class));
+    void activatesWithoutChatModelBeanAndFailsAtCallTime() {
+        runner.run(context -> {
+            assertThat(context).hasSingleBean(AgentProviderRegistry.class);
+            assertThat(context).hasSingleBean(LlmService.class);
+
+            AgentProviderRegistry registry = context.getBean(AgentProviderRegistry.class);
+            assertThat(registry.has("anything")).isFalse();
+        });
+    }
+
+    /**
+     * Reproduces the real-world failure: when ChatModel beans come from another
+     * auto-configuration (as Spring AI starters provide them), @ConditionalOnBean
+     * evaluates before the provider auto-config runs, so the entire configuration
+     * is skipped.
+     */
+    @Test
+    void activatesWhenChatModelComesFromAnotherAutoConfiguration() {
+        runner.withConfiguration(AutoConfigurations.of(SimulatedProviderAutoConfiguration.class))
+            .run(context -> {
+                assertThat(context).hasSingleBean(AgentProviderRegistry.class);
+                assertThat(context).hasSingleBean(LlmService.class);
+
+                AgentProviderRegistry registry = context.getBean(AgentProviderRegistry.class);
+                assertThat(registry.has("openai")).isTrue();
+            });
     }
 
     @Configuration
     static class ChatModelConfig {
         @Bean
         ChatModel ollamaChatModel() {
+            return mock(ChatModel.class);
+        }
+    }
+
+    @AutoConfiguration
+    static class SimulatedProviderAutoConfiguration {
+        @Bean
+        ChatModel openaiChatModel() {
             return mock(ChatModel.class);
         }
     }

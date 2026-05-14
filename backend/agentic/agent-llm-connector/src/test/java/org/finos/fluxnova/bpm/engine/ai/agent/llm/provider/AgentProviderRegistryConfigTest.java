@@ -17,22 +17,22 @@ class AgentProviderRegistryConfigTest {
         ChatModel ollama = mock(ChatModel.class);
         ChatModel huggingface = mock(ChatModel.class);
 
-        AgentProviderRegistry registry = AgentProviderRegistryConfig.build(
+        Map<String, ChatModel> result = AgentProviderRegistryConfig.buildRegistry(
             Map.of("ollamaChatModel", ollama, "huggingfaceChatModel", huggingface),
             new AgentProviderProperties());
 
-        assertSame(ollama, registry.get("ollama"));
-        assertSame(huggingface, registry.get("huggingface"));
+        assertSame(ollama, result.get("ollama"));
+        assertSame(huggingface, result.get("huggingface"));
     }
 
     @Test
     void ignoresBeansNotEndingInChatModel() {
         ChatModel embedding = mock(ChatModel.class);
-        AgentProviderRegistry registry = AgentProviderRegistryConfig.build(
+        Map<String, ChatModel> result = AgentProviderRegistryConfig.buildRegistry(
             Map.of("ollamaEmbeddingModel", embedding),
             new AgentProviderProperties());
 
-        assertFalse(registry.has("ollamaembedding"));
+        assertFalse(result.containsKey("ollamaembedding"));
     }
 
     @Test
@@ -49,9 +49,9 @@ class AgentProviderRegistryConfigTest {
         overrides.put("ollama", "customOllamaBean");
         props.setProviderOverrides(overrides);
 
-        AgentProviderRegistry registry = AgentProviderRegistryConfig.build(beans, props);
+        Map<String, ChatModel> result = AgentProviderRegistryConfig.buildRegistry(beans, props);
 
-        assertSame(customBean, registry.get("ollama"));
+        assertSame(customBean, result.get("ollama"));
     }
 
     @Test
@@ -60,10 +60,10 @@ class AgentProviderRegistryConfigTest {
         AgentProviderProperties props = new AgentProviderProperties();
         props.setProviderOverrides(Map.of("my-provider", "myCustomBean"));
 
-        AgentProviderRegistry registry = AgentProviderRegistryConfig.build(
+        Map<String, ChatModel> result = AgentProviderRegistryConfig.buildRegistry(
             Map.of("myCustomBean", custom),
             props);
 
-        assertSame(custom, registry.get("my-provider"));
+        assertSame(custom, result.get("my-provider"));
     }
 }

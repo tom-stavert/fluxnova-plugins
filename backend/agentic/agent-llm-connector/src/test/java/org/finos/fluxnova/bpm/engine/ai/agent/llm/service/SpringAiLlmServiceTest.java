@@ -55,7 +55,7 @@ class SpringAiLlmServiceTest {
             .thenReturn(stubResponse("Working on it.", List.of(
                 new AssistantMessage.ToolCall("call-1", "function", "creditScoreCheck", "{}"))));
 
-        AgentProviderRegistry registry = new AgentProviderRegistry(Map.of("ollama", chatModel));
+        AgentProviderRegistry registry = new AgentProviderRegistry(() -> Map.of("ollama", chatModel));
         LlmService service = new SpringAiLlmService(registry, converter);
 
         ResolvedContext context = new ResolvedContext(Map.of("customerId", "c-1"));
@@ -97,7 +97,7 @@ class SpringAiLlmServiceTest {
         when(chatModel.call(any(Prompt.class)))
             .thenReturn(stubResponse("All checks complete.", List.of()));
 
-        AgentProviderRegistry registry = new AgentProviderRegistry(Map.of("ollama", chatModel));
+        AgentProviderRegistry registry = new AgentProviderRegistry(() -> Map.of("ollama", chatModel));
         LlmService service = new SpringAiLlmService(registry, converter);
 
         LlmResponse response = service.call(
@@ -112,7 +112,7 @@ class SpringAiLlmServiceTest {
 
     @Test
     void unknownProviderRaisesError() {
-        AgentProviderRegistry registry = new AgentProviderRegistry(Map.of());
+        AgentProviderRegistry registry = new AgentProviderRegistry(Map::of);
         LlmService service = new SpringAiLlmService(registry, converter);
 
         assertThrows(IllegalStateException.class, () -> service.call(
@@ -125,7 +125,7 @@ class SpringAiLlmServiceTest {
         when(chatModel.call(any(Prompt.class)))
             .thenReturn(stubResponse("Hello!", List.of()));
 
-        AgentProviderRegistry registry = new AgentProviderRegistry(Map.of("ollama", chatModel));
+        AgentProviderRegistry registry = new AgentProviderRegistry(() -> Map.of("ollama", chatModel));
         LlmService service = new SpringAiLlmService(registry, converter);
 
         LlmResponse response = service.call(config("ollama", "llama3.1"));
@@ -153,7 +153,7 @@ class SpringAiLlmServiceTest {
         when(chatModel.call(any(Prompt.class)))
             .thenReturn(stubResponse("Got it.", List.of()));
 
-        AgentProviderRegistry registry = new AgentProviderRegistry(Map.of("ollama", chatModel));
+        AgentProviderRegistry registry = new AgentProviderRegistry(() -> Map.of("ollama", chatModel));
         LlmService service = new SpringAiLlmService(registry, converter);
 
         ResolvedContext context = new ResolvedContext(Map.of("customerId", "c-7"));
@@ -187,7 +187,7 @@ class SpringAiLlmServiceTest {
         when(chatModel.call(any(Prompt.class)))
             .thenReturn(stubResponse("Continuing.", List.of()));
 
-        AgentProviderRegistry registry = new AgentProviderRegistry(Map.of("ollama", chatModel));
+        AgentProviderRegistry registry = new AgentProviderRegistry(() -> Map.of("ollama", chatModel));
         LlmService service = new SpringAiLlmService(registry, converter);
 
         LlmResponse response = service.call(

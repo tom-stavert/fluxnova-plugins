@@ -3,24 +3,19 @@ package org.finos.fluxnova.bpm.engine.ai.agent.llm.provider;
 import org.springframework.ai.chat.model.ChatModel;
 
 import java.util.Map;
+import java.util.function.Supplier;
 
-/**
- * Provides the {@link ChatModel} for a given agent provider id.
- *
- * <p>The registry is populated at startup by {@link AgentProviderRegistryConfig}, deriving
- * provider ids from Spring AI's {@code <provider>ChatModel} bean naming convention.
- * Explicit overrides via {@link AgentProviderProperties} take precedence.</p>
- */
 public class AgentProviderRegistry {
 
-    private final Map<String, ChatModel> registry;
+    private final Supplier<Map<String, ChatModel>> supplier;
+    private volatile Map<String, ChatModel> registry;
 
-    public AgentProviderRegistry(Map<String, ChatModel> registry) {
-        this.registry = Map.copyOf(registry);
+    public AgentProviderRegistry(Supplier<Map<String, ChatModel>> supplier) {
+        this.supplier = supplier;
     }
 
     public ChatModel get(String providerId) {
-        ChatModel model = registry.get(providerId);
+        ChatModel model = resolve().get(providerId);
         if (model == null) {
             throw new IllegalStateException(
                 "No ChatModel configured for provider '" + providerId + "'. " +
@@ -32,6 +27,13 @@ public class AgentProviderRegistry {
     }
 
     public boolean has(String providerId) {
-        return registry.containsKey(providerId);
+        return resolve().containsKey(providerId);
+    }
+
+    private Map<String, ChatModel> resolve() {
+        if (registry == null) {
+            registry = Map.copyOf(supplier.get());
+        }
+        return registry;
     }
 }
