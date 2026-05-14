@@ -11,7 +11,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -25,14 +24,14 @@ class AgentOrchestratorEnginePluginTest {
 
         @Test
         void addsParseListenerToExistingList() {
-            List<BpmnParseListener> existingListeners = new ArrayList<>();
-            when(processEngineConfiguration.getCustomPostBPMNParseListeners()).thenReturn(existingListeners);
+            BpmnParseListener existingListener = mock(BpmnParseListener.class);
+            when(processEngineConfiguration.getCustomPostBPMNParseListeners()).thenReturn(new ArrayList<>(List.of(existingListener)));
 
             AgentOrchestratorEnginePlugin plugin = new AgentOrchestratorEnginePlugin(parseListener);
             plugin.preInit(processEngineConfiguration);
 
-            assertEquals(1, existingListeners.size());
-            assertSame(parseListener, existingListeners.get(0));
+            verify(processEngineConfiguration).setCustomPostBPMNParseListeners(argThat(list ->
+                    list.size() == 2 && list.get(0) == existingListener && list.get(1) == parseListener));
         }
 
         @Test
