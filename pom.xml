@@ -13,9 +13,10 @@
   <modules>
     <module>backend/shared</module>
     <module>backend/agentic</module>
+    <module>backend/poc-runtime</module>
   </modules>
   <properties>
-    <fluxnova.version>2.0.0-SNAPSHOT</fluxnova.version>
+    <fluxnova.version>2.0.0</fluxnova.version>
     <maven.compiler.release>21</maven.compiler.release>
   </properties>
   <dependencyManagement>

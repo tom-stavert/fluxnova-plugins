@@ -1,0 +1,15 @@
+server:
+  port: 8080
+  error:
+    include-message: always
+    include-stacktrace: always
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:fluxnova;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  ai:
+    ollama:
+      base-url: http://localhost:11434
