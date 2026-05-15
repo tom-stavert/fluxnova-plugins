@@ -8,7 +8,6 @@ import org.finos.fluxnova.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.finos.fluxnova.bpm.engine.impl.persistence.entity.JobManager;
 import org.finos.fluxnova.bpm.engine.impl.persistence.entity.MessageEntity;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -38,54 +37,21 @@ class AgentSubprocessEntryListenerTest {
         listener = new AgentSubprocessEntryListener();
     }
 
-    @Nested
-    class JobCreation {
+    @Test
+    void notify_createsJobWithCorrectConfiguration() {
+        when(commandContext.getJobManager()).thenReturn(jobManager);
 
-        @Test
-        void notify_createsJobWithCorrectHandlerType() {
-            when(commandContext.getJobManager()).thenReturn(jobManager);
-
-            try (MockedStatic<Context> contextMock = mockStatic(Context.class)) {
-                contextMock.when(Context::getCommandContext).thenReturn(commandContext);
-                listener.notify(execution);
-            }
-
-            ArgumentCaptor<MessageEntity> captor = ArgumentCaptor.forClass(MessageEntity.class);
-            verify(jobManager).insertAndHintJobExecutor(captor.capture());
-
-            assertEquals(AgentOrchestrationJobHandler.TYPE, captor.getValue().getJobHandlerType());
+        try (MockedStatic<Context> contextMock = mockStatic(Context.class)) {
+            contextMock.when(Context::getCommandContext).thenReturn(commandContext);
+            listener.notify(execution);
         }
 
-        @Test
-        void notify_jobConfigHasNoToolResult() {
-            when(commandContext.getJobManager()).thenReturn(jobManager);
+        ArgumentCaptor<MessageEntity> captor = ArgumentCaptor.forClass(MessageEntity.class);
+        verify(jobManager).insertAndHintJobExecutor(captor.capture());
+        MessageEntity job = captor.getValue();
 
-            try (MockedStatic<Context> contextMock = mockStatic(Context.class)) {
-                contextMock.when(Context::getCommandContext).thenReturn(commandContext);
-                listener.notify(execution);
-            }
-
-            ArgumentCaptor<MessageEntity> captor = ArgumentCaptor.forClass(MessageEntity.class);
-            verify(jobManager).insertAndHintJobExecutor(captor.capture());
-
-            AgentOrchestrationConfig config = AgentOrchestrationConfig.fromCanonicalString(
-                    captor.getValue().getJobHandlerConfigurationRaw());
-            assertFalse(config.hasToolResult());
-        }
-
-        @Test
-        void notify_jobIsAssociatedWithExecution() {
-            when(commandContext.getJobManager()).thenReturn(jobManager);
-
-            try (MockedStatic<Context> contextMock = mockStatic(Context.class)) {
-                contextMock.when(Context::getCommandContext).thenReturn(commandContext);
-                listener.notify(execution);
-            }
-
-            ArgumentCaptor<MessageEntity> captor = ArgumentCaptor.forClass(MessageEntity.class);
-            verify(jobManager).insertAndHintJobExecutor(captor.capture());
-
-            assertEquals(execution, captor.getValue().getExecution());
-        }
+        assertEquals(AgentOrchestrationJobHandler.TYPE, job.getJobHandlerType());
+        assertEquals(execution, job.getExecution());
+        assertFalse(AgentOrchestrationConfig.fromCanonicalString(job.getJobHandlerConfigurationRaw()).hasToolResult());
     }
 }
