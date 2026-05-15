@@ -22,8 +22,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 
-@AutoConfiguration(after = {AgentConfigAutoConfiguration.class, AgentDiscoveryAutoConfiguration.class})
-@ConditionalOnBean({RuntimeService.class, LlmOrchestrationService.class, ToolInvocationService.class})
+@AutoConfiguration(
+        after = {AgentConfigAutoConfiguration.class, AgentDiscoveryAutoConfiguration.class})
+@ConditionalOnBean({RuntimeService.class, LlmOrchestrationService.class,
+        ToolInvocationService.class})
 public class AgentOrchestratorAutoConfiguration {
 
     @Bean
@@ -55,16 +57,13 @@ public class AgentOrchestratorAutoConfiguration {
     public AgentOrchestrationJobHandler agentOrchestrationJobHandler(
             AgentConfigRegistry agentConfigRegistry,
             AgentToolCatalogueRegistry toolCatalogueRegistry,
-            AgentContextSpecRegistry contextSpecRegistry,
-            AgentContextResolver contextResolver,
+            AgentContextSpecRegistry contextSpecRegistry, AgentContextResolver contextResolver,
             LlmOrchestrationService llmOrchestrationService,
-            ToolInvocationService toolInvocationService,
-            AgentStateManager stateManager,
+            ToolInvocationService toolInvocationService, AgentStateManager stateManager,
             AgentTerminationHandler scopeCompleter) {
-        return new AgentOrchestrationJobHandler(
-                agentConfigRegistry, toolCatalogueRegistry, contextSpecRegistry,
-                contextResolver, llmOrchestrationService, toolInvocationService,
-                stateManager, scopeCompleter);
+        return new AgentOrchestrationJobHandler(agentConfigRegistry, toolCatalogueRegistry,
+                contextSpecRegistry, contextResolver, llmOrchestrationService,
+                toolInvocationService, stateManager, scopeCompleter);
     }
 
     @Bean

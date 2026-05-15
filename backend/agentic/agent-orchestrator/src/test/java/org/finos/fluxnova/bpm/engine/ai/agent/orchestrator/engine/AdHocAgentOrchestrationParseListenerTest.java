@@ -22,16 +22,26 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class AdHocAgentOrchestrationParseListenerTest {
 
-    @Mock private AgentSubprocessEntryListener entryListener;
-    @Mock private SubprocessToolCompletionListener completionListener;
-    @Mock private Element element;
-    @Mock private Element extensionElements;
-    @Mock private Element agentConfigElement;
-    @Mock private ScopeImpl scope;
-    @Mock private ActivityImpl activity;
-    @Mock private ActivityImpl childTool;
-    @Mock private ActivityImpl childNonTool;
-    @Mock private TransitionImpl incomingTransition;
+    @Mock
+    private AgentSubprocessEntryListener entryListener;
+    @Mock
+    private SubprocessToolCompletionListener completionListener;
+    @Mock
+    private Element element;
+    @Mock
+    private Element extensionElements;
+    @Mock
+    private Element agentConfigElement;
+    @Mock
+    private ScopeImpl scope;
+    @Mock
+    private ActivityImpl activity;
+    @Mock
+    private ActivityImpl childTool;
+    @Mock
+    private ActivityImpl childNonTool;
+    @Mock
+    private TransitionImpl incomingTransition;
 
     private AdHocAgentOrchestrationParseListener parseListener;
 
@@ -55,7 +65,8 @@ class AdHocAgentOrchestrationParseListenerTest {
         @Test
         void parseAdHocSubProcess_noAgentConfig_doesNothing() {
             when(element.element("extensionElements")).thenReturn(extensionElements);
-            when(extensionElements.elementNS(AgentModelConstants.AGENT_NS, "config")).thenReturn(null);
+            when(extensionElements.elementNS(AgentModelConstants.AGENT_NS, "config"))
+                    .thenReturn(null);
 
             parseListener.parseAdHocSubProcess(element, scope, activity);
 
@@ -103,7 +114,8 @@ class AdHocAgentOrchestrationParseListenerTest {
 
             parseListener.parseAdHocSubProcess(element, scope, activity);
 
-            verify(childNonTool, never()).addBuiltInListener(anyString(), any(ExecutionListener.class));
+            verify(childNonTool, never()).addBuiltInListener(anyString(),
+                    any(ExecutionListener.class));
         }
 
         @Test
@@ -120,7 +132,8 @@ class AdHocAgentOrchestrationParseListenerTest {
 
             verify(activity).addBuiltInListener(PvmEvent.EVENTNAME_START, entryListener);
             verify(childTool).addBuiltInListener(PvmEvent.EVENTNAME_END, completionListener);
-            verify(childNonTool, never()).addBuiltInListener(anyString(), any(ExecutionListener.class));
+            verify(childNonTool, never()).addBuiltInListener(anyString(),
+                    any(ExecutionListener.class));
         }
 
         @Test
@@ -133,7 +146,8 @@ class AdHocAgentOrchestrationParseListenerTest {
             parseListener.parseAdHocSubProcess(element, scope, activity);
 
             verify(activity).addBuiltInListener(PvmEvent.EVENTNAME_START, entryListener);
-            verify(activity, times(1)).addBuiltInListener(anyString(), any(ExecutionListener.class));
+            verify(activity, times(1)).addBuiltInListener(anyString(),
+                    any(ExecutionListener.class));
         }
     }
 }

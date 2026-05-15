@@ -13,7 +13,8 @@ import org.slf4j.LoggerFactory;
 
 public class SubprocessToolCompletionListener implements ExecutionListener {
 
-    private static final Logger LOG = LoggerFactory.getLogger(SubprocessToolCompletionListener.class);
+    private static final Logger LOG =
+            LoggerFactory.getLogger(SubprocessToolCompletionListener.class);
 
     @Override
     public void notify(DelegateExecution execution) {
@@ -22,7 +23,7 @@ public class SubprocessToolCompletionListener implements ExecutionListener {
             LOG.warn("Skipping tool result processing for execution '{}' - no toolCallId found",
                     execution.getId());
             return;
-        }
+        } 
 
         ExecutionEntity execEntity = (ExecutionEntity) execution;
         ExecutionEntity scope = execEntity.getParent();

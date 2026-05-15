@@ -40,7 +40,7 @@ class AgentSubprocessEntryListenerTest {
     @Test
     void notify_createsJobWithCorrectConfiguration() {
         when(commandContext.getJobManager()).thenReturn(jobManager);
-
+ 
         try (MockedStatic<Context> contextMock = mockStatic(Context.class)) {
             contextMock.when(Context::getCommandContext).thenReturn(commandContext);
             listener.notify(execution);
@@ -52,6 +52,7 @@ class AgentSubprocessEntryListenerTest {
 
         assertEquals(AgentOrchestrationJobHandler.TYPE, job.getJobHandlerType());
         assertEquals(execution, job.getExecution());
-        assertFalse(AgentOrchestrationConfig.fromCanonicalString(job.getJobHandlerConfigurationRaw()).hasToolResult());
+        assertFalse(AgentOrchestrationConfig
+                .fromCanonicalString(job.getJobHandlerConfigurationRaw()).hasToolResult());
     }
 }

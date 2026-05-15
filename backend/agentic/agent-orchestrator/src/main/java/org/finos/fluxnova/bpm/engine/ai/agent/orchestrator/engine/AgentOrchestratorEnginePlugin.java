@@ -17,8 +17,10 @@ public class AgentOrchestratorEnginePlugin extends AbstractProcessEnginePlugin {
 
     @Override
     public void preInit(ProcessEngineConfigurationImpl processEngineConfiguration) {
-        List<BpmnParseListener> existing = processEngineConfiguration.getCustomPostBPMNParseListeners();
-        List<BpmnParseListener> listeners = new ArrayList<>(existing != null ? existing : List.of());
+        List<BpmnParseListener> existing =
+                processEngineConfiguration.getCustomPostBPMNParseListeners();
+        List<BpmnParseListener> listeners =
+                new ArrayList<>(existing != null ? existing : List.of());
         listeners.add(parseListener);
         processEngineConfiguration.setCustomPostBPMNParseListeners(listeners);
     }

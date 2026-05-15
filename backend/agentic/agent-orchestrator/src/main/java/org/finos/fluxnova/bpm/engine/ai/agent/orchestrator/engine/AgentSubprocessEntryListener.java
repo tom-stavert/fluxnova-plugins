@@ -15,9 +15,8 @@ public class AgentSubprocessEntryListener implements ExecutionListener {
         MessageEntity job = new MessageEntity();
         job.setExecution((ExecutionEntity) execution);
         job.setJobHandlerType(AgentOrchestrationJobHandler.TYPE);
-        job.setJobHandlerConfigurationRaw(
-                AgentOrchestrationConfig.forEntry().toCanonicalString());
+        job.setJobHandlerConfigurationRaw(AgentOrchestrationConfig.forEntry().toCanonicalString());
 
         Context.getCommandContext().getJobManager().insertAndHintJobExecutor(job);
-    }
+    } 
 }

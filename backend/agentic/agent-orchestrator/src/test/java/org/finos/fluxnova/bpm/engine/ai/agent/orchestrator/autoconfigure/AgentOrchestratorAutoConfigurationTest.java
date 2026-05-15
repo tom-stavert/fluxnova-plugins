@@ -31,31 +31,96 @@ class AgentOrchestratorAutoConfigurationTest {
 
     @Configuration
     static class MockInfrastructure {
-        @Bean RuntimeService runtimeService() { return mock(RuntimeService.class); }
-        @Bean LlmOrchestrationService llmOrchestrationService() { return mock(LlmOrchestrationService.class); }
-        @Bean ToolInvocationService toolInvocationService() { return mock(ToolInvocationService.class); }
-        @Bean AgentConfigRegistry agentConfigRegistry() { return mock(AgentConfigRegistry.class); }
-        @Bean AgentToolCatalogueRegistry agentToolCatalogueRegistry() { return mock(AgentToolCatalogueRegistry.class); }
-        @Bean AgentContextSpecRegistry agentContextSpecRegistry() { return mock(AgentContextSpecRegistry.class); }
-        @Bean AgentContextResolver agentContextResolver() { return mock(AgentContextResolver.class); }
+        @Bean
+        RuntimeService runtimeService() {
+            return mock(RuntimeService.class);
+        }
+
+        @Bean
+        LlmOrchestrationService llmOrchestrationService() {
+            return mock(LlmOrchestrationService.class);
+        }
+
+        @Bean
+        ToolInvocationService toolInvocationService() {
+            return mock(ToolInvocationService.class);
+        }
+
+        @Bean
+        AgentConfigRegistry agentConfigRegistry() {
+            return mock(AgentConfigRegistry.class);
+        }
+
+        @Bean
+        AgentToolCatalogueRegistry agentToolCatalogueRegistry() {
+            return mock(AgentToolCatalogueRegistry.class);
+        }
+
+        @Bean
+        AgentContextSpecRegistry agentContextSpecRegistry() {
+            return mock(AgentContextSpecRegistry.class);
+        }
+
+        @Bean
+        AgentContextResolver agentContextResolver() {
+            return mock(AgentContextResolver.class);
+        }
     }
 
     @Configuration
     static class CustomScopeCompleterOverride {
-        @Bean RuntimeService runtimeService() { return mock(RuntimeService.class); }
-        @Bean LlmOrchestrationService llmOrchestrationService() { return mock(LlmOrchestrationService.class); }
-        @Bean ToolInvocationService toolInvocationService() { return mock(ToolInvocationService.class); }
-        @Bean AgentConfigRegistry agentConfigRegistry() { return mock(AgentConfigRegistry.class); }
-        @Bean AgentToolCatalogueRegistry agentToolCatalogueRegistry() { return mock(AgentToolCatalogueRegistry.class); }
-        @Bean AgentContextSpecRegistry agentContextSpecRegistry() { return mock(AgentContextSpecRegistry.class); }
-        @Bean AgentContextResolver agentContextResolver() { return mock(AgentContextResolver.class); }
-        @Bean AgentTerminationHandler agentTerminationHandler() { return mock(AgentTerminationHandler.class); }
+        @Bean
+        RuntimeService runtimeService() {
+            return mock(RuntimeService.class);
+        }
+
+        @Bean
+        LlmOrchestrationService llmOrchestrationService() {
+            return mock(LlmOrchestrationService.class);
+        }
+
+        @Bean
+        ToolInvocationService toolInvocationService() {
+            return mock(ToolInvocationService.class);
+        }
+
+        @Bean
+        AgentConfigRegistry agentConfigRegistry() {
+            return mock(AgentConfigRegistry.class);
+        }
+
+        @Bean
+        AgentToolCatalogueRegistry agentToolCatalogueRegistry() {
+            return mock(AgentToolCatalogueRegistry.class);
+        }
+
+        @Bean
+        AgentContextSpecRegistry agentContextSpecRegistry() {
+            return mock(AgentContextSpecRegistry.class);
+        }
+
+        @Bean
+        AgentContextResolver agentContextResolver() {
+            return mock(AgentContextResolver.class);
+        }
+
+        @Bean
+        AgentTerminationHandler agentTerminationHandler() {
+            return mock(AgentTerminationHandler.class);
+        }
     }
 
     @Configuration
     static class MissingLlmService {
-        @Bean RuntimeService runtimeService() { return mock(RuntimeService.class); }
-        @Bean ToolInvocationService toolInvocationService() { return mock(ToolInvocationService.class); }
+        @Bean
+        RuntimeService runtimeService() {
+            return mock(RuntimeService.class);
+        }
+
+        @Bean
+        ToolInvocationService toolInvocationService() {
+            return mock(ToolInvocationService.class);
+        }
     }
 
     @Nested
@@ -65,8 +130,8 @@ class AgentOrchestratorAutoConfigurationTest {
 
         @BeforeEach
         void setUp() {
-            context = new AnnotationConfigApplicationContext(
-                    MockInfrastructure.class, AgentOrchestratorAutoConfiguration.class);
+            context = new AnnotationConfigApplicationContext(MockInfrastructure.class,
+                    AgentOrchestratorAutoConfiguration.class);
         }
 
         @AfterEach
@@ -84,7 +149,7 @@ class AgentOrchestratorAutoConfigurationTest {
             assertNotNull(context.getBean(AdHocAgentOrchestrationParseListener.class));
             assertNotNull(context.getBean(AgentOrchestratorEnginePlugin.class));
         }
-
+ 
         @Test
         void terminationHandler_isAdHocSubprocessImpl() {
             assertInstanceOf(AdHocSubprocessTerminator.class,
@@ -99,16 +164,17 @@ class AgentOrchestratorAutoConfigurationTest {
 
         @AfterEach
         void tearDown() {
-            if (context != null) context.close();
+            if (context != null)
+                context.close();
         }
 
         @Test
         void userProvidedTerminationHandler_takesPreference() {
-            context = new AnnotationConfigApplicationContext(
-                    CustomScopeCompleterOverride.class, AgentOrchestratorAutoConfiguration.class);
+            context = new AnnotationConfigApplicationContext(CustomScopeCompleterOverride.class,
+                    AgentOrchestratorAutoConfiguration.class);
 
-            assertFalse(context.getBean(AgentTerminationHandler.class)
-                    instanceof AdHocSubprocessTerminator);
+            assertFalse(context
+                    .getBean(AgentTerminationHandler.class) instanceof AdHocSubprocessTerminator);
         }
     }
 
@@ -119,13 +185,14 @@ class AgentOrchestratorAutoConfigurationTest {
 
         @AfterEach
         void tearDown() {
-            if (context != null) context.close();
+            if (context != null)
+                context.close();
         }
 
         @Test
         void autoConfigurationDoesNotActivate_whenLlmOrchestrationServiceIsAbsent() {
-            context = new AnnotationConfigApplicationContext(
-                    MissingLlmService.class, AgentOrchestratorAutoConfiguration.class);
+            context = new AnnotationConfigApplicationContext(MissingLlmService.class,
+                    AgentOrchestratorAutoConfiguration.class);
 
             assertThrows(NoSuchBeanDefinitionException.class,
                     () -> context.getBean(AgentOrchestratorEnginePlugin.class));

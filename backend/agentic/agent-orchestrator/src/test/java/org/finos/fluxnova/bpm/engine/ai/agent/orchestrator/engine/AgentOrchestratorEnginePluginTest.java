@@ -16,8 +16,10 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class AgentOrchestratorEnginePluginTest {
 
-    @Mock private AdHocAgentOrchestrationParseListener parseListener;
-    @Mock private ProcessEngineConfigurationImpl processEngineConfiguration;
+    @Mock
+    private AdHocAgentOrchestrationParseListener parseListener;
+    @Mock
+    private ProcessEngineConfigurationImpl processEngineConfiguration;
 
     @Nested
     class PreInit {
@@ -25,13 +27,15 @@ class AgentOrchestratorEnginePluginTest {
         @Test
         void addsParseListenerToExistingList() {
             BpmnParseListener existingListener = mock(BpmnParseListener.class);
-            when(processEngineConfiguration.getCustomPostBPMNParseListeners()).thenReturn(new ArrayList<>(List.of(existingListener)));
+            when(processEngineConfiguration.getCustomPostBPMNParseListeners())
+                    .thenReturn(new ArrayList<>(List.of(existingListener)));
 
             AgentOrchestratorEnginePlugin plugin = new AgentOrchestratorEnginePlugin(parseListener);
             plugin.preInit(processEngineConfiguration);
 
-            verify(processEngineConfiguration).setCustomPostBPMNParseListeners(argThat(list ->
-                    list.size() == 2 && list.get(0) == existingListener && list.get(1) == parseListener));
+            verify(processEngineConfiguration)
+                    .setCustomPostBPMNParseListeners(argThat(list -> list.size() == 2
+                            && list.get(0) == existingListener && list.get(1) == parseListener));
         }
 
         @Test
@@ -41,8 +45,8 @@ class AgentOrchestratorEnginePluginTest {
             AgentOrchestratorEnginePlugin plugin = new AgentOrchestratorEnginePlugin(parseListener);
             plugin.preInit(processEngineConfiguration);
 
-            verify(processEngineConfiguration).setCustomPostBPMNParseListeners(argThat(list ->
-                    list.size() == 1 && list.get(0) == parseListener));
+            verify(processEngineConfiguration).setCustomPostBPMNParseListeners(
+                    argThat(list -> list.size() == 1 && list.get(0) == parseListener));
         }
     }
 }

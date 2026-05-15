@@ -85,8 +85,8 @@ class SubprocessToolCompletionListenerTest {
             assertEquals(AgentOrchestrationJobHandler.TYPE, job.getJobHandlerType());
             assertEquals(parentExecution, job.getExecution());
 
-            AgentOrchestrationConfig config = AgentOrchestrationConfig.fromCanonicalString(
-                    job.getJobHandlerConfigurationRaw());
+            AgentOrchestrationConfig config = AgentOrchestrationConfig
+                    .fromCanonicalString(job.getJobHandlerConfigurationRaw());
             assertTrue(config.hasToolResult());
             assertEquals(TOOL_CALL_ID, config.toolResult().toolCallId());
             assertEquals(ACTIVITY_ID, config.toolResult().toolElementId());

@@ -12,7 +12,8 @@ public class AdHocAgentOrchestrationParseListener extends AbstractBpmnParseListe
     private final AgentSubprocessEntryListener subprocessEntryListener;
     private final SubprocessToolCompletionListener subprocessToolCompletionListener;
 
-    public AdHocAgentOrchestrationParseListener(AgentSubprocessEntryListener subprocessEntryListener,
+    public AdHocAgentOrchestrationParseListener(
+            AgentSubprocessEntryListener subprocessEntryListener,
             SubprocessToolCompletionListener subprocessToolCompletionListener) {
         this.subprocessEntryListener = subprocessEntryListener;
         this.subprocessToolCompletionListener = subprocessToolCompletionListener;
