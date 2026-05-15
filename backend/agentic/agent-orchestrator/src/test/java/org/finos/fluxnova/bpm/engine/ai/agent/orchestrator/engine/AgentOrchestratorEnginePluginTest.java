@@ -25,7 +25,7 @@ class AgentOrchestratorEnginePluginTest {
     class PreInit {
 
         @Test
-        void addsParseListenerToExistingList() {
+        void preInit_withExistingListeners_appendsParseListener() {
             BpmnParseListener existingListener = mock(BpmnParseListener.class);
             when(processEngineConfiguration.getCustomPostBPMNParseListeners())
                     .thenReturn(new ArrayList<>(List.of(existingListener)));
@@ -39,7 +39,7 @@ class AgentOrchestratorEnginePluginTest {
         }
 
         @Test
-        void createsListWhenNull() {
+        void preInit_whenListIsNull_createsNewList() {
             when(processEngineConfiguration.getCustomPostBPMNParseListeners()).thenReturn(null);
 
             AgentOrchestratorEnginePlugin plugin = new AgentOrchestratorEnginePlugin(parseListener);

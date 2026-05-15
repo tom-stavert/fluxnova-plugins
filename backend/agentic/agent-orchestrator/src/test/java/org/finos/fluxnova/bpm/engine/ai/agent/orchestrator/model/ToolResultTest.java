@@ -41,7 +41,7 @@ class ToolResultTest {
     class EdgeCases {
 
         @Test
-        void constructionWithErrorMessage() {
+        void constructor_withErrorMessage_isError() {
             ToolResult result = new ToolResult("tc-1", "taskA", "Timed out");
 
             assertTrue(result.isError());

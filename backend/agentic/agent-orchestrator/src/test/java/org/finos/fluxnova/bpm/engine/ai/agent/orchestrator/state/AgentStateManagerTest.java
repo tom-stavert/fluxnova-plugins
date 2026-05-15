@@ -108,7 +108,7 @@ class AgentStateManagerTest {
                 }
 
                 @Test
-                void loadPendingToolCalls_returnsMutableSet() {
+                void loadPendingToolCalls_whenNoVariable_returnsMutableSet() {
                         when(runtimeService.getVariableLocal(EXECUTION_ID,
                                         "_agentPendingToolCalls")).thenReturn(null);
 

@@ -140,7 +140,7 @@ class AgentOrchestratorAutoConfigurationTest {
         }
 
         @Test
-        void allExpectedBeansArePresent() {
+        void autoConfiguration_withAllDependencies_registersExpectedBeans() {
             assertNotNull(context.getBean(AgentStateManager.class));
             assertNotNull(context.getBean(AgentSubprocessEntryListener.class));
             assertNotNull(context.getBean(SubprocessToolCompletionListener.class));
@@ -149,9 +149,9 @@ class AgentOrchestratorAutoConfigurationTest {
             assertNotNull(context.getBean(AdHocAgentOrchestrationParseListener.class));
             assertNotNull(context.getBean(AgentOrchestratorEnginePlugin.class));
         }
- 
+
         @Test
-        void terminationHandler_isAdHocSubprocessImpl() {
+        void autoConfiguration_withAllDependencies_registersAdHocSubprocessTerminator() {
             assertInstanceOf(AdHocSubprocessTerminator.class,
                     context.getBean(AgentTerminationHandler.class));
         }
@@ -169,7 +169,7 @@ class AgentOrchestratorAutoConfigurationTest {
         }
 
         @Test
-        void userProvidedTerminationHandler_takesPreference() {
+        void autoConfiguration_whenTerminationHandlerProvided_usesUserBean() {
             context = new AnnotationConfigApplicationContext(CustomScopeCompleterOverride.class,
                     AgentOrchestratorAutoConfiguration.class);
 
@@ -190,7 +190,7 @@ class AgentOrchestratorAutoConfigurationTest {
         }
 
         @Test
-        void autoConfigurationDoesNotActivate_whenLlmOrchestrationServiceIsAbsent() {
+        void autoConfiguration_whenLlmOrchestrationServiceAbsent_doesNotActivate() {
             context = new AnnotationConfigApplicationContext(MissingLlmService.class,
                     AgentOrchestratorAutoConfiguration.class);
 
