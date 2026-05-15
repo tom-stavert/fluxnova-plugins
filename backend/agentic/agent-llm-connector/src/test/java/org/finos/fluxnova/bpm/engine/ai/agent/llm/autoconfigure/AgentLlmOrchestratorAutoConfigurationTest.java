@@ -1,5 +1,6 @@
 package org.finos.fluxnova.bpm.engine.ai.agent.llm.autoconfigure;
 
+import org.finos.fluxnova.bpm.engine.ai.agent.llm.parser.AgentProviderEnginePlugin;
 import org.finos.fluxnova.bpm.engine.ai.agent.llm.provider.AgentProviderRegistry;
 import org.finos.fluxnova.bpm.engine.ai.agent.llm.service.LlmService;
 import org.finos.fluxnova.bpm.engine.ai.agent.llm.tool.AgentToolSchemaConverter;
@@ -28,6 +29,13 @@ class AgentLlmOrchestratorAutoConfigurationTest {
 
             AgentProviderRegistry registry = context.getBean(AgentProviderRegistry.class);
             assertThat(registry.has("ollama")).isTrue();
+        });
+    }
+
+    @Test
+    void wiresAgentProviderEnginePluginWhenChatModelPresent() {
+        runner.withUserConfiguration(ChatModelConfig.class).run(context -> {
+            assertThat(context).hasSingleBean(AgentProviderEnginePlugin.class);
         });
     }
 
