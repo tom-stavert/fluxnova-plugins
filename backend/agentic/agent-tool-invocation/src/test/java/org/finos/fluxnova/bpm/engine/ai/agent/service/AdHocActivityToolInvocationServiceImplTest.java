@@ -4,20 +4,17 @@ import org.finos.fluxnova.bpm.engine.BadUserRequestException;
 import org.finos.fluxnova.bpm.engine.RuntimeService;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.AgentToolCatalogue;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.AgentToolEntry;
-import org.finos.fluxnova.bpm.engine.runtime.ProcessInstantiationBuilder;
-import org.finos.fluxnova.bpm.engine.runtime.ProcessInstanceWithVariables;
 import org.finos.fluxnova.bpm.engine.shared.model.ToolCallRequest;
 import org.finos.fluxnova.bpm.engine.shared.model.ToolInvocationResult;
-import org.finos.fluxnova.bpm.engine.variable.impl.VariableMapImpl;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 class AdHocActivityToolInvocationServiceImplTest {
@@ -36,20 +33,7 @@ class AdHocActivityToolInvocationServiceImplTest {
         String toolCallId = "toolCallId";
         ToolCallRequest request = new ToolCallRequest(toolCallId, toolId);
 
-        Map<String, Object> variables = new HashMap<>();
         RuntimeService runtimeService = mock(RuntimeService.class);
-        ProcessInstantiationBuilder builder = mock(ProcessInstantiationBuilder.class);
-        ProcessInstanceWithVariables processInstanceWithVariables = mock(ProcessInstanceWithVariables.class);
-
-        when(runtimeService.createProcessInstanceById(any())).thenReturn(builder);
-        when(builder.setVariableLocal(any(), any())).thenAnswer(invocation -> {
-            variables.put(invocation.getArgument(0), invocation.getArgument(1));
-            return builder;
-        });
-        when(builder.executeWithVariablesInReturn()).thenReturn(processInstanceWithVariables);
-        when(processInstanceWithVariables.getVariables()).thenAnswer(invocation -> new VariableMapImpl(variables));
-        when(processInstanceWithVariables.isEnded()).thenReturn(false);
-
         ToolInvocationService toolInvocationService = new AdHocActivityToolInvocationServiceImpl(runtimeService);
 
         ToolInvocationResult expectedResult = ToolInvocationResult.success(toolCallId);
@@ -57,6 +41,11 @@ class AdHocActivityToolInvocationServiceImplTest {
         ToolInvocationResult result = toolInvocationService.invoke(scopeExecutionId, catalogue, request);
 
         assertEquals(expectedResult, result);
+        verify(runtimeService).triggerAdHocActivity(
+                eq(scopeExecutionId),
+                eq(toolId),
+                eq(Map.of("_agentToolCallId", toolCallId))
+        );
     }
 
     @Test
@@ -123,7 +112,7 @@ class AdHocActivityToolInvocationServiceImplTest {
 
         RuntimeService runtimeService = mock(RuntimeService.class);
         String errorMessage = "Bad user request exception";
-        when(runtimeService.createProcessInstanceById(any())).thenThrow(new BadUserRequestException(errorMessage));
+        doThrow(new BadUserRequestException(errorMessage)).when(runtimeService).triggerAdHocActivity(any(), any(), any());
         ToolInvocationService toolInvocationService = new AdHocActivityToolInvocationServiceImpl(runtimeService);
 
         ToolInvocationResult expectedResult = ToolInvocationResult.failure(toolCallId, errorMessage);
