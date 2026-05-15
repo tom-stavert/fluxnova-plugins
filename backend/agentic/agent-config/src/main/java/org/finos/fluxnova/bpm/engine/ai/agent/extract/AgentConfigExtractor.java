@@ -3,8 +3,9 @@ package org.finos.fluxnova.bpm.engine.ai.agent.extract;
 import org.finos.fluxnova.bpm.engine.ai.agent.model.AgentConfig;
 import org.finos.fluxnova.bpm.engine.shared.xml.BpmnXmlParser;
 import org.finos.fluxnova.bpm.engine.impl.util.xml.Element;
-import org.finos.fluxnova.bpm.engine.impl.util.xml.Namespace;
 import org.finos.fluxnova.bpm.engine.impl.util.xml.Parse;
+
+import static org.finos.fluxnova.bpm.engine.shared.agent.AgentModelConstants.AGENT_NS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,8 +19,6 @@ import java.util.Set;
 public class AgentConfigExtractor {
 
     private static final Logger LOG = LoggerFactory.getLogger(AgentConfigExtractor.class);
-
-    static final Namespace AGENT_NS = new Namespace("http://fluxnova.finos.org/schema/1.0/ai/agent");
 
     private final AgentConfigElementWalker walker;
 

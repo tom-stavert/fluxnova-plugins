@@ -5,9 +5,9 @@ import org.finos.fluxnova.bpm.engine.impl.util.xml.Element;
 import java.util.ArrayList;
 import java.util.List;
 
-class AgentConfigElementWalker {
+public class AgentConfigElementWalker {
 
-    List<Element> walk(Element root) {
+    public List<Element> walk(Element root) {
         List<Element> elements = new ArrayList<>();
         collect(root, elements);
         return elements;
