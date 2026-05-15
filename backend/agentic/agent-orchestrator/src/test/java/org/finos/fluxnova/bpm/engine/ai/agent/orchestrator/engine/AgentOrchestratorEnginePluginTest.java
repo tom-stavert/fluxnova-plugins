@@ -5,12 +5,15 @@ import org.finos.fluxnova.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -24,6 +27,9 @@ class AgentOrchestratorEnginePluginTest {
     @Nested
     class PreInit {
 
+        @Captor
+        ArgumentCaptor<List<BpmnParseListener>> captor;
+
         @Test
         void preInit_withExistingListeners_appendsParseListener() {
             BpmnParseListener existingListener = mock(BpmnParseListener.class);
@@ -33,9 +39,12 @@ class AgentOrchestratorEnginePluginTest {
             AgentOrchestratorEnginePlugin plugin = new AgentOrchestratorEnginePlugin(parseListener);
             plugin.preInit(processEngineConfiguration);
 
-            verify(processEngineConfiguration)
-                    .setCustomPostBPMNParseListeners(argThat(list -> list.size() == 2
-                            && list.get(0) == existingListener && list.get(1) == parseListener));
+            verify(processEngineConfiguration).setCustomPostBPMNParseListeners(captor.capture());
+            List<BpmnParseListener> result = captor.getValue();
+
+            assertEquals(2, result.size());
+            assertSame(existingListener, result.get(0));
+            assertSame(parseListener, result.get(1));
         }
 
         @Test
@@ -45,8 +54,11 @@ class AgentOrchestratorEnginePluginTest {
             AgentOrchestratorEnginePlugin plugin = new AgentOrchestratorEnginePlugin(parseListener);
             plugin.preInit(processEngineConfiguration);
 
-            verify(processEngineConfiguration).setCustomPostBPMNParseListeners(
-                    argThat(list -> list.size() == 1 && list.get(0) == parseListener));
+            verify(processEngineConfiguration).setCustomPostBPMNParseListeners(captor.capture());
+            List<BpmnParseListener> result = captor.getValue();
+
+            assertEquals(1, result.size());
+            assertSame(parseListener, result.get(0));
         }
     }
 }
