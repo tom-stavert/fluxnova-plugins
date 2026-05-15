@@ -15,9 +15,6 @@ import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.LlmOrchestrat
 import org.finos.fluxnova.bpm.engine.ai.agent.service.ToolInvocationService;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.state.AgentStateManager;
 import org.finos.fluxnova.bpm.engine.ai.agent.registry.AgentConfigRegistry;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -123,77 +120,34 @@ class AgentOrchestratorAutoConfigurationTest {
         }
     }
 
-    @Nested
-    class DefaultBeans {
-
-        private AnnotationConfigApplicationContext context;
-
-        @BeforeEach
-        void setUp() {
-            context = new AnnotationConfigApplicationContext(MockInfrastructure.class,
-                    AgentOrchestratorAutoConfiguration.class);
-        }
-
-        @AfterEach
-        void tearDown() {
-            context.close();
-        }
-
-        @Test
-        void autoConfiguration_withAllDependencies_registersExpectedBeans() {
+    @Test
+    void autoConfiguration_withAllDependencies_registersExpectedBeans() {
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(
+                MockInfrastructure.class, AgentOrchestratorAutoConfiguration.class)) {
             assertNotNull(context.getBean(AgentStateManager.class));
             assertNotNull(context.getBean(AgentSubprocessEntryListener.class));
             assertNotNull(context.getBean(SubprocessToolCompletionListener.class));
-            assertNotNull(context.getBean(AgentTerminationHandler.class));
+            assertInstanceOf(AdHocSubprocessTerminator.class,
+                    context.getBean(AgentTerminationHandler.class));
             assertNotNull(context.getBean(AgentOrchestrationJobHandler.class));
             assertNotNull(context.getBean(AdHocAgentOrchestrationParseListener.class));
             assertNotNull(context.getBean(AgentOrchestratorEnginePlugin.class));
         }
-
-        @Test
-        void autoConfiguration_withAllDependencies_registersAdHocSubprocessTerminator() {
-            assertInstanceOf(AdHocSubprocessTerminator.class,
-                    context.getBean(AgentTerminationHandler.class));
-        }
     }
 
-    @Nested
-    class ConditionalOnMissingBean {
-
-        private AnnotationConfigApplicationContext context;
-
-        @AfterEach
-        void tearDown() {
-            if (context != null)
-                context.close();
-        }
-
-        @Test
-        void autoConfiguration_whenTerminationHandlerProvided_usesUserBean() {
-            context = new AnnotationConfigApplicationContext(CustomScopeCompleterOverride.class,
-                    AgentOrchestratorAutoConfiguration.class);
-
+    @Test
+    void autoConfiguration_whenTerminationHandlerProvided_usesUserBean() {
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(
+                CustomScopeCompleterOverride.class, AgentOrchestratorAutoConfiguration.class)) {
             assertFalse(context
                     .getBean(AgentTerminationHandler.class) instanceof AdHocSubprocessTerminator);
         }
     }
 
-    @Nested
-    class ConditionalOnBeanGuard {
-
-        private AnnotationConfigApplicationContext context;
-
-        @AfterEach
-        void tearDown() {
-            if (context != null)
-                context.close();
-        }
-
-        @Test
-        void autoConfiguration_whenLlmOrchestrationServiceAbsent_doesNotActivate() {
-            context = new AnnotationConfigApplicationContext(MissingLlmService.class,
-                    AgentOrchestratorAutoConfiguration.class);
-
+    @Test
+    void autoConfiguration_whenLlmOrchestrationServiceAbsent_doesNotActivate() {
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(
+                MissingLlmService.class, AgentOrchestratorAutoConfiguration.class)) {
             assertThrows(NoSuchBeanDefinitionException.class,
                     () -> context.getBean(AgentOrchestratorEnginePlugin.class));
         }
