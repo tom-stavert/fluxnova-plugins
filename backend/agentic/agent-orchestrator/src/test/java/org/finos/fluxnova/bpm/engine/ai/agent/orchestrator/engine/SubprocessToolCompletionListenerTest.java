@@ -69,7 +69,7 @@ class SubprocessToolCompletionListenerTest {
     class ToolCompletion {
 
         @Test
-        void notify_createsJobWithToolCallIdAndElementId() {
+        void notify_createsJobWithCorrectHandlerTypeConfigAndParentExecution() {
             stubToolCallExecution();
             when(commandContext.getJobManager()).thenReturn(jobManager);
 
@@ -83,6 +83,7 @@ class SubprocessToolCompletionListenerTest {
 
             MessageEntity job = captor.getValue();
             assertEquals(AgentOrchestrationJobHandler.TYPE, job.getJobHandlerType());
+            assertEquals(parentExecution, job.getExecution());
 
             AgentOrchestrationConfig config = AgentOrchestrationConfig.fromCanonicalString(
                     job.getJobHandlerConfigurationRaw());
@@ -90,26 +91,6 @@ class SubprocessToolCompletionListenerTest {
             assertEquals(TOOL_CALL_ID, config.toolResult().toolCallId());
             assertEquals(ACTIVITY_ID, config.toolResult().toolElementId());
             assertNull(config.toolResult().errorMessage());
-        }
-    }
-
-    @Nested
-    class JobAssociation {
-
-        @Test
-        void notify_jobIsAssociatedWithParentExecution() {
-            stubToolCallExecution();
-            when(commandContext.getJobManager()).thenReturn(jobManager);
-
-            try (MockedStatic<Context> contextMock = mockStatic(Context.class)) {
-                contextMock.when(Context::getCommandContext).thenReturn(commandContext);
-                listener.notify(execution);
-            }
-
-            ArgumentCaptor<MessageEntity> captor = ArgumentCaptor.forClass(MessageEntity.class);
-            verify(jobManager).insertAndHintJobExecutor(captor.capture());
-
-            assertEquals(parentExecution, captor.getValue().getExecution());
         }
     }
 }
