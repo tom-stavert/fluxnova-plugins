@@ -18,215 +18,211 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AgentStateManagerTest {
 
-    private static final String EXECUTION_ID = "exec-123";
+        private static final String EXECUTION_ID = "exec-123";
 
-    @Mock
-    private RuntimeService runtimeService;
+        @Mock
+        private RuntimeService runtimeService;
 
-    private AgentStateManager stateManager;
+        private AgentStateManager stateManager;
 
-    @BeforeEach
-    void setUp() {
-        stateManager = new AgentStateManager(runtimeService);
-    }
-
-    @Nested
-    class ConversationHistory {
-
-        @Test
-        void loadHistory_whenNoVariable_returnsEmptyList() {
-            when(runtimeService.getVariableLocal(EXECUTION_ID, "_agentConversationHistory"))
-                    .thenReturn(null);
-
-            List<ConversationEntry> history = stateManager.loadHistory(EXECUTION_ID);
-
-            assertTrue(history.isEmpty());
+        @BeforeEach
+        void setUp() {
+                stateManager = new AgentStateManager(runtimeService);
         }
 
-        @Test
-        void saveAndLoadHistory_roundTrips() {
-            List<ConversationEntry> history = List.of(
-                    ConversationEntry.user("Hello"),
-                    ConversationEntry.assistant("Hi there", List.of(new ToolCallRequest("tc1", "tool1")))
-            );
+        @Nested
+        class ConversationHistory {
 
-            stateManager.saveHistory(EXECUTION_ID, history);
+                @Test
+                void loadHistory_whenNoVariable_returnsEmptyList() {
+                        when(runtimeService.getVariableLocal(EXECUTION_ID,
+                                        "_agentConversationHistory")).thenReturn(null);
 
-            ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-            verify(runtimeService).setVariableLocal(
-                    eq(EXECUTION_ID), eq("_agentConversationHistory"), captor.capture());
+                        List<ConversationEntry> history = stateManager.loadHistory(EXECUTION_ID);
 
-            String json = captor.getValue();
-            assertNotNull(json);
+                        assertTrue(history.isEmpty());
+                }
 
-            when(runtimeService.getVariableLocal(EXECUTION_ID, "_agentConversationHistory"))
-                    .thenReturn(json);
+                @Test
+                void saveAndLoadHistory_roundTrips() {
+                        List<ConversationEntry> history = List.of(ConversationEntry.user("Hello"),
+                                        ConversationEntry.assistant("Hi there", List
+                                                        .of(new ToolCallRequest("tc1", "tool1"))));
 
-            List<ConversationEntry> loaded = stateManager.loadHistory(EXECUTION_ID);
-            assertEquals(2, loaded.size());
-            assertEquals(Role.USER, loaded.get(0).role());
-            assertEquals("Hello", loaded.get(0).content());
-            assertEquals(Role.ASSISTANT, loaded.get(1).role());
-            assertEquals(1, loaded.get(1).toolCalls().size());
-            assertEquals("tool1", loaded.get(1).toolCalls().get(0).toolId());
-        }
-    }
+                        stateManager.saveHistory(EXECUTION_ID, history);
 
-    @Nested
-    class PendingToolCalls {
+                        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+                        verify(runtimeService).setVariableLocal(eq(EXECUTION_ID),
+                                        eq("_agentConversationHistory"), captor.capture());
 
-        @Test
-        void loadPendingToolCalls_whenNoVariable_returnsEmptySet() {
-            when(runtimeService.getVariableLocal(EXECUTION_ID, "_agentPendingToolCalls"))
-                    .thenReturn(null);
+                        String json = captor.getValue();
+                        assertNotNull(json);
 
-            Set<String> pending = stateManager.loadPendingToolCalls(EXECUTION_ID);
+                        when(runtimeService.getVariableLocal(EXECUTION_ID,
+                                        "_agentConversationHistory")).thenReturn(json);
 
-            assertTrue(pending.isEmpty());
-        }
-
-        @Test
-        void saveAndLoadPendingToolCalls_roundTrips() {
-            Set<String> pending = new HashSet<>(Set.of("tc1", "tc2", "tc3"));
-
-            stateManager.savePendingToolCalls(EXECUTION_ID, pending);
-
-            ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-            verify(runtimeService).setVariableLocal(
-                    eq(EXECUTION_ID), eq("_agentPendingToolCalls"), captor.capture());
-
-            when(runtimeService.getVariableLocal(EXECUTION_ID, "_agentPendingToolCalls"))
-                    .thenReturn(captor.getValue());
-
-            Set<String> loaded = stateManager.loadPendingToolCalls(EXECUTION_ID);
-            assertEquals(pending, loaded);
+                        List<ConversationEntry> loaded = stateManager.loadHistory(EXECUTION_ID);
+                        assertEquals(2, loaded.size());
+                        assertEquals(Role.USER, loaded.get(0).role());
+                        assertEquals("Hello", loaded.get(0).content());
+                        assertEquals(Role.ASSISTANT, loaded.get(1).role());
+                        assertEquals(1, loaded.get(1).toolCalls().size());
+                        assertEquals("tool1", loaded.get(1).toolCalls().get(0).toolId());
+                }
         }
 
-        @Test
-        void loadPendingToolCalls_returnsMutableSet() {
-            when(runtimeService.getVariableLocal(EXECUTION_ID, "_agentPendingToolCalls"))
-                    .thenReturn(null);
+        @Nested
+        class PendingToolCalls {
 
-            Set<String> pending = stateManager.loadPendingToolCalls(EXECUTION_ID);
-            pending.add("tc1");
+                @Test
+                void loadPendingToolCalls_whenNoVariable_returnsEmptySet() {
+                        when(runtimeService.getVariableLocal(EXECUTION_ID,
+                                        "_agentPendingToolCalls")).thenReturn(null);
 
-            assertEquals(1, pending.size());
-        }
-    }
+                        Set<String> pending = stateManager.loadPendingToolCalls(EXECUTION_ID);
 
-    @Nested
-    class ToolResultBuffer {
+                        assertTrue(pending.isEmpty());
+                }
 
-        @Test
-        void loadToolResultBuffer_whenNoVariable_returnsEmptyList() {
-            when(runtimeService.getVariableLocal(EXECUTION_ID, "_agentToolResultBuffer"))
-                    .thenReturn(null);
+                @Test
+                void saveAndLoadPendingToolCalls_roundTrips() {
+                        Set<String> pending = new HashSet<>(Set.of("tc1", "tc2", "tc3"));
 
-            List<ToolResult> buffer = stateManager.loadToolResultBuffer(EXECUTION_ID);
+                        stateManager.savePendingToolCalls(EXECUTION_ID, pending);
 
-            assertTrue(buffer.isEmpty());
-        }
+                        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+                        verify(runtimeService).setVariableLocal(eq(EXECUTION_ID),
+                                        eq("_agentPendingToolCalls"), captor.capture());
 
-        @Test
-        void appendToResultBuffer_addsToExistingBuffer() {
-            ToolResult result1 = new ToolResult("tc1", "taskA", null);
-            ToolResult result2 = new ToolResult("tc2", "taskB", null);
+                        when(runtimeService.getVariableLocal(EXECUTION_ID,
+                                        "_agentPendingToolCalls")).thenReturn(captor.getValue());
 
-            when(runtimeService.getVariableLocal(EXECUTION_ID, "_agentToolResultBuffer"))
-                    .thenReturn(null);
-            stateManager.appendToResultBuffer(EXECUTION_ID, result1);
+                        Set<String> loaded = stateManager.loadPendingToolCalls(EXECUTION_ID);
+                        assertEquals(pending, loaded);
+                }
 
-            ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-            verify(runtimeService).setVariableLocal(
-                    eq(EXECUTION_ID), eq("_agentToolResultBuffer"), captor.capture());
+                @Test
+                void loadPendingToolCalls_returnsMutableSet() {
+                        when(runtimeService.getVariableLocal(EXECUTION_ID,
+                                        "_agentPendingToolCalls")).thenReturn(null);
 
-            when(runtimeService.getVariableLocal(EXECUTION_ID, "_agentToolResultBuffer"))
-                    .thenReturn(captor.getValue());
-            stateManager.appendToResultBuffer(EXECUTION_ID, result2);
+                        Set<String> pending = stateManager.loadPendingToolCalls(EXECUTION_ID);
 
-            verify(runtimeService, times(2)).setVariableLocal(
-                    eq(EXECUTION_ID), eq("_agentToolResultBuffer"), captor.capture());
-
-            when(runtimeService.getVariableLocal(EXECUTION_ID, "_agentToolResultBuffer"))
-                    .thenReturn(captor.getValue());
-
-            List<ToolResult> buffer = stateManager.loadToolResultBuffer(EXECUTION_ID);
-            assertEquals(2, buffer.size());
-            assertEquals("tc1", buffer.get(0).toolCallId());
-            assertEquals("tc2", buffer.get(1).toolCallId());
+                        assertDoesNotThrow(() -> pending.add("tc1"));
+                }
         }
 
-        @Test
-        void appendAllToResultBuffer_addsMultipleResults() {
-            List<ToolResult> results = List.of(
-                    ToolResult.error("tc1", "Unknown tool"),
-                    ToolResult.error("tc2", "Another error")
-            );
+        @Nested
+        class ToolResultBuffer {
 
-            when(runtimeService.getVariableLocal(EXECUTION_ID, "_agentToolResultBuffer"))
-                    .thenReturn(null);
+                @Test
+                void loadToolResultBuffer_whenNoVariable_returnsEmptyList() {
+                        when(runtimeService.getVariableLocal(EXECUTION_ID,
+                                        "_agentToolResultBuffer")).thenReturn(null);
 
-            stateManager.appendAllToResultBuffer(EXECUTION_ID, results);
+                        List<ToolResult> buffer = stateManager.loadToolResultBuffer(EXECUTION_ID);
 
-            ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-            verify(runtimeService).setVariableLocal(
-                    eq(EXECUTION_ID), eq("_agentToolResultBuffer"), captor.capture());
+                        assertTrue(buffer.isEmpty());
+                }
 
-            when(runtimeService.getVariableLocal(EXECUTION_ID, "_agentToolResultBuffer"))
-                    .thenReturn(captor.getValue());
+                @Test
+                void appendToResultBuffer_addsToExistingBuffer() {
+                        ToolResult result1 = new ToolResult("tc1", "taskA", null);
+                        ToolResult result2 = new ToolResult("tc2", "taskB", null);
 
-            List<ToolResult> loaded = stateManager.loadToolResultBuffer(EXECUTION_ID);
-            assertEquals(2, loaded.size());
-            assertEquals("tc1", loaded.get(0).toolCallId());
-            assertEquals("Unknown tool", loaded.get(0).errorMessage());
+                        when(runtimeService.getVariableLocal(EXECUTION_ID,
+                                        "_agentToolResultBuffer")).thenReturn(null);
+                        stateManager.appendToResultBuffer(EXECUTION_ID, result1);
+
+                        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+                        verify(runtimeService).setVariableLocal(eq(EXECUTION_ID),
+                                        eq("_agentToolResultBuffer"), captor.capture());
+
+                        when(runtimeService.getVariableLocal(EXECUTION_ID,
+                                        "_agentToolResultBuffer")).thenReturn(captor.getValue());
+                        stateManager.appendToResultBuffer(EXECUTION_ID, result2);
+
+                        verify(runtimeService, times(2)).setVariableLocal(eq(EXECUTION_ID),
+                                        eq("_agentToolResultBuffer"), captor.capture());
+
+                        when(runtimeService.getVariableLocal(EXECUTION_ID,
+                                        "_agentToolResultBuffer")).thenReturn(captor.getValue());
+
+                        List<ToolResult> buffer = stateManager.loadToolResultBuffer(EXECUTION_ID);
+                        assertEquals(2, buffer.size());
+                        assertEquals("tc1", buffer.get(0).toolCallId());
+                        assertEquals("tc2", buffer.get(1).toolCallId());
+                }
+
+                @Test
+                void appendAllToResultBuffer_addsMultipleResults() {
+                        List<ToolResult> results = List.of(ToolResult.error("tc1", "Unknown tool"),
+                                        ToolResult.error("tc2", "Another error"));
+
+                        when(runtimeService.getVariableLocal(EXECUTION_ID,
+                                        "_agentToolResultBuffer")).thenReturn(null);
+
+                        stateManager.appendAllToResultBuffer(EXECUTION_ID, results);
+
+                        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+                        verify(runtimeService).setVariableLocal(eq(EXECUTION_ID),
+                                        eq("_agentToolResultBuffer"), captor.capture());
+
+                        when(runtimeService.getVariableLocal(EXECUTION_ID,
+                                        "_agentToolResultBuffer")).thenReturn(captor.getValue());
+
+                        List<ToolResult> loaded = stateManager.loadToolResultBuffer(EXECUTION_ID);
+                        assertEquals(2, loaded.size());
+                        assertEquals("tc1", loaded.get(0).toolCallId());
+                        assertEquals("Unknown tool", loaded.get(0).errorMessage());
+                }
+
+                @Test
+                void clearToolResultBuffer_removesVariable() {
+                        stateManager.clearToolResultBuffer(EXECUTION_ID);
+
+                        verify(runtimeService).removeVariableLocal(EXECUTION_ID,
+                                        "_agentToolResultBuffer");
+                }
         }
 
-        @Test
-        void clearToolResultBuffer_removesVariable() {
-            stateManager.clearToolResultBuffer(EXECUTION_ID);
+        @Nested
+        class ToolCallQueue {
 
-            verify(runtimeService).removeVariableLocal(EXECUTION_ID, "_agentToolResultBuffer");
+                @Test
+                void loadToolCallQueue_whenNoVariable_returnsEmptyList() {
+                        when(runtimeService.getVariableLocal(EXECUTION_ID, "_agentToolCallQueue"))
+                                        .thenReturn(null);
+
+                        List<ToolCallRequest> queue = stateManager.loadToolCallQueue(EXECUTION_ID);
+
+                        assertTrue(queue.isEmpty());
+                }
+
+                @Test
+                void saveAndLoadToolCallQueue_roundTrips() {
+                        List<ToolCallRequest> queue = List.of(new ToolCallRequest("tc2", "tool2"),
+                                        new ToolCallRequest("tc3", "tool3"));
+
+                        stateManager.saveToolCallQueue(EXECUTION_ID, queue);
+
+                        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+                        verify(runtimeService).setVariableLocal(eq(EXECUTION_ID),
+                                        eq("_agentToolCallQueue"), captor.capture());
+
+                        when(runtimeService.getVariableLocal(EXECUTION_ID, "_agentToolCallQueue"))
+                                        .thenReturn(captor.getValue());
+
+                        List<ToolCallRequest> loaded = stateManager.loadToolCallQueue(EXECUTION_ID);
+                        assertEquals(2, loaded.size());
+                        assertEquals("tool2", loaded.get(0).toolId());
+                        assertEquals("tool3", loaded.get(1).toolId());
+                }
         }
-    }
-
-    @Nested
-    class ToolCallQueue {
-
-        @Test
-        void loadToolCallQueue_whenNoVariable_returnsEmptyList() {
-            when(runtimeService.getVariableLocal(EXECUTION_ID, "_agentToolCallQueue"))
-                    .thenReturn(null);
-
-            List<ToolCallRequest> queue = stateManager.loadToolCallQueue(EXECUTION_ID);
-
-            assertTrue(queue.isEmpty());
-        }
-
-        @Test
-        void saveAndLoadToolCallQueue_roundTrips() {
-            List<ToolCallRequest> queue = List.of(
-                    new ToolCallRequest("tc2", "tool2"),
-                    new ToolCallRequest("tc3", "tool3")
-            );
-
-            stateManager.saveToolCallQueue(EXECUTION_ID, queue);
-
-            ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-            verify(runtimeService).setVariableLocal(
-                    eq(EXECUTION_ID), eq("_agentToolCallQueue"), captor.capture());
-
-            when(runtimeService.getVariableLocal(EXECUTION_ID, "_agentToolCallQueue"))
-                    .thenReturn(captor.getValue());
-
-            List<ToolCallRequest> loaded = stateManager.loadToolCallQueue(EXECUTION_ID);
-            assertEquals(2, loaded.size());
-            assertEquals("tool2", loaded.get(0).toolId());
-            assertEquals("tool3", loaded.get(1).toolId());
-        }
-    }
 }
