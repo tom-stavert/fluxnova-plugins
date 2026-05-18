@@ -1,5 +1,6 @@
 package org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine;
 
+import org.finos.fluxnova.bpm.engine.ActivityTypes;
 import org.finos.fluxnova.bpm.engine.impl.bpmn.parser.AbstractBpmnParseListener;
 import org.finos.fluxnova.bpm.engine.impl.pvm.PvmEvent;
 import org.finos.fluxnova.bpm.engine.impl.pvm.process.ActivityImpl;
