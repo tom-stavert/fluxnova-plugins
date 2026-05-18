@@ -16,6 +16,7 @@
   <name>Fluxnova Platform - engine plugins - agentic</name>
   <modules>
     <module>agent-tool-context-discovery</module>
+    <module>agent-tool-invocation</module>
     <module>agent-orchestrator</module>
   </modules>
 </project>
