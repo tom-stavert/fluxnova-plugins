@@ -1,5 +1,7 @@
 package org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public record ToolResult(
     String toolCallId,
     String toolElementId,
@@ -9,6 +11,7 @@ public record ToolResult(
         return new ToolResult(toolCallId, null, message);
     }
 
+@JsonIgnore
     public boolean isError() {
         return errorMessage != null;
     }
