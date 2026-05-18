@@ -41,10 +41,10 @@ class AdHocActivityToolInvocationServiceImplTest {
         ToolInvocationResult result = toolInvocationService.invoke(scopeExecutionId, catalogue, request);
 
         assertEquals(expectedResult, result);
-        verify(runtimeService).triggerAdHocActivity(
+        verify(runtimeService).triggerAdHocActivities(
                 eq(scopeExecutionId),
-                eq(toolId),
-                eq(Map.of("_agentToolCallId", toolCallId))
+                eq(List.of(toolId)),
+                eq(Map.of(toolId, Map.of("_agentToolCallId", toolCallId)))
         );
     }
 
@@ -112,7 +112,7 @@ class AdHocActivityToolInvocationServiceImplTest {
 
         RuntimeService runtimeService = mock(RuntimeService.class);
         String errorMessage = "Bad user request exception";
-        doThrow(new BadUserRequestException(errorMessage)).when(runtimeService).triggerAdHocActivity(any(), any(), any());
+        doThrow(new BadUserRequestException(errorMessage)).when(runtimeService).triggerAdHocActivities(any(), any(), any());
         ToolInvocationService toolInvocationService = new AdHocActivityToolInvocationServiceImpl(runtimeService);
 
         ToolInvocationResult expectedResult = ToolInvocationResult.failure(toolCallId, errorMessage);
