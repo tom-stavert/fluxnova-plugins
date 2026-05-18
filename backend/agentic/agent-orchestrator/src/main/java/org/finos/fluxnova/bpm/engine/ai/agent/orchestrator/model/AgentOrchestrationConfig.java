@@ -1,7 +1,5 @@
 package org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.finos.fluxnova.bpm.engine.impl.jobexecutor.JobHandlerConfiguration;
@@ -11,12 +9,6 @@ public record AgentOrchestrationConfig(
 ) implements JobHandlerConfiguration {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-
-    @JsonCreator
-    public AgentOrchestrationConfig(
-            @JsonProperty("toolResult") ToolResult toolResult) {
-        this.toolResult = toolResult;
-    }
 
     public static AgentOrchestrationConfig forEntry() {
         return new AgentOrchestrationConfig(null);

@@ -15,7 +15,7 @@ import org.finos.fluxnova.bpm.engine.shared.agent.model.ToolInvocationResult;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.model.ToolResult;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.AgentTerminationHandler;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.LlmOrchestrationService;
-import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.ToolInvocationService;
+import org.finos.fluxnova.bpm.engine.ai.agent.service.ToolInvocationService;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.state.AgentStateManager;
 import org.finos.fluxnova.bpm.engine.ai.agent.registry.AgentConfigRegistry;
 import org.finos.fluxnova.bpm.engine.impl.interceptor.CommandContext;
@@ -82,20 +82,18 @@ public class AgentOrchestrationJobHandler implements JobHandler<AgentOrchestrati
 
         if (orchestratorConfig.hasToolResult()) {
             ToolResult result = orchestratorConfig.toolResult();
-            Set<String> pending = stateManager.loadPendingToolCalls(scopeExecutionId);
 
-            if (!pending.contains(result.toolCallId())) {
+            if (!stateManager.isPendingToolCall(scopeExecutionId, result.toolCallId())) {
                 LOG.debug(
                         "ToolResult '{}' not in pending set, discarding (duplicate or late arrival)",
                         result.toolCallId());
                 return;
             }
 
-            pending.remove(result.toolCallId());
-            stateManager.savePendingToolCalls(scopeExecutionId, pending);
+            boolean allCompleted = stateManager.completeToolCall(scopeExecutionId, result.toolCallId());
             stateManager.appendToResultBuffer(scopeExecutionId, result);
 
-            if (!pending.isEmpty()) {
+            if (!allCompleted) {
                 return;
             }
             // All pending tools done — fall through to next LLM call
@@ -182,7 +180,7 @@ public class AgentOrchestrationJobHandler implements JobHandler<AgentOrchestrati
         for (ToolResult result : results) {
             Map<String, Object> resultContent = result.isError()
                     ? Map.of("error", result.errorMessage())
-                    : result.outputs();
+                    : Map.of("status", "ok");
             updated.add(ConversationEntry.tool(result.toolCallId(), resultContent));
         }
         return updated;

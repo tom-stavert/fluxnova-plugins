@@ -1,5 +1,6 @@
 package org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine;
 
+import org.finos.fluxnova.bpm.engine.ActivityTypes;
 import org.finos.fluxnova.bpm.engine.impl.bpmn.parser.AbstractBpmnParseListener;
 import org.finos.fluxnova.bpm.engine.impl.pvm.PvmEvent;
 import org.finos.fluxnova.bpm.engine.impl.pvm.process.ActivityImpl;
@@ -12,15 +13,19 @@ public class AdHocAgentOrchestrationParseListener extends AbstractBpmnParseListe
     private final AgentSubprocessEntryListener subprocessEntryListener;
     private final SubprocessToolCompletionListener subprocessToolCompletionListener;
 
-    public AdHocAgentOrchestrationParseListener(AgentSubprocessEntryListener subprocessEntryListener,
+    public AdHocAgentOrchestrationParseListener(
+            AgentSubprocessEntryListener subprocessEntryListener,
             SubprocessToolCompletionListener subprocessToolCompletionListener) {
         this.subprocessEntryListener = subprocessEntryListener;
         this.subprocessToolCompletionListener = subprocessToolCompletionListener;
     }
 
-    // this override will only work properly when ad-hoc subprocesses are implemented
+    // The engine fires parseSubProcess for ad-hoc subprocesses.
     @Override
-    public void parseAdHocSubProcess(Element element, ScopeImpl scope, ActivityImpl activity) {
+    public void parseSubProcess(Element element, ScopeImpl scope, ActivityImpl activity) {
+        if (!ActivityTypes.SUB_PROCESS_AD_HOC.equals(element.getTagName())) {
+            return;
+        }
         Element ext = element.element("extensionElements");
         if (ext == null) {
             return;

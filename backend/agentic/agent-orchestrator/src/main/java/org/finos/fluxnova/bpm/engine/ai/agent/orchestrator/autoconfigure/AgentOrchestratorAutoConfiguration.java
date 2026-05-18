@@ -11,10 +11,10 @@ import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine.AgentOrchestra
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine.AgentSubprocessEntryListener;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine.SubprocessToolCompletionListener;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.job.AgentOrchestrationJobHandler;
-import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.AdHocSubprocessCompleter;
+import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.AdHocSubprocessTerminator;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.AgentTerminationHandler;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.LlmOrchestrationService;
-import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.ToolInvocationService;
+import org.finos.fluxnova.bpm.engine.ai.agent.service.ToolInvocationService;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.state.AgentStateManager;
 import org.finos.fluxnova.bpm.engine.ai.agent.registry.AgentConfigRegistry;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -22,8 +22,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 
-@AutoConfiguration(after = {AgentConfigAutoConfiguration.class, AgentDiscoveryAutoConfiguration.class})
-@ConditionalOnBean({RuntimeService.class, LlmOrchestrationService.class, ToolInvocationService.class})
+@AutoConfiguration(
+        after = {AgentConfigAutoConfiguration.class, AgentDiscoveryAutoConfiguration.class})
+@ConditionalOnBean({RuntimeService.class, LlmOrchestrationService.class,
+        ToolInvocationService.class})
 public class AgentOrchestratorAutoConfiguration {
 
     @Bean
@@ -40,14 +42,14 @@ public class AgentOrchestratorAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public SubprocessToolCompletionListener subprocessToolCompletionListener(AgentToolCatalogueRegistry toolCatalogueRegistry) {
-        return new SubprocessToolCompletionListener(toolCatalogueRegistry);
+    public SubprocessToolCompletionListener subprocessToolCompletionListener() {
+        return new SubprocessToolCompletionListener();
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public AgentTerminationHandler adHocSubprocessCompleter(RuntimeService runtimeService) {
-        return new AdHocSubprocessCompleter(runtimeService);
+    public AgentTerminationHandler adHocSubprocessTerminator(RuntimeService runtimeService) {
+        return new AdHocSubprocessTerminator(runtimeService);
     }
 
     @Bean
@@ -55,16 +57,13 @@ public class AgentOrchestratorAutoConfiguration {
     public AgentOrchestrationJobHandler agentOrchestrationJobHandler(
             AgentConfigRegistry agentConfigRegistry,
             AgentToolCatalogueRegistry toolCatalogueRegistry,
-            AgentContextSpecRegistry contextSpecRegistry,
-            AgentContextResolver contextResolver,
+            AgentContextSpecRegistry contextSpecRegistry, AgentContextResolver contextResolver,
             LlmOrchestrationService llmOrchestrationService,
-            ToolInvocationService toolInvocationService,
-            AgentStateManager stateManager,
+            ToolInvocationService toolInvocationService, AgentStateManager stateManager,
             AgentTerminationHandler scopeCompleter) {
-        return new AgentOrchestrationJobHandler(
-                agentConfigRegistry, toolCatalogueRegistry, contextSpecRegistry,
-                contextResolver, llmOrchestrationService, toolInvocationService,
-                stateManager, scopeCompleter);
+        return new AgentOrchestrationJobHandler(agentConfigRegistry, toolCatalogueRegistry,
+                contextSpecRegistry, contextResolver, llmOrchestrationService,
+                toolInvocationService, stateManager, scopeCompleter);
     }
 
     @Bean
