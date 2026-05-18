@@ -18,15 +18,18 @@ public class SubprocessToolCompletionListener implements ExecutionListener {
 
     @Override
     public void notify(DelegateExecution execution) {
-        String toolCallId = (String) execution.getVariableLocal("_agentToolCallId");
+        String toolCallId = (String) execution.getVariable("_agentToolCallId");
         if (toolCallId == null) {
             LOG.warn("Skipping tool result processing for execution '{}' - no toolCallId found",
                     execution.getId());
             return;
-        } 
+        }
 
         ExecutionEntity execEntity = (ExecutionEntity) execution;
         ExecutionEntity scope = execEntity.getParent();
+        while (scope != null && !scope.isScope()) {
+            scope = scope.getParent();
+        }
 
         ToolResult result = new ToolResult(toolCallId, execution.getCurrentActivityId(), null);
 
