@@ -1,5 +1,6 @@
 package org.finos.fluxnova.bpm.engine.ai.agent.llm.autoconfigure;
 
+import org.finos.fluxnova.bpm.engine.ai.agent.llm.parser.AgentProviderEnginePlugin;
 import org.finos.fluxnova.bpm.engine.ai.agent.llm.provider.AgentProviderProperties;
 import org.finos.fluxnova.bpm.engine.ai.agent.llm.provider.AgentProviderRegistry;
 import org.finos.fluxnova.bpm.engine.ai.agent.llm.provider.AgentProviderRegistryConfig;
@@ -30,6 +31,12 @@ public class AgentLlmOrchestratorAutoConfiguration {
     @ConditionalOnMissingBean
     public AgentToolSchemaConverter agentToolSchemaConverter() {
         return new AgentToolSchemaConverter();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public AgentProviderEnginePlugin agentProviderEnginePlugin(AgentProviderRegistry registry) {
+        return new AgentProviderEnginePlugin(registry);
     }
 
     @Bean
