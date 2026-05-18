@@ -31,7 +31,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -276,16 +275,16 @@ class AgentOrchestrationJobHandlerTest {
                 @Test
                 void execute_absorbsResultAndWaitsForMore() {
                         ToolResult toolResult = new ToolResult("tc1", "taskA", null);
-                        Set<String> pending = new HashSet<>(Set.of("tc1", "tc2"));
-                        when(stateManager.loadPendingToolCalls(SCOPE_EXECUTION_ID))
-                                        .thenReturn(pending);
+                        when(stateManager.isPendingToolCall(SCOPE_EXECUTION_ID, "tc1"))
+                                        .thenReturn(true);
+                        when(stateManager.completeToolCall(SCOPE_EXECUTION_ID, "tc1"))
+                                        .thenReturn(false);
 
                         handler.execute(AgentOrchestrationConfig.forToolCompletion(toolResult),
                                         execution, commandContext, null);
 
                         verify(stateManager).appendToResultBuffer(SCOPE_EXECUTION_ID, toolResult);
-                        verify(stateManager).savePendingToolCalls(eq(SCOPE_EXECUTION_ID),
-                                        eq(Set.of("tc2")));
+                        verify(stateManager).completeToolCall(SCOPE_EXECUTION_ID, "tc1");
                         verifyNoInteractions(llmOrchestrationService);
                 }
 
@@ -295,9 +294,10 @@ class AgentOrchestrationJobHandlerTest {
                         when(execution.getActivityId()).thenReturn(ELEMENT_ID);
                         stubRegistries();
                         ToolResult toolResult = new ToolResult("tc1", "taskA", null);
-                        Set<String> pending = new HashSet<>(Set.of("tc1"));
-                        when(stateManager.loadPendingToolCalls(SCOPE_EXECUTION_ID))
-                                        .thenReturn(pending);
+                        when(stateManager.isPendingToolCall(SCOPE_EXECUTION_ID, "tc1"))
+                                        .thenReturn(true);
+                        when(stateManager.completeToolCall(SCOPE_EXECUTION_ID, "tc1"))
+                                        .thenReturn(true);
 
                         ResolvedContext resolvedContext =
                                         new ResolvedContext(Map.of("resultA", "value"));
@@ -330,9 +330,8 @@ class AgentOrchestrationJobHandlerTest {
                 @Test
                 void execute_duplicateToolCallId_discarded() {
                         ToolResult toolResult = new ToolResult("tc-unknown", "taskA", null);
-                        Set<String> pending = new HashSet<>(Set.of("tc1"));
-                        when(stateManager.loadPendingToolCalls(SCOPE_EXECUTION_ID))
-                                        .thenReturn(pending);
+                        when(stateManager.isPendingToolCall(SCOPE_EXECUTION_ID, "tc-unknown"))
+                                        .thenReturn(false);
 
                         handler.execute(AgentOrchestrationConfig.forToolCompletion(toolResult),
                                         execution, commandContext, null);

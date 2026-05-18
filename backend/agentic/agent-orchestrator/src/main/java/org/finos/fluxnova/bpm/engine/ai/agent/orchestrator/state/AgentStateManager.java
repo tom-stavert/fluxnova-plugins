@@ -21,9 +21,11 @@ public class AgentStateManager {
     private static final String VAR_TOOL_CALL_QUEUE = "_agentToolCallQueue";
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final TypeReference<List<ConversationEntry>> HISTORY_TYPE = new TypeReference<>() {};
+    private static final TypeReference<List<ConversationEntry>> HISTORY_TYPE =
+            new TypeReference<>() {};
     private static final TypeReference<Set<String>> PENDING_TYPE = new TypeReference<>() {};
-    private static final TypeReference<List<ToolResult>> RESULT_BUFFER_TYPE = new TypeReference<>() {};
+    private static final TypeReference<List<ToolResult>> RESULT_BUFFER_TYPE =
+            new TypeReference<>() {};
     private static final TypeReference<List<ToolCallRequest>> QUEUE_TYPE = new TypeReference<>() {};
 
     private final RuntimeService runtimeService;
@@ -33,7 +35,8 @@ public class AgentStateManager {
     }
 
     public List<ConversationEntry> loadHistory(String executionId) {
-        String json = (String) runtimeService.getVariableLocal(executionId, VAR_CONVERSATION_HISTORY);
+        String json =
+                (String) runtimeService.getVariableLocal(executionId, VAR_CONVERSATION_HISTORY);
         if (json == null) {
             return new ArrayList<>();
         }
@@ -44,16 +47,19 @@ public class AgentStateManager {
         runtimeService.setVariableLocal(executionId, VAR_CONVERSATION_HISTORY, serialize(history));
     }
 
-    public Set<String> loadPendingToolCalls(String executionId) {
-        String json = (String) runtimeService.getVariableLocal(executionId, VAR_PENDING_TOOL_CALLS);
-        if (json == null) {
-            return new HashSet<>();
-        }
-        return new HashSet<>(deserialize(json, PENDING_TYPE));
-    }
-
     public void savePendingToolCalls(String executionId, Set<String> pending) {
         runtimeService.setVariableLocal(executionId, VAR_PENDING_TOOL_CALLS, serialize(pending));
+    }
+
+    public boolean isPendingToolCall(String executionId, String toolCallId) {
+        return loadPendingToolCalls(executionId).contains(toolCallId);
+    }
+
+    public boolean completeToolCall(String executionId, String toolCallId) {
+        Set<String> pending = loadPendingToolCalls(executionId);
+        pending.remove(toolCallId);
+        savePendingToolCalls(executionId, pending);
+        return pending.isEmpty();
     }
 
     public List<ToolResult> loadToolResultBuffer(String executionId) {
@@ -90,6 +96,14 @@ public class AgentStateManager {
 
     public void saveToolCallQueue(String executionId, List<ToolCallRequest> queue) {
         runtimeService.setVariableLocal(executionId, VAR_TOOL_CALL_QUEUE, serialize(queue));
+    }
+
+    private Set<String> loadPendingToolCalls(String executionId) {
+        String json = (String) runtimeService.getVariableLocal(executionId, VAR_PENDING_TOOL_CALLS);
+        if (json == null) {
+            return new HashSet<>();
+        }
+        return new HashSet<>(deserialize(json, PENDING_TYPE));
     }
 
     private String serialize(Object value) {

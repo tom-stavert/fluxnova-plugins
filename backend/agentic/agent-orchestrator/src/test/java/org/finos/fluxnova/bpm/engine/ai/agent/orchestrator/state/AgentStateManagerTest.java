@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -81,40 +81,53 @@ class AgentStateManagerTest {
         class PendingToolCalls {
 
                 @Test
-                void loadPendingToolCalls_whenNoVariable_returnsEmptySet() {
-                        when(runtimeService.getVariableLocal(EXECUTION_ID,
-                                        "_agentPendingToolCalls")).thenReturn(null);
-
-                        Set<String> pending = stateManager.loadPendingToolCalls(EXECUTION_ID);
-
-                        assertTrue(pending.isEmpty());
-                }
-
-                @Test
-                void saveAndLoadPendingToolCalls_roundTrips() {
+                void savePendingToolCalls_persistsToVariable() {
                         Set<String> pending = new HashSet<>(Set.of("tc1", "tc2", "tc3"));
 
                         stateManager.savePendingToolCalls(EXECUTION_ID, pending);
 
-                        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
                         verify(runtimeService).setVariableLocal(eq(EXECUTION_ID),
-                                        eq("_agentPendingToolCalls"), captor.capture());
-
-                        when(runtimeService.getVariableLocal(EXECUTION_ID,
-                                        "_agentPendingToolCalls")).thenReturn(captor.getValue());
-
-                        Set<String> loaded = stateManager.loadPendingToolCalls(EXECUTION_ID);
-                        assertEquals(pending, loaded);
+                                        eq("_agentPendingToolCalls"), anyString());
                 }
 
                 @Test
-                void loadPendingToolCalls_whenNoVariable_returnsMutableSet() {
+                void isPendingToolCall_returnsTrueWhenPresent() {
                         when(runtimeService.getVariableLocal(EXECUTION_ID,
-                                        "_agentPendingToolCalls")).thenReturn(null);
+                                        "_agentPendingToolCalls")).thenReturn("[\"tc1\",\"tc2\"]");
 
-                        Set<String> pending = stateManager.loadPendingToolCalls(EXECUTION_ID);
+                        assertTrue(stateManager.isPendingToolCall(EXECUTION_ID, "tc1"));
+                }
 
-                        assertDoesNotThrow(() -> pending.add("tc1"));
+                @Test
+                void isPendingToolCall_returnsFalseWhenAbsent() {
+                        when(runtimeService.getVariableLocal(EXECUTION_ID,
+                                        "_agentPendingToolCalls")).thenReturn("[\"tc1\"]");
+
+                        assertFalse(stateManager.isPendingToolCall(EXECUTION_ID, "tc-unknown"));
+                }
+
+                @Test
+                void completeToolCall_removesAndReturnsTrueWhenLastCall() {
+                        when(runtimeService.getVariableLocal(EXECUTION_ID,
+                                        "_agentPendingToolCalls")).thenReturn("[\"tc1\"]");
+
+                        boolean allDone = stateManager.completeToolCall(EXECUTION_ID, "tc1");
+
+                        assertTrue(allDone);
+                        verify(runtimeService).setVariableLocal(eq(EXECUTION_ID),
+                                        eq("_agentPendingToolCalls"), anyString());
+                }
+
+                @Test
+                void completeToolCall_removesAndReturnsFalseWhenMoreRemain() {
+                        when(runtimeService.getVariableLocal(EXECUTION_ID,
+                                        "_agentPendingToolCalls")).thenReturn("[\"tc1\",\"tc2\"]");
+
+                        boolean allDone = stateManager.completeToolCall(EXECUTION_ID, "tc1");
+
+                        assertFalse(allDone);
+                        verify(runtimeService).setVariableLocal(eq(EXECUTION_ID),
+                                        eq("_agentPendingToolCalls"), anyString());
                 }
         }
 

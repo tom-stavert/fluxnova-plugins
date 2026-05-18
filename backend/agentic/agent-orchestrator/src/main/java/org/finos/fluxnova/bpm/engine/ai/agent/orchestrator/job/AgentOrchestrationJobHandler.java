@@ -82,20 +82,18 @@ public class AgentOrchestrationJobHandler implements JobHandler<AgentOrchestrati
 
         if (orchestratorConfig.hasToolResult()) {
             ToolResult result = orchestratorConfig.toolResult();
-            Set<String> pending = stateManager.loadPendingToolCalls(scopeExecutionId);
 
-            if (!pending.contains(result.toolCallId())) {
+            if (!stateManager.isPendingToolCall(scopeExecutionId, result.toolCallId())) {
                 LOG.debug(
                         "ToolResult '{}' not in pending set, discarding (duplicate or late arrival)",
                         result.toolCallId());
                 return;
             }
 
-            pending.remove(result.toolCallId());
-            stateManager.savePendingToolCalls(scopeExecutionId, pending);
+            boolean allCompleted = stateManager.completeToolCall(scopeExecutionId, result.toolCallId());
             stateManager.appendToResultBuffer(scopeExecutionId, result);
 
-            if (!pending.isEmpty()) {
+            if (!allCompleted) {
                 return;
             }
             // All pending tools done — fall through to next LLM call
