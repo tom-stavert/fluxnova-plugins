@@ -11,7 +11,7 @@ public record ToolResult(
         return new ToolResult(toolCallId, null, message);
     }
 
-@JsonIgnore
+    @JsonIgnore
     public boolean isError() {
         return errorMessage != null;
     }
