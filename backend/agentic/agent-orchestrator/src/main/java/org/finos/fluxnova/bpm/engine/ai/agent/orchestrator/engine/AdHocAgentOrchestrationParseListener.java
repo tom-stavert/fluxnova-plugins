@@ -19,9 +19,12 @@ public class AdHocAgentOrchestrationParseListener extends AbstractBpmnParseListe
         this.subprocessToolCompletionListener = subprocessToolCompletionListener;
     }
 
-    // this override will only work properly when ad-hoc subprocesses are implemented
+    // The engine fires parseSubProcess for ad-hoc subprocesses.
     @Override
-    public void parseAdHocSubProcess(Element element, ScopeImpl scope, ActivityImpl activity) {
+    public void parseSubProcess(Element element, ScopeImpl scope, ActivityImpl activity) {
+        if (!ActivityTypes.SUB_PROCESS_AD_HOC.equals(element.getTagName())) {
+            return;
+        }
         Element ext = element.element("extensionElements");
         if (ext == null) {
             return;
