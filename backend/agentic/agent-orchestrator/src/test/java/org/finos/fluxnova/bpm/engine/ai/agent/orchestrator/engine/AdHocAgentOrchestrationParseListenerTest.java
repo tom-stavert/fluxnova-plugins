@@ -1,5 +1,6 @@
 package org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine;
 
+import org.finos.fluxnova.bpm.engine.ActivityTypes;
 import org.finos.fluxnova.bpm.engine.delegate.ExecutionListener;
 import org.finos.fluxnova.bpm.engine.impl.pvm.PvmEvent;
 import org.finos.fluxnova.bpm.engine.impl.pvm.process.ActivityImpl;
@@ -16,7 +17,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
 import java.util.List;
-
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -48,27 +50,28 @@ class AdHocAgentOrchestrationParseListenerTest {
     @BeforeEach
     void setUp() {
         parseListener = new AdHocAgentOrchestrationParseListener(entryListener, completionListener);
+        when(element.getTagName()).thenReturn(ActivityTypes.SUB_PROCESS_AD_HOC);
     }
 
     @Nested
     class NoAgentConfig {
 
         @Test
-        void parseAdHocSubProcess_noExtensionElements_doesNothing() {
+        void parseSubProcess_noExtensionElements_doesNothing() {
             when(element.element("extensionElements")).thenReturn(null);
 
-            parseListener.parseAdHocSubProcess(element, scope, activity);
+            parseListener.parseSubProcess(element, scope, activity);
 
             verify(activity, never()).addBuiltInListener(anyString(), any(ExecutionListener.class));
         }
 
         @Test
-        void parseAdHocSubProcess_noAgentConfig_doesNothing() {
+        void parseSubProcess_noAgentConfig_doesNothing() {
             when(element.element("extensionElements")).thenReturn(extensionElements);
             when(extensionElements.elementNS(AgentModelConstants.AGENT_NS, "config"))
                     .thenReturn(null);
 
-            parseListener.parseAdHocSubProcess(element, scope, activity);
+            parseListener.parseSubProcess(element, scope, activity);
 
             verify(activity, never()).addBuiltInListener(anyString(), any(ExecutionListener.class));
         }
@@ -78,19 +81,19 @@ class AdHocAgentOrchestrationParseListenerTest {
     class ListenerRegistration {
 
         @Test
-        void parseAdHocSubProcess_withAgentConfig_registersEntryListener() {
+        void parseSubProcess_withAgentConfig_registersEntryListener() {
             when(element.element("extensionElements")).thenReturn(extensionElements);
             when(extensionElements.elementNS(AgentModelConstants.AGENT_NS, "config"))
                     .thenReturn(agentConfigElement);
             when(activity.getActivities()).thenReturn(List.of());
 
-            parseListener.parseAdHocSubProcess(element, scope, activity);
+            parseListener.parseSubProcess(element, scope, activity);
 
             verify(activity).addBuiltInListener(PvmEvent.EVENTNAME_START, entryListener);
         }
 
         @Test
-        void parseAdHocSubProcess_triggerableChild_getsCompletionListener() {
+        void parseSubProcess_triggerableChild_getsCompletionListener() {
             when(element.element("extensionElements")).thenReturn(extensionElements);
             when(extensionElements.elementNS(AgentModelConstants.AGENT_NS, "config"))
                     .thenReturn(agentConfigElement);
@@ -98,13 +101,13 @@ class AdHocAgentOrchestrationParseListenerTest {
             when(childTool.getIncomingTransitions()).thenReturn(Collections.emptyList());
             when(activity.getActivities()).thenReturn(List.of(childTool));
 
-            parseListener.parseAdHocSubProcess(element, scope, activity);
+            parseListener.parseSubProcess(element, scope, activity);
 
             verify(childTool).addBuiltInListener(PvmEvent.EVENTNAME_END, completionListener);
         }
 
         @Test
-        void parseAdHocSubProcess_nonTriggerableChild_noCompletionListener() {
+        void parseSubProcess_nonTriggerableChild_noCompletionListener() {
             when(element.element("extensionElements")).thenReturn(extensionElements);
             when(extensionElements.elementNS(AgentModelConstants.AGENT_NS, "config"))
                     .thenReturn(agentConfigElement);
@@ -112,14 +115,14 @@ class AdHocAgentOrchestrationParseListenerTest {
             when(childNonTool.getIncomingTransitions()).thenReturn(List.of(incomingTransition));
             when(activity.getActivities()).thenReturn(List.of(childNonTool));
 
-            parseListener.parseAdHocSubProcess(element, scope, activity);
+            parseListener.parseSubProcess(element, scope, activity);
 
             verify(childNonTool, never()).addBuiltInListener(anyString(),
                     any(ExecutionListener.class));
         }
 
         @Test
-        void parseAdHocSubProcess_mixedChildren_onlyTriggerableGetListener() {
+        void parseSubProcess_mixedChildren_onlyTriggerableGetListener() {
             when(element.element("extensionElements")).thenReturn(extensionElements);
             when(extensionElements.elementNS(AgentModelConstants.AGENT_NS, "config"))
                     .thenReturn(agentConfigElement);
@@ -128,7 +131,7 @@ class AdHocAgentOrchestrationParseListenerTest {
             when(childNonTool.getIncomingTransitions()).thenReturn(List.of(incomingTransition));
             when(activity.getActivities()).thenReturn(List.of(childTool, childNonTool));
 
-            parseListener.parseAdHocSubProcess(element, scope, activity);
+            parseListener.parseSubProcess(element, scope, activity);
 
             verify(activity).addBuiltInListener(PvmEvent.EVENTNAME_START, entryListener);
             verify(childTool).addBuiltInListener(PvmEvent.EVENTNAME_END, completionListener);
@@ -137,13 +140,13 @@ class AdHocAgentOrchestrationParseListenerTest {
         }
 
         @Test
-        void parseAdHocSubProcess_noChildren_registersOnlyEntryListener() {
+        void parseSubProcess_noChildren_registersOnlyEntryListener() {
             when(element.element("extensionElements")).thenReturn(extensionElements);
             when(extensionElements.elementNS(AgentModelConstants.AGENT_NS, "config"))
                     .thenReturn(agentConfigElement);
             when(activity.getActivities()).thenReturn(Collections.emptyList());
 
-            parseListener.parseAdHocSubProcess(element, scope, activity);
+            parseListener.parseSubProcess(element, scope, activity);
 
             verify(activity).addBuiltInListener(PvmEvent.EVENTNAME_START, entryListener);
             verify(activity, times(1)).addBuiltInListener(anyString(),
