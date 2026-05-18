@@ -89,7 +89,9 @@ class AgentOrchestrationJobHandlerTest {
                                 List.of(new AgentToolEntry("taskA", "Task A", "Does A", Set.of(),
                                                 Set.of("resultA"))));
                 contextSpec = new AgentContextSpec(PROC_DEF_ID, ELEMENT_ID, List.of());
+        }
 
+        private void stubActiveExecution() {
                 when(execution.isActive()).thenReturn(true);
                 when(execution.getId()).thenReturn(SCOPE_EXECUTION_ID);
                 when(execution.getProcessDefinitionId()).thenReturn(PROC_DEF_ID);
@@ -133,6 +135,11 @@ class AgentOrchestrationJobHandlerTest {
 
         @Nested
         class EntryPath {
+
+                @BeforeEach
+                void setUpActiveExecution() {
+                        stubActiveExecution();
+                }
 
                 @Test
                 void execute_callsLlmAndDispatchesTools() {
@@ -260,6 +267,12 @@ class AgentOrchestrationJobHandlerTest {
         @Nested
         class ToolCompletionPath {
 
+                @BeforeEach
+                void setUpActiveExecution() {
+                        when(execution.isActive()).thenReturn(true);
+                        when(execution.getId()).thenReturn(SCOPE_EXECUTION_ID);
+                }
+
                 @Test
                 void execute_absorbsResultAndWaitsForMore() {
                         ToolResult toolResult = new ToolResult("tc1", "taskA", null);
@@ -278,6 +291,8 @@ class AgentOrchestrationJobHandlerTest {
 
                 @Test
                 void execute_allDone_callsLlm() {
+                        when(execution.getProcessDefinitionId()).thenReturn(PROC_DEF_ID);
+                        when(execution.getActivityId()).thenReturn(ELEMENT_ID);
                         stubRegistries();
                         ToolResult toolResult = new ToolResult("tc1", "taskA", null);
                         Set<String> pending = new HashSet<>(Set.of("tc1"));
@@ -329,6 +344,11 @@ class AgentOrchestrationJobHandlerTest {
 
         @Nested
         class DispatchFailures {
+
+                @BeforeEach
+                void setUpActiveExecution() {
+                        stubActiveExecution();
+                }
 
                 @Test
                 void execute_allToolsFail_synthesisesCompletionJobPerFailure() {
