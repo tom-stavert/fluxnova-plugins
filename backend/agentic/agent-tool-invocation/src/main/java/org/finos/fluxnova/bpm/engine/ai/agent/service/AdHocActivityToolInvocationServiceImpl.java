@@ -6,6 +6,7 @@ import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.AgentToolCatalogue
 import org.finos.fluxnova.bpm.engine.shared.model.ToolCallRequest;
 import org.finos.fluxnova.bpm.engine.shared.model.ToolInvocationResult;
 
+import java.util.List;
 import java.util.Map;
 
 public class AdHocActivityToolInvocationServiceImpl implements ToolInvocationService {
@@ -26,8 +27,8 @@ public class AdHocActivityToolInvocationServiceImpl implements ToolInvocationSer
         }
 
         try {
-            Map<String, Object> variables = Map.of("_agentToolCallId", request.toolCallId());
-            runtimeService.triggerAdHocActivity(adHocSubprocessId, request.toolId(), variables);
+            Map<String, Map<String, Object>> variables = Map.of(request.toolId(), Map.of("_agentToolCallId", request.toolCallId()));
+            runtimeService.triggerAdHocActivities(adHocSubprocessId, List.of(request.toolId()), variables);
             return ToolInvocationResult.success(request.toolCallId());
         } catch (BadUserRequestException e) {
             return ToolInvocationResult.failure(request.toolCallId(), e.getMessage());
