@@ -46,9 +46,10 @@ class SubprocessToolCompletionListenerTest {
     }
 
     private void stubToolCallExecution() {
-        when(execution.getVariableLocal("_agentToolCallId")).thenReturn(TOOL_CALL_ID);
+        when(execution.getVariable("_agentToolCallId")).thenReturn(TOOL_CALL_ID);
         when(execution.getCurrentActivityId()).thenReturn(ACTIVITY_ID);
         when(execution.getParent()).thenReturn(parentExecution);
+        when(parentExecution.isScope()).thenReturn(true);
         when(parentExecution.getId()).thenReturn(SCOPE_EXECUTION_ID);
     }
 
@@ -57,10 +58,12 @@ class SubprocessToolCompletionListenerTest {
 
         @Test
         void notify_whenNoToolCallId_skips() {
-            when(execution.getVariableLocal("_agentToolCallId")).thenReturn(null);
+            when(execution.getVariable("_agentToolCallId")).thenReturn(null);
 
             listener.notify(execution);
 
+            verify(execution).getVariable("_agentToolCallId");
+            verify(execution).getId();
             verifyNoMoreInteractions(execution);
         }
     }
