@@ -8,6 +8,11 @@ import org.finos.fluxnova.bpm.engine.impl.pvm.process.ScopeImpl;
 import org.finos.fluxnova.bpm.engine.impl.util.xml.Element;
 import org.finos.fluxnova.bpm.engine.shared.agent.AgentModelConstants;
 
+/*
+ * For AdHoc Subprocesses, the engine treats it as a more general subprocess at parsetime, so we
+ * override parseSubProcess instead of the presumed parseAdHocSubProcess. This is different to
+ * termination of the process, where a specific "completeAdHocSubProcess" method was implemented.
+ */
 public class AdHocAgentOrchestrationParseListener extends AbstractBpmnParseListener {
 
     private final AgentSubprocessEntryListener subprocessEntryListener;
@@ -20,7 +25,6 @@ public class AdHocAgentOrchestrationParseListener extends AbstractBpmnParseListe
         this.subprocessToolCompletionListener = subprocessToolCompletionListener;
     }
 
-    // The engine fires parseSubProcess for ad-hoc subprocesses.
     @Override
     public void parseSubProcess(Element element, ScopeImpl scope, ActivityImpl activity) {
         if (!ActivityTypes.SUB_PROCESS_AD_HOC.equals(element.getTagName())) {
