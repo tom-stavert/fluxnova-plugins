@@ -1,6 +1,7 @@
 package org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine;
 
 import org.finos.fluxnova.bpm.engine.ActivityTypes;
+import org.finos.fluxnova.bpm.engine.impl.bpmn.behavior.AdHocSubProcessValidationHelper;
 import org.finos.fluxnova.bpm.engine.impl.bpmn.parser.AbstractBpmnParseListener;
 import org.finos.fluxnova.bpm.engine.impl.pvm.PvmEvent;
 import org.finos.fluxnova.bpm.engine.impl.pvm.process.ActivityImpl;
@@ -41,7 +42,7 @@ public class AdHocAgentOrchestrationParseListener extends AbstractBpmnParseListe
         activity.addBuiltInListener(PvmEvent.EVENTNAME_START, subprocessEntryListener);
 
         for (ActivityImpl child : activity.getActivities()) {
-            if (!child.getIncomingTransitions().isEmpty()) {
+            if (!AdHocSubProcessValidationHelper.isStartableActivityInAdHocScope(activity, child)) {
                 continue;
             }
             child.addBuiltInListener(PvmEvent.EVENTNAME_END, subprocessToolCompletionListener);
