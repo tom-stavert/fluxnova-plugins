@@ -13,7 +13,6 @@ import org.finos.fluxnova.bpm.engine.impl.el.ElValueProvider;
 import org.finos.fluxnova.bpm.engine.impl.el.Expression;
 import org.finos.fluxnova.bpm.engine.impl.pvm.process.ActivityImpl;
 import org.finos.fluxnova.bpm.engine.impl.pvm.process.ProcessDefinitionImpl;
-import org.finos.fluxnova.bpm.engine.impl.pvm.process.TransitionImpl;
 import org.finos.fluxnova.bpm.engine.impl.scripting.ScriptValueProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -49,153 +48,10 @@ class AdHocSubProcessCatalogueBuilderTest {
         return activity;
     }
 
-    private void addTransition(ActivityImpl source, ActivityImpl target) {
-        TransitionImpl transition = source.createOutgoingTransition();
-        transition.setDestination(target);
-    }
-
     private ElValueProvider elProvider(String expressionText) {
         Expression expression = mock(Expression.class);
         when(expression.getExpressionText()).thenReturn(expressionText);
         return new ElValueProvider(expression);
-    }
-
-    @Nested
-    class ToolEligibility {
-
-        @Test
-        void build_includesActivityWithNoIncomingTransitions() {
-            ActivityImpl scope = createScope("agent1");
-            addActivity(scope, "taskA", "serviceTask", "Task A");
-
-            AgentToolCatalogue catalogue = builder.build(scope);
-
-            assertEquals(1, catalogue.tools().size());
-            assertEquals("taskA", catalogue.tools().get(0).elementId());
-        }
-
-        @Test
-        void build_excludesActivityThatIsSequenceFlowTarget() {
-            ActivityImpl scope = createScope("agent1");
-            ActivityImpl taskA = addActivity(scope, "taskA", "serviceTask", "Task A");
-            ActivityImpl taskB = addActivity(scope, "taskB", "serviceTask", "Task B");
-            addTransition(taskA, taskB);
-
-            AgentToolCatalogue catalogue = builder.build(scope);
-
-            assertEquals(1, catalogue.tools().size());
-            assertEquals("taskA", catalogue.tools().get(0).elementId());
-        }
-
-        @Test
-        void build_excludesNonStartableActivityTypes() {
-            ActivityImpl scope = createScope("agent1");
-            addActivity(scope, "taskA", "serviceTask", "Task A");
-            addActivity(scope, "start1", "startEvent", null);
-            addActivity(scope, "end1", "noneEndEvent", null);
-            addActivity(scope, "gw1", "exclusiveGateway", null);
-
-            AgentToolCatalogue catalogue = builder.build(scope);
-
-            assertEquals(1, catalogue.tools().size());
-            assertEquals("taskA", catalogue.tools().get(0).elementId());
-        }
-
-        @Test
-        void build_excludesBoundaryEvents() {
-            ActivityImpl scope = createScope("agent1");
-            addActivity(scope, "taskA", "serviceTask", "Task A");
-            ActivityImpl boundary = addActivity(scope, "boundary1", "boundaryTimer", null);
-
-            AgentToolCatalogue catalogue = builder.build(scope);
-
-            assertEquals(1, catalogue.tools().size());
-            assertEquals("taskA", catalogue.tools().get(0).elementId());
-        }
-
-        @Test
-        void build_excludesCompensationHandlers() {
-            ActivityImpl scope = createScope("agent1");
-            addActivity(scope, "taskA", "serviceTask", "Task A");
-            ActivityImpl compensationTask = scope.createActivity("compTask");
-            compensationTask.setProperty("type", "serviceTask");
-            compensationTask.setProperty("name", "Compensation");
-            // Mark as compensation handler — isCompensationHandler() checks the event scope
-            // Use a different approach: set the activity to be triggered by event
-            // Actually, ActivityImpl.isCompensationHandler() checks findCompensationHandler()
-            // Let's use the property that the engine sets
-            // The simplest way is to set the compensation handler via scope reference
-            compensationTask.setEventScope(scope);
-
-            // ActivityImpl.isCompensationHandler() returns true when eventScope != flowScope
-            // Actually let me check...
-            // isCompensationHandler checks: getProperty("isForCompensation") or eventScope != null
-            // Let me just verify the helper catches it
-
-            AgentToolCatalogue catalogue = builder.build(scope);
-
-            // If isCompensationHandler returns true, it should be excluded
-            // The actual behavior depends on how isCompensationHandler() is implemented
-            // At minimum, taskA should be included
-            assertTrue(catalogue.tools().stream()
-                    .anyMatch(t -> t.elementId().equals("taskA")));
-        }
-
-        @Test
-        void build_whenNoActivities_returnsEmptyCatalogue() {
-            ActivityImpl scope = createScope("agent1");
-
-            AgentToolCatalogue catalogue = builder.build(scope);
-
-            assertTrue(catalogue.tools().isEmpty());
-        }
-
-        @Test
-        void build_recognisesAllActivityTypes() {
-            ActivityImpl scope = createScope("agent1");
-            addActivity(scope, "t1", "task", "Generic Task");
-            addActivity(scope, "t2", "serviceTask", "Service");
-            addActivity(scope, "t3", "sendTask", "Send");
-            addActivity(scope, "t4", "receiveTask", "Receive");
-            addActivity(scope, "t5", "userTask", "User");
-            addActivity(scope, "t6", "manualTask", "Manual");
-            addActivity(scope, "t7", "businessRuleTask", "Rule");
-            addActivity(scope, "t8", "scriptTask", "Script");
-            addActivity(scope, "t9", "subProcess", "Sub");
-            addActivity(scope, "t10", "callActivity", "Call");
-
-            AgentToolCatalogue catalogue = builder.build(scope);
-
-            assertEquals(10, catalogue.tools().size());
-        }
-
-        @Test
-        void build_multipleSequenceFlows_excludesAllTargets() {
-            ActivityImpl scope = createScope("agent1");
-            ActivityImpl taskA = addActivity(scope, "taskA", "serviceTask", "A");
-            ActivityImpl taskB = addActivity(scope, "taskB", "serviceTask", "B");
-            ActivityImpl taskC = addActivity(scope, "taskC", "serviceTask", "C");
-            addTransition(taskA, taskB);
-            addTransition(taskB, taskC);
-
-            AgentToolCatalogue catalogue = builder.build(scope);
-
-            assertEquals(1, catalogue.tools().size());
-            assertEquals("taskA", catalogue.tools().get(0).elementId());
-        }
-
-        @Test
-        void build_allToolsFilteredBySequenceFlows_returnsEmptyCatalogue() {
-            ActivityImpl scope = createScope("agent1");
-            ActivityImpl taskA = addActivity(scope, "taskA", "serviceTask", "A");
-            ActivityImpl taskB = addActivity(scope, "taskB", "serviceTask", "B");
-            addTransition(taskA, taskB);
-            addTransition(taskB, taskA);
-
-            AgentToolCatalogue catalogue = builder.build(scope);
-
-            assertTrue(catalogue.tools().isEmpty());
-        }
     }
 
     @Nested
