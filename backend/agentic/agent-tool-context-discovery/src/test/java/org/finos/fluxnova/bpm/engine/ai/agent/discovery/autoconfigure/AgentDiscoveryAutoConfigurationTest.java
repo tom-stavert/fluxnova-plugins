@@ -12,6 +12,7 @@ import org.finos.fluxnova.bpm.engine.ai.agent.discovery.registry.AgentToolCatalo
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.runtime.AgentContextResolver;
 import org.finos.fluxnova.bpm.engine.ai.agent.extract.AgentConfigExtractor;
 import org.finos.fluxnova.bpm.engine.ai.agent.registry.AgentConfigRegistry;
+import org.finos.fluxnova.bpm.engine.impl.RepositoryServiceImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -27,7 +28,7 @@ class AgentDiscoveryAutoConfigurationTest {
 
     @Configuration
     static class MockInfrastructure {
-        @Bean RepositoryService repositoryService() { return mock(RepositoryService.class); }
+        @Bean RepositoryServiceImpl repositoryService() { return mock(RepositoryServiceImpl.class); }
         @Bean RuntimeService runtimeService() { return mock(RuntimeService.class); }
         @Bean AgentConfigExtractor agentConfigExtractor() { return new AgentConfigExtractor(); }
         @Bean AgentConfigRegistry agentConfigRegistry(RepositoryService rs, AgentConfigExtractor ext) {
@@ -37,7 +38,7 @@ class AgentDiscoveryAutoConfigurationTest {
 
     @Configuration
     static class CustomCatalogueBuilderOverride {
-        @Bean RepositoryService repositoryService() { return mock(RepositoryService.class); }
+        @Bean RepositoryServiceImpl repositoryService() { return mock(RepositoryServiceImpl.class); }
         @Bean RuntimeService runtimeService() { return mock(RuntimeService.class); }
         @Bean AgentConfigExtractor agentConfigExtractor() { return new AgentConfigExtractor(); }
         @Bean AgentConfigRegistry agentConfigRegistry(RepositoryService rs, AgentConfigExtractor ext) {
@@ -50,7 +51,7 @@ class AgentDiscoveryAutoConfigurationTest {
 
     @Configuration
     static class CustomContextSpecBuilderOverride {
-        @Bean RepositoryService repositoryService() { return mock(RepositoryService.class); }
+        @Bean RepositoryServiceImpl repositoryService() { return mock(RepositoryServiceImpl.class); }
         @Bean RuntimeService runtimeService() { return mock(RuntimeService.class); }
         @Bean AgentConfigExtractor agentConfigExtractor() { return new AgentConfigExtractor(); }
         @Bean AgentConfigRegistry agentConfigRegistry(RepositoryService rs, AgentConfigExtractor ext) {

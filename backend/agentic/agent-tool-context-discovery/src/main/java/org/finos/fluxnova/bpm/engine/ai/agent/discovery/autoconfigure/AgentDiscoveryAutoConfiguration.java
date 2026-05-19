@@ -1,6 +1,7 @@
 package org.finos.fluxnova.bpm.engine.ai.agent.discovery.autoconfigure;
 
 import org.finos.fluxnova.bpm.engine.RepositoryService;
+import org.finos.fluxnova.bpm.engine.impl.RepositoryServiceImpl;
 import org.finos.fluxnova.bpm.engine.RuntimeService;
 import org.finos.fluxnova.bpm.engine.ai.agent.autoconfigure.AgentConfigAutoConfiguration;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.extract.AdHocSubProcessCatalogueBuilder;
@@ -35,7 +36,7 @@ public class AgentDiscoveryAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public AgentToolCatalogueRegistry agentToolCatalogueRegistry(RepositoryService repositoryService,
+    public AgentToolCatalogueRegistry agentToolCatalogueRegistry(RepositoryServiceImpl repositoryService,
                                                                   AgentConfigRegistry agentConfigRegistry,
                                                                   AgentToolCatalogueBuilder catalogueBuilder) {
         return new AgentToolCatalogueRegistry(repositoryService, agentConfigRegistry, catalogueBuilder);
