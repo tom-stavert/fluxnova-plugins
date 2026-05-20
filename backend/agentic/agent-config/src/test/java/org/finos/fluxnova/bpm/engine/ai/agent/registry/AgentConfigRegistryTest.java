@@ -3,7 +3,6 @@ package org.finos.fluxnova.bpm.engine.ai.agent.registry;
 import org.finos.fluxnova.bpm.engine.AuthorizationException;
 import org.finos.fluxnova.bpm.engine.RepositoryService;
 import org.finos.fluxnova.bpm.engine.ai.agent.extract.AgentConfigExtractor;
-import org.springframework.beans.factory.ObjectProvider;
 import org.finos.fluxnova.bpm.engine.ai.agent.model.AgentConfig;
 import org.finos.fluxnova.bpm.engine.exception.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,15 +52,11 @@ class AgentConfigRegistryTest {
     @Mock
     private RepositoryService repositoryService;
 
-    @Mock
-    private ObjectProvider<RepositoryService> repositoryServiceProvider;
-
     private AgentConfigRegistry registry;
 
     @BeforeEach
     void setUp() {
-        lenient().when(repositoryServiceProvider.getObject()).thenReturn(repositoryService);
-        registry = new AgentConfigRegistry(repositoryServiceProvider, new AgentConfigExtractor());
+        registry = new AgentConfigRegistry(repositoryService, new AgentConfigExtractor());
     }
 
     @Test
