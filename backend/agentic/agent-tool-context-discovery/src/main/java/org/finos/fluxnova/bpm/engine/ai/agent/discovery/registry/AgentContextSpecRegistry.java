@@ -12,7 +12,6 @@ import org.finos.fluxnova.bpm.engine.impl.util.xml.Parse;
 import org.finos.fluxnova.bpm.engine.shared.xml.BpmnXmlParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.ObjectProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,11 +25,11 @@ public class AgentContextSpecRegistry {
 
     private final ConcurrentHashMap<String, HashMap<String, AgentContextSpec>> cache = new ConcurrentHashMap<>();
 
-    private final ObjectProvider<RepositoryService> repositoryService;
+    private final RepositoryService repositoryService;
     private final AgentConfigRegistry agentConfigRegistry;
     private final AgentContextSpecBuilder builder;
 
-    public AgentContextSpecRegistry(ObjectProvider<RepositoryService> repositoryService,
+    public AgentContextSpecRegistry(RepositoryService repositoryService,
                                     AgentConfigRegistry agentConfigRegistry,
                                     AgentContextSpecBuilder builder) {
         this.repositoryService = repositoryService;
@@ -64,7 +63,7 @@ public class AgentContextSpecRegistry {
             return null;
         }
 
-        try (InputStream xml = repositoryService.getObject().getProcessModel(processDefinitionId)) {
+        try (InputStream xml = repositoryService.getProcessModel(processDefinitionId)) {
             if (xml == null) {
                 LOG.warn("Process model not found for '{}'", processDefinitionId);
                 return null;
