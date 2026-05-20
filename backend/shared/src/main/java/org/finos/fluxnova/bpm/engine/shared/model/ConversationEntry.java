@@ -1,15 +1,10 @@
-package org.finos.fluxnova.bpm.engine.shared.agent.model;
+package org.finos.fluxnova.bpm.engine.shared.model;
 
 import java.util.List;
 import java.util.Map;
 
-public record ConversationEntry(
-    Role role,
-    String content,
-    List<ToolCallRequest> toolCalls,
-    String toolCallId,
-    Map<String, Object> toolResult
-) {
+public record ConversationEntry(Role role, String content, List<ToolCallRequest> toolCalls,
+        String toolCallId, Map<String, Object> toolResult) {
     public static ConversationEntry user(String content) {
         return new ConversationEntry(Role.USER, content, null, null, null);
     }

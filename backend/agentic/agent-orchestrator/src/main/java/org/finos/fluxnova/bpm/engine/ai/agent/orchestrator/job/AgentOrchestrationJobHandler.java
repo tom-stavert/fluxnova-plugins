@@ -8,10 +8,6 @@ import org.finos.fluxnova.bpm.engine.ai.agent.discovery.registry.AgentToolCatalo
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.runtime.AgentContextResolver;
 import org.finos.fluxnova.bpm.engine.ai.agent.model.AgentConfig;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.model.AgentOrchestrationConfig;
-import org.finos.fluxnova.bpm.engine.shared.agent.model.ConversationEntry;
-import org.finos.fluxnova.bpm.engine.shared.agent.model.LlmResponse;
-import org.finos.fluxnova.bpm.engine.shared.agent.model.ToolCallRequest;
-import org.finos.fluxnova.bpm.engine.shared.agent.model.ToolInvocationResult;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.model.ToolResult;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.AgentTerminationHandler;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.LlmOrchestrationService;
@@ -23,6 +19,10 @@ import org.finos.fluxnova.bpm.engine.impl.jobexecutor.JobHandler;
 import org.finos.fluxnova.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.finos.fluxnova.bpm.engine.impl.persistence.entity.JobEntity;
 import org.finos.fluxnova.bpm.engine.impl.persistence.entity.MessageEntity;
+import org.finos.fluxnova.bpm.engine.shared.model.ConversationEntry;
+import org.finos.fluxnova.bpm.engine.shared.model.LlmResponse;
+import org.finos.fluxnova.bpm.engine.shared.model.ToolCallRequest;
+import org.finos.fluxnova.bpm.engine.shared.model.ToolInvocationResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,13 +48,11 @@ public class AgentOrchestrationJobHandler implements JobHandler<AgentOrchestrati
     private final AgentTerminationHandler AgentTerminationHandler;
 
     public AgentOrchestrationJobHandler(AgentConfigRegistry agentConfigRegistry,
-                                        AgentToolCatalogueRegistry toolCatalogueRegistry,
-                                        AgentContextSpecRegistry contextSpecRegistry,
-                                        AgentContextResolver contextResolver,
-                                        LlmOrchestrationService llmOrchestrationService,
-                                        ToolInvocationService toolInvocationService,
-                                        AgentStateManager stateManager,
-                                        AgentTerminationHandler AgentTerminationHandler) {
+            AgentToolCatalogueRegistry toolCatalogueRegistry,
+            AgentContextSpecRegistry contextSpecRegistry, AgentContextResolver contextResolver,
+            LlmOrchestrationService llmOrchestrationService,
+            ToolInvocationService toolInvocationService, AgentStateManager stateManager,
+            AgentTerminationHandler AgentTerminationHandler) {
         this.agentConfigRegistry = agentConfigRegistry;
         this.toolCatalogueRegistry = toolCatalogueRegistry;
         this.contextSpecRegistry = contextSpecRegistry;
@@ -72,11 +70,12 @@ public class AgentOrchestrationJobHandler implements JobHandler<AgentOrchestrati
 
     @Override
     public void execute(AgentOrchestrationConfig orchestratorConfig, ExecutionEntity execution,
-                        CommandContext commandContext, String tenantId) {
+            CommandContext commandContext, String tenantId) {
         String scopeExecutionId = execution.getId();
 
         if (!execution.isActive()) {
-            LOG.debug("Scope execution '{}' is no longer active, skipping orchestration step", scopeExecutionId);
+            LOG.debug("Scope execution '{}' is no longer active, skipping orchestration step",
+                    scopeExecutionId);
             return;
         }
 
@@ -90,7 +89,8 @@ public class AgentOrchestrationJobHandler implements JobHandler<AgentOrchestrati
                 return;
             }
 
-            boolean allCompleted = stateManager.completeToolCall(scopeExecutionId, result.toolCallId());
+            boolean allCompleted =
+                    stateManager.completeToolCall(scopeExecutionId, result.toolCallId());
             stateManager.appendToResultBuffer(scopeExecutionId, result);
 
             if (!allCompleted) {
@@ -106,29 +106,32 @@ public class AgentOrchestrationJobHandler implements JobHandler<AgentOrchestrati
 
         AgentConfig agentConfig = agentConfigRegistry
                 .resolve(execution.getProcessDefinitionId(), execution.getActivityId())
-                .orElseThrow(() -> new IllegalStateException(
-                        "No AgentConfig found for " + execution.getProcessDefinitionId()
-                                + "/" + execution.getActivityId()));
+                .orElseThrow(() -> new IllegalStateException("No AgentConfig found for "
+                        + execution.getProcessDefinitionId() + "/" + execution.getActivityId()));
         AgentToolCatalogue catalogue = toolCatalogueRegistry
                 .resolve(execution.getProcessDefinitionId(), execution.getActivityId())
-                .orElseThrow(() -> new IllegalStateException(
-                        "No AgentToolCatalogue found for " + execution.getProcessDefinitionId()
-                                + "/" + execution.getActivityId()));
+                .orElseThrow(() -> new IllegalStateException("No AgentToolCatalogue found for "
+                        + execution.getProcessDefinitionId() + "/" + execution.getActivityId()));
 
         if (catalogue.tools().isEmpty()) {
-            LOG.warn("Tool catalogue is empty for activity '{}' in process '{}', terminating execution '{}'",
-                execution.getActivityId(), execution.getProcessDefinitionId(), scopeExecutionId);
+            LOG.warn(
+                    "Tool catalogue is empty for activity '{}' in process '{}', terminating execution '{}'",
+                    execution.getActivityId(), execution.getProcessDefinitionId(),
+                    scopeExecutionId);
             AgentTerminationHandler.complete(scopeExecutionId);
             return;
         }
 
-        // Fallback to empty spec if no context is declared — resolver will include all process variables
+        // Fallback to empty spec if no context is declared — resolver will include all process
+        // variables
         AgentContextSpec contextSpec = contextSpecRegistry
                 .resolve(execution.getProcessDefinitionId(), execution.getActivityId())
-                .orElse(new AgentContextSpec(execution.getProcessDefinitionId(), execution.getActivityId(), List.of()));
+                .orElse(new AgentContextSpec(execution.getProcessDefinitionId(),
+                        execution.getActivityId(), List.of()));
         ResolvedContext context = contextResolver.resolve(scopeExecutionId, contextSpec);
 
-        LlmResponse response = llmOrchestrationService.call(agentConfig, catalogue, context, history);
+        LlmResponse response =
+                llmOrchestrationService.call(agentConfig, catalogue, context, history);
         stateManager.saveHistory(scopeExecutionId, response.updatedHistory());
 
         if (response.toolCalls().isEmpty()) {
@@ -151,17 +154,19 @@ public class AgentOrchestrationJobHandler implements JobHandler<AgentOrchestrati
     }
 
     private void dispatch(String scopeExecutionId, AgentToolCatalogue catalogue,
-                          List<ToolCallRequest> toolCalls, ExecutionEntity execution,
-                          CommandContext commandContext) {
+            List<ToolCallRequest> toolCalls, ExecutionEntity execution,
+            CommandContext commandContext) {
         Set<String> pending = new HashSet<>();
 
         for (ToolCallRequest tc : toolCalls) {
             pending.add(tc.toolCallId());
-            ToolInvocationResult result = toolInvocationService.invoke(scopeExecutionId, catalogue, tc);
+            ToolInvocationResult result =
+                    toolInvocationService.invoke(scopeExecutionId, catalogue, tc);
             if (!result.success()) {
                 // Synchronous failure — no BPMN activity will complete, so no listener will fire.
                 // Instantiate an equivalent completion job so the failure travels through the same
-                // tool-completion path as listener-driven results, keeping the pending set consistent.
+                // tool-completion path as listener-driven results, keeping the pending set
+                // consistent.
                 ToolResult failure = ToolResult.error(tc.toolCallId(), result.errorMessage());
                 MessageEntity job = new MessageEntity();
                 job.setExecution(execution);
@@ -175,12 +180,13 @@ public class AgentOrchestrationJobHandler implements JobHandler<AgentOrchestrati
     }
 
 
-    private List<ConversationEntry> appendToolResults(List<ConversationEntry> history, List<ToolResult> results) {
+    private List<ConversationEntry> appendToolResults(List<ConversationEntry> history,
+            List<ToolResult> results) {
         List<ConversationEntry> updated = new ArrayList<>(history);
         for (ToolResult result : results) {
-            Map<String, Object> resultContent = result.isError()
-                    ? Map.of("error", result.errorMessage())
-                    : Map.of("status", "ok");
+            Map<String, Object> resultContent =
+                    result.isError() ? Map.of("error", result.errorMessage())
+                            : Map.of("status", "ok");
             updated.add(ConversationEntry.tool(result.toolCallId(), resultContent));
         }
         return updated;

@@ -4,10 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.finos.fluxnova.bpm.engine.RuntimeService;
-import org.finos.fluxnova.bpm.engine.shared.agent.model.ConversationEntry;
-import org.finos.fluxnova.bpm.engine.shared.agent.model.ToolCallRequest;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.model.ToolResult;
-
+import org.finos.fluxnova.bpm.engine.shared.model.ConversationEntry;
+import org.finos.fluxnova.bpm.engine.shared.model.ToolCallRequest;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;

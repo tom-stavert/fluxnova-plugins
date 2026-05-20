@@ -2,9 +2,9 @@ package org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.state;
 
 import org.finos.fluxnova.bpm.engine.RuntimeService;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.model.ToolResult;
-import org.finos.fluxnova.bpm.engine.shared.agent.model.ConversationEntry;
-import org.finos.fluxnova.bpm.engine.shared.agent.model.Role;
-import org.finos.fluxnova.bpm.engine.shared.agent.model.ToolCallRequest;
+import org.finos.fluxnova.bpm.engine.shared.model.ConversationEntry;
+import org.finos.fluxnova.bpm.engine.shared.model.Role;
+import org.finos.fluxnova.bpm.engine.shared.model.ToolCallRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
