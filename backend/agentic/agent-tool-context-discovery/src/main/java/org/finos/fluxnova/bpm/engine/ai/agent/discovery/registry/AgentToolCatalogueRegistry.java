@@ -1,14 +1,15 @@
 package org.finos.fluxnova.bpm.engine.ai.agent.discovery.registry;
 
 import org.finos.fluxnova.bpm.engine.AuthorizationException;
+import org.finos.fluxnova.bpm.engine.RepositoryService;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.extract.AgentToolCatalogueBuilder;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.AgentToolCatalogue;
 import org.finos.fluxnova.bpm.engine.ai.agent.model.AgentConfig;
 import org.finos.fluxnova.bpm.engine.ai.agent.registry.AgentConfigRegistry;
 import org.finos.fluxnova.bpm.engine.exception.NotFoundException;
-import org.finos.fluxnova.bpm.engine.impl.RepositoryServiceImpl;
+import org.finos.fluxnova.bpm.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.finos.fluxnova.bpm.engine.impl.pvm.process.ActivityImpl;
-import org.finos.fluxnova.bpm.engine.impl.pvm.process.ProcessDefinitionImpl;
+import org.finos.fluxnova.bpm.engine.repository.ProcessDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,11 +35,11 @@ public class AgentToolCatalogueRegistry {
      */
     private final ConcurrentHashMap<String, HashMap<String, String>> resolvedAgents = new ConcurrentHashMap<>();
 
-    private final RepositoryServiceImpl repositoryService;
+    private final RepositoryService repositoryService;
     private final AgentConfigRegistry agentConfigRegistry;
     private final AgentToolCatalogueBuilder catalogueBuilder;
 
-    public AgentToolCatalogueRegistry(RepositoryServiceImpl repositoryService,
+    public AgentToolCatalogueRegistry(RepositoryService repositoryService,
                                       AgentConfigRegistry agentConfigRegistry,
                                       AgentToolCatalogueBuilder catalogueBuilder) {
         this.repositoryService = repositoryService;
@@ -81,10 +82,16 @@ public class AgentToolCatalogueRegistry {
 
     private AgentToolCatalogue doScan(String processDefinitionId, String toolScopeElementId) {
         try {
-            ProcessDefinitionImpl processDefinition =
-                    (ProcessDefinitionImpl) repositoryService.getDeployedProcessDefinition(processDefinitionId);
+            ProcessDefinition processDefinition =
+                    repositoryService.getProcessDefinition(processDefinitionId);
 
-            ActivityImpl scope = (ActivityImpl) processDefinition.findActivity(toolScopeElementId);
+            if (!(processDefinition instanceof ProcessDefinitionEntity)) {
+                LOG.warn("Process definition '{}' is not an instance of ProcessDefinitionEntity, cannot scan for tools",
+                        processDefinitionId);
+                return null;
+            }
+
+            ActivityImpl scope = ((ProcessDefinitionEntity) processDefinition).findActivity(toolScopeElementId);
             if (scope == null) {
                 LOG.warn("Tool scope activity '{}' not found in process definition '{}'",
                         toolScopeElementId, processDefinitionId);
