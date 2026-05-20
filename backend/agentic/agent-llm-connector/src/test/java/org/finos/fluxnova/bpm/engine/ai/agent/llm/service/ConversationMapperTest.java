@@ -17,8 +17,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.finos.fluxnova.bpm.engine.shared.model.Role.ASSISTANT;
+import static org.junit.jupiter.api.Assertions.*;
 
 class ConversationMapperTest {
 
@@ -83,10 +83,10 @@ class ConversationMapperTest {
         ResolvedContext context = new ResolvedContext(Map.of());
 
         List<ConversationEntry> history = List.of(
-                ConversationEntry.user("hello"),
-                ConversationEntry.assistant("calling tool",
-                        List.of(new ToolCallRequest("call-1", "creditScoreCheck"))),
-                ConversationEntry.tool("call-1", Map.of("status", "score=720"))
+            ConversationEntry.user("hello"),
+            ConversationEntry.assistant("calling tool",
+                List.of(new ToolCallRequest("call-1", "creditScoreCheck"))),
+            ConversationEntry.tool("call-1", Map.of("status","score=720"))
         );
 
         List<Message> messages = mapper.toSpringAi(config, context, history);
@@ -102,9 +102,9 @@ class ConversationMapperTest {
         assertThat(assistant.getToolCalls().getFirst().name()).isEqualTo("creditScoreCheck");
         assertThat(messages.get(3).getMessageType()).isEqualTo(MessageType.TOOL);
         ToolResponseMessage toolResponse = (ToolResponseMessage) messages.get(3);
-        assertThat(toolResponse.getResponses()).hasSize(1);
-        assertThat(toolResponse.getResponses().getFirst().id()).isEqualTo("call-1");
-        assertThat(toolResponse.getResponses().getFirst().responseData()).isEqualTo("[score=720]");
+        assertEquals(1, toolResponse.getResponses().size());
+        assertEquals("call-1", toolResponse.getResponses().get(0).id());
+        assertEquals("[score=720]", toolResponse.getResponses().get(0).responseData());
     }
 
     @Test
@@ -124,9 +124,9 @@ class ConversationMapperTest {
         assertThat(llm.toolCalls().getFirst().toolId()).isEqualTo("creditScoreCheck");
         assertThat(llm.updatedHistory()).hasSize(2);
         ConversationEntry appended = llm.updatedHistory().get(1);
-        assertThat(appended.role()).isEqualTo(ASSISTANT);
-        assertThat(appended.content()).isEqualTo("Running credit check.");
-        assertThat(appended.toolCalls()).hasSize(1);
+        assertEquals(ASSISTANT, appended.role());
+        assertEquals("Running credit check.", appended.content());
+        assertEquals(1, appended.toolCalls().size());
     }
 
     @Test

@@ -3,7 +3,6 @@ package org.finos.fluxnova.bpm.engine.ai.agent.llm.service;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.AgentToolCatalogue;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.AgentToolEntry;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.ResolvedContext;
-import org.finos.fluxnova.bpm.engine.ai.agent.llm.provider.AgentProviderProperties;
 import org.finos.fluxnova.bpm.engine.ai.agent.llm.provider.AgentProviderRegistry;
 import org.finos.fluxnova.bpm.engine.ai.agent.llm.provider.AgentProviderRegistryConfig;
 import org.finos.fluxnova.bpm.engine.ai.agent.llm.tool.AgentToolSchemaConverter;

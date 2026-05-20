@@ -2,7 +2,6 @@ package org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.state;
 
 import org.finos.fluxnova.bpm.engine.RuntimeService;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.model.ToolResult;
-import org.springframework.beans.factory.ObjectProvider;
 import org.finos.fluxnova.bpm.engine.shared.model.ConversationEntry;
 import org.finos.fluxnova.bpm.engine.shared.model.Role;
 import org.finos.fluxnova.bpm.engine.shared.model.ToolCallRequest;
@@ -30,15 +29,11 @@ class AgentStateManagerTest {
         @Mock
         private RuntimeService runtimeService;
 
-        @Mock
-        private ObjectProvider<RuntimeService> runtimeServiceProvider;
-
         private AgentStateManager stateManager;
 
         @BeforeEach
         void setUp() {
-                lenient().when(runtimeServiceProvider.getObject()).thenReturn(runtimeService);
-                stateManager = new AgentStateManager(runtimeServiceProvider);
+                stateManager = new AgentStateManager(runtimeService);
         }
 
         @Nested
