@@ -372,57 +372,74 @@ class AdHocSubProcessCatalogueBuilderTest {
     class ScopeReadFor {
 
         @Test
-        void simpleVariable() {
-            assertEquals(Optional.of("customerId"),
-                    AdHocSubProcessCatalogueBuilder.scopeReadFor("${customerId}"));
+        void scopeReadFor_withSimpleVariable_returnsVariable() {
+            Optional<String> result = AdHocSubProcessCatalogueBuilder.scopeReadFor("${customerId}");
+
+            assertEquals(Optional.of("customerId"), result);
         }
 
         @Test
-        void dottedPath() {
-            assertEquals(Optional.of("customer"),
-                    AdHocSubProcessCatalogueBuilder.scopeReadFor("${customer.profile.email}"));
+        void scopeReadFor_withDottedPath_returnsRootIdentifier() {
+            Optional<String> result =
+                    AdHocSubProcessCatalogueBuilder.scopeReadFor("${customer.profile.email}");
+
+            assertEquals(Optional.of("customer"), result);
         }
 
         @Test
-        void withWhitespace() {
-            assertEquals(Optional.of("x"),
-                    AdHocSubProcessCatalogueBuilder.scopeReadFor("  ${ x }  "));
+        void scopeReadFor_withWhitespace_returnsTrimmedVariable() {
+            Optional<String> result = AdHocSubProcessCatalogueBuilder.scopeReadFor("  ${ x }  ");
+
+            assertEquals(Optional.of("x"), result);
         }
 
         @Test
-        void concatenation_empty() {
-            assertTrue(AdHocSubProcessCatalogueBuilder.scopeReadFor("${a + b}").isEmpty());
+        void scopeReadFor_withConcatenation_returnsEmpty() {
+            Optional<String> result = AdHocSubProcessCatalogueBuilder.scopeReadFor("${a + b}");
+
+            assertTrue(result.isEmpty());
         }
 
         @Test
-        void methodCall_empty() {
-            assertTrue(AdHocSubProcessCatalogueBuilder.scopeReadFor("${svc.find(id)}").isEmpty());
+        void scopeReadFor_withMethodCall_returnsEmpty() {
+            Optional<String> result = AdHocSubProcessCatalogueBuilder.scopeReadFor("${svc.find(id)}");
+
+            assertTrue(result.isEmpty());
         }
 
         @Test
-        void literal_empty() {
-            assertTrue(AdHocSubProcessCatalogueBuilder.scopeReadFor("hello").isEmpty());
+        void scopeReadFor_withLiteral_returnsEmpty() {
+            Optional<String> result = AdHocSubProcessCatalogueBuilder.scopeReadFor("hello");
+
+            assertTrue(result.isEmpty());
         }
 
         @Test
-        void null_empty() {
-            assertTrue(AdHocSubProcessCatalogueBuilder.scopeReadFor(null).isEmpty());
+        void scopeReadFor_withNull_returnsEmpty() {
+            Optional<String> result = AdHocSubProcessCatalogueBuilder.scopeReadFor(null);
+
+            assertTrue(result.isEmpty());
         }
 
         @Test
-        void emptyString_empty() {
-            assertTrue(AdHocSubProcessCatalogueBuilder.scopeReadFor("").isEmpty());
+        void scopeReadFor_withEmptyString_returnsEmpty() {
+            Optional<String> result = AdHocSubProcessCatalogueBuilder.scopeReadFor("");
+
+            assertTrue(result.isEmpty());
         }
 
         @Test
-        void multipleElSegments_empty() {
-            assertTrue(AdHocSubProcessCatalogueBuilder.scopeReadFor("${a}${b}").isEmpty());
+        void scopeReadFor_withMultipleElSegments_returnsEmpty() {
+            Optional<String> result = AdHocSubProcessCatalogueBuilder.scopeReadFor("${a}${b}");
+
+            assertTrue(result.isEmpty());
         }
 
         @Test
-        void underscoreInIdentifier() {
-            assertEquals(Optional.of("_myVar"),
-                    AdHocSubProcessCatalogueBuilder.scopeReadFor("${_myVar}"));
+        void scopeReadFor_withUnderscoreInIdentifier_returnsVariable() {
+            Optional<String> result = AdHocSubProcessCatalogueBuilder.scopeReadFor("${_myVar}");
+
+            assertEquals(Optional.of("_myVar"), result);
         }
     }
 }
