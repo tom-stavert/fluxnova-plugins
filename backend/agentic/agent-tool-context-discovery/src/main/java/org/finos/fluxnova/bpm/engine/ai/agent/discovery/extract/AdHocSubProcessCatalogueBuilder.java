@@ -50,7 +50,7 @@ public class AdHocSubProcessCatalogueBuilder implements AgentToolCatalogueBuilde
         IoMapping mapping = activity.getIoMapping();
         if (mapping == null) return Set.of();
         return mapping.getInputParameters().stream()
-                .flatMap(p -> walkProvider(p.getValueProvider()).stream())
+                .flatMap(p -> extractReadsFromValueProvider(p.getValueProvider()).stream())
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
@@ -70,22 +70,22 @@ public class AdHocSubProcessCatalogueBuilder implements AgentToolCatalogueBuilde
         return matcher.matches() ? Optional.of(matcher.group(1)) : Optional.empty();
     }
 
-    static Set<String> walkProvider(ParameterValueProvider provider) {
+    static Set<String> extractReadsFromValueProvider(ParameterValueProvider provider) {
         if (provider instanceof ScriptValueProvider) {
             return Set.of();
         }
-        if (provider instanceof ListValueProvider list) {
-            return list.getProviderList().stream()
-                    .flatMap(p -> walkProvider(p).stream())
+        if (provider instanceof ListValueProvider listValueProvider) {
+            return listValueProvider.getProviderList().stream()
+                    .flatMap(p -> extractReadsFromValueProvider(p).stream())
                     .collect(Collectors.toCollection(LinkedHashSet::new));
         }
-        if (provider instanceof MapValueProvider map) {
-            return map.getProviderMap().values().stream()
-                    .flatMap(p -> walkProvider(p).stream())
+        if (provider instanceof MapValueProvider mapValueProvider) {
+            return mapValueProvider.getProviderMap().values().stream()
+                    .flatMap(p -> extractReadsFromValueProvider(p).stream())
                     .collect(Collectors.toCollection(LinkedHashSet::new));
         }
-        if (provider instanceof ElValueProvider el) {
-            return scopeReadFor(el.getExpression().getExpressionText())
+        if (provider instanceof ElValueProvider elValueProvider) {
+            return scopeReadFor(elValueProvider.getExpression().getExpressionText())
                     .map(Set::of).orElse(Set.of());
         }
         return Set.of();
