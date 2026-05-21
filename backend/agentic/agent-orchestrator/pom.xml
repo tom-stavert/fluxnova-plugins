@@ -32,6 +32,12 @@
     </dependency>
     <dependency>
       <groupId>org.finos.fluxnova.bpm</groupId>
+      <artifactId>fluxnova-engine-plugins-ai-agent-llm-connector</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.finos.fluxnova.bpm</groupId>
       <artifactId>fluxnova-engine-plugins-ai-agentic-tool-invocation</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -73,12 +79,6 @@
       <groupId>org.mockito</groupId>
       <artifactId>mockito-junit-jupiter</artifactId>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.finos.fluxnova.bpm</groupId>
-      <artifactId>fluxnova-engine-plugins-ai-agent-llm-connector</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
-      <scope>compile</scope>
     </dependency>
   </dependencies>
   <build>
