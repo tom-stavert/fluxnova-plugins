@@ -76,7 +76,7 @@ class AgentOrchestrationIntegrationTest {
         deploy(agentXml("toolA"));
 
         when(llmOrchestrationService.call(any(), any(), any(), anyList()))
-                .thenReturn(textOnlyResponse("I'm done, no tools needed."));
+                .thenReturn(doneResponse());
 
         ProcessInstance pi = runtimeService.startProcessInstanceByKey(PROCESS_KEY);
 
@@ -99,7 +99,7 @@ class AgentOrchestrationIntegrationTest {
         // First LLM call: request toolA
         when(llmOrchestrationService.call(any(), any(), any(), anyList()))
                 .thenReturn(toolCallResponse("call-1", "toolA"))
-                .thenReturn(textOnlyResponse("Done after using toolA."));
+                .thenReturn(doneResponse());
 
         ProcessInstance pi = runtimeService.startProcessInstanceByKey(PROCESS_KEY);
 
@@ -132,7 +132,7 @@ class AgentOrchestrationIntegrationTest {
         when(llmOrchestrationService.call(any(), any(), any(), anyList()))
                 .thenReturn(toolCallResponse("call-1", "toolA"))
                 .thenReturn(toolCallResponse("call-2", "toolB"))
-                .thenReturn(textOnlyResponse("All done after two tools."));
+                .thenReturn(doneResponse());
 
         ProcessInstance pi = runtimeService.startProcessInstanceByKey(PROCESS_KEY);
 
@@ -162,7 +162,7 @@ class AgentOrchestrationIntegrationTest {
         when(llmOrchestrationService.call(any(), any(), any(), anyList()))
                 .thenReturn(parallelToolCallResponse(new ToolCallRequest("call-1", "toolA"),
                         new ToolCallRequest("call-2", "toolB")))
-                .thenReturn(textOnlyResponse("Done after parallel tools."));
+                .thenReturn(doneResponse());
 
         ProcessInstance pi = runtimeService.startProcessInstanceByKey(PROCESS_KEY);
 
@@ -198,7 +198,7 @@ class AgentOrchestrationIntegrationTest {
         // LLM requests a tool that doesn't exist in the subprocess
         when(llmOrchestrationService.call(any(), any(), any(), anyList()))
                 .thenReturn(toolCallResponse("call-1", "nonExistentTool"))
-                .thenReturn(textOnlyResponse("Understood, the tool failed."));
+                .thenReturn(doneResponse());
 
         ProcessInstance pi = runtimeService.startProcessInstanceByKey(PROCESS_KEY);
 
@@ -240,7 +240,7 @@ class AgentOrchestrationIntegrationTest {
         deploy(agentXml("toolA"));
 
         when(llmOrchestrationService.call(any(), any(), any(), anyList()))
-                .thenReturn(textOnlyResponse("Done."));
+                .thenReturn(doneResponse());
 
         ProcessInstance pi = runtimeService.startProcessInstanceByKey(PROCESS_KEY);
 
@@ -293,9 +293,9 @@ class AgentOrchestrationIntegrationTest {
     // Helpers — LLM response builders
     // -----------------------------------------------------------------------
 
-    private static LlmResponse textOnlyResponse(String text) {
-        return new LlmResponse(text, List.of(),
-                List.of(ConversationEntry.assistant(text, List.of())));
+    private static LlmResponse doneResponse() {
+        return new LlmResponse("", List.of(),
+                List.of(ConversationEntry.assistant("", List.of())));
     }
 
     private static LlmResponse toolCallResponse(String toolCallId, String toolId) {
