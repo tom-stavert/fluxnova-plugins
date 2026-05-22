@@ -111,9 +111,9 @@ class ConversationMapperTest {
     void toLlmResponse_whenResponseContainsToolCalls_extractsTextAndCallsAndAppendsAssistantEntry() {
         List<ConversationEntry> prior = List.of(ConversationEntry.user("please run a check"));
         AssistantMessage assistant = AssistantMessage.builder()
-                .content("Running credit check.")
-                .toolCalls(List.of(new AssistantMessage.ToolCall("call-1", "function", "creditScoreCheck", "{}")))
-                .build();
+            .content("Running credit check.")
+            .toolCalls(List.of(new AssistantMessage.ToolCall("call-1", "function", "creditScoreCheck", "{}")))
+            .build();
         ChatResponse response = new ChatResponse(List.of(new Generation(assistant)));
 
         LlmResponse llm = mapper.toLlmResponse(response, prior);

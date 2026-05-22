@@ -61,21 +61,23 @@ class ConversationMapper {
         return switch (entry.role()) {
             case SYSTEM -> new SystemMessage(entry.content() == null ? "" : entry.content());
             case USER -> new UserMessage(entry.content() == null ? "" : entry.content());
-            case ASSISTANT -> new AssistantMessage(
-                entry.content() == null ? "" : entry.content(),
-                Map.of(),
-                entry.toolCalls().stream()
+            case ASSISTANT -> AssistantMessage.builder()
+                .content(entry.content() == null ? "" : entry.content())
+                .toolCalls(entry.toolCalls().stream()
                     .map(tc -> new AssistantMessage.ToolCall(
                         tc.toolCallId(),
                         "function",
                         tc.toolId(),
                         "{}"))
-                    .collect(Collectors.toList()));
-            case TOOL -> new ToolResponseMessage(List.of(
-                new ToolResponseMessage.ToolResponse(
-                    entry.toolCallId(),
-                    "",
-                    !entry.toolResult().containsKey("error") ? entry.toolResult().values().toString() : "error")));
+                    .collect(Collectors.toList()))
+                .build();
+            case TOOL -> ToolResponseMessage.builder()
+                .responses(List.of(
+                    new ToolResponseMessage.ToolResponse(
+                        entry.toolCallId(),
+                        "",
+                        !entry.toolResult().containsKey("error") ? entry.toolResult().values().toString() : "error")))
+                .build();
         };
     }
 
