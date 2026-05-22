@@ -78,13 +78,13 @@ class AgentOrchestrationIntegrationTest {
         when(llmOrchestrationService.call(any(), any(), any(), anyList()))
                 .thenReturn(doneResponse());
 
-        ProcessInstance pi = runtimeService.startProcessInstanceByKey(PROCESS_KEY);
+        ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(PROCESS_KEY);
 
         // Entry listener creates the first orchestration job
-        executeNextJob(pi);
+        executeNextJob(processInstance);
 
         // LLM returned no tool calls — subprocess should have completed
-        assertProcessEnded(pi);
+        assertProcessEnded(processInstance);
         verify(llmOrchestrationService, times(1)).call(any(), any(), any(), anyList());
     }
 
@@ -101,12 +101,12 @@ class AgentOrchestrationIntegrationTest {
                 .thenReturn(toolCallResponse("call-1", "toolA"))
                 .thenReturn(doneResponse());
 
-        ProcessInstance pi = runtimeService.startProcessInstanceByKey(PROCESS_KEY);
+        ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(PROCESS_KEY);
 
         // Step 1: Entry job — LLM requests toolA
-        executeNextJob(pi);
+        executeNextJob(processInstance);
 
-        Execution adHocExec = adHocExecution(pi);
+        Execution adHocExec = adHocExecution(processInstance);
         assertThat(adHocExec).isNotNull();
         assertThat(stateManager.isPendingToolCall(adHocExec.getId(), "call-1")).isTrue();
 
@@ -114,11 +114,11 @@ class AgentOrchestrationIntegrationTest {
         // SubprocessToolCompletionListener fires and creates the next orchestration job.
 
         // Step 2: Tool completion job — feeds result to LLM, LLM returns text
-        executeNextJob(pi);
+        executeNextJob(processInstance);
 
         // Verify conversation history was accumulated
         verify(llmOrchestrationService, times(2)).call(any(), any(), any(), anyList());
-        assertProcessEnded(pi);
+        assertProcessEnded(processInstance);
     }
 
     // -----------------------------------------------------------------------
@@ -134,21 +134,21 @@ class AgentOrchestrationIntegrationTest {
                 .thenReturn(toolCallResponse("call-2", "toolB"))
                 .thenReturn(doneResponse());
 
-        ProcessInstance pi = runtimeService.startProcessInstanceByKey(PROCESS_KEY);
+        ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(PROCESS_KEY);
 
         // Step 1: Entry — LLM requests toolA
-        executeNextJob(pi);
-        assertProcessNotEnded(pi);
+        executeNextJob(processInstance);
+        assertProcessNotEnded(processInstance);
 
         // Step 2: toolA completes — LLM requests toolB
-        executeNextJob(pi);
-        assertProcessNotEnded(pi);
+        executeNextJob(processInstance);
+        assertProcessNotEnded(processInstance);
 
         // Step 3: toolB completes — LLM returns text, subprocess completes
-        executeNextJob(pi);
+        executeNextJob(processInstance);
 
         verify(llmOrchestrationService, times(3)).call(any(), any(), any(), anyList());
-        assertProcessEnded(pi);
+        assertProcessEnded(processInstance);
     }
 
     // -----------------------------------------------------------------------
@@ -164,12 +164,12 @@ class AgentOrchestrationIntegrationTest {
                         new ToolCallRequest("call-2", "toolB")))
                 .thenReturn(doneResponse());
 
-        ProcessInstance pi = runtimeService.startProcessInstanceByKey(PROCESS_KEY);
+        ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(PROCESS_KEY);
 
         // Step 1: Entry — LLM requests toolA and toolB in parallel
-        executeNextJob(pi);
+        executeNextJob(processInstance);
 
-        Execution adHocExec = adHocExecution(pi);
+        Execution adHocExec = adHocExecution(processInstance);
         assertThat(adHocExec).isNotNull();
         assertThat(stateManager.isPendingToolCall(adHocExec.getId(), "call-1")).isTrue();
         assertThat(stateManager.isPendingToolCall(adHocExec.getId(), "call-2")).isTrue();
@@ -177,14 +177,14 @@ class AgentOrchestrationIntegrationTest {
         // Both tool activities run. Each completion fires a tool-completion job.
         // The first tool-completion job removes its ID from pending but doesn't
         // trigger the next LLM call (pending still has the other).
-        executeNextJob(pi);
-        assertProcessNotEnded(pi);
+        executeNextJob(processInstance);
+        assertProcessNotEnded(processInstance);
 
         // The second tool-completion job clears pending and triggers the next LLM call.
-        executeNextJob(pi);
+        executeNextJob(processInstance);
 
         verify(llmOrchestrationService, times(2)).call(any(), any(), any(), anyList());
-        assertProcessEnded(pi);
+        assertProcessEnded(processInstance);
     }
 
     // -----------------------------------------------------------------------
@@ -200,19 +200,19 @@ class AgentOrchestrationIntegrationTest {
                 .thenReturn(toolCallResponse("call-1", "nonExistentTool"))
                 .thenReturn(doneResponse());
 
-        ProcessInstance pi = runtimeService.startProcessInstanceByKey(PROCESS_KEY);
+        ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(PROCESS_KEY);
 
         // Step 1: Entry — LLM requests nonExistentTool, invocation fails
-        executeNextJob(pi);
+        executeNextJob(processInstance);
 
         // The failure should be buffered and a follow-up job scheduled immediately
         // (no pending tools, all failed → scheduleNextStep)
 
         // Step 2: Follow-up job — error result fed back to LLM, LLM returns text
-        executeNextJob(pi);
+        executeNextJob(processInstance);
 
         verify(llmOrchestrationService, times(2)).call(any(), any(), any(), anyList());
-        assertProcessEnded(pi);
+        assertProcessEnded(processInstance);
     }
 
     // -----------------------------------------------------------------------
@@ -223,12 +223,12 @@ class AgentOrchestrationIntegrationTest {
     void emptyToolCatalogue_terminatesImmediately() {
         deploy(agentXmlNoTools());
 
-        ProcessInstance pi = runtimeService.startProcessInstanceByKey(PROCESS_KEY);
+        ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(PROCESS_KEY);
 
         // Entry job fires — job handler detects empty catalogue and completes
-        executeNextJob(pi);
+        executeNextJob(processInstance);
 
-        assertProcessEnded(pi);
+        assertProcessEnded(processInstance);
     }
 
     // -----------------------------------------------------------------------
@@ -242,16 +242,16 @@ class AgentOrchestrationIntegrationTest {
         when(llmOrchestrationService.call(any(), any(), any(), anyList()))
                 .thenReturn(doneResponse());
 
-        ProcessInstance pi = runtimeService.startProcessInstanceByKey(PROCESS_KEY);
+        ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(PROCESS_KEY);
 
         // Execute the entry job — subprocess completes (text-only response)
-        executeNextJob(pi);
-        assertProcessEnded(pi);
+        executeNextJob(processInstance);
+        assertProcessEnded(processInstance);
 
         // If there were any stale jobs remaining for this execution, executing
         // them should be a no-op due to the inactive execution guard.
         List<Job> remainingJobs =
-                managementService.createJobQuery().processInstanceId(pi.getId()).list();
+                managementService.createJobQuery().processInstanceId(processInstance.getId()).list();
         for (Job job : remainingJobs) {
             managementService.executeJob(job.getId());
         }
@@ -264,8 +264,8 @@ class AgentOrchestrationIntegrationTest {
     // Helpers — job execution
     // -----------------------------------------------------------------------
 
-    private void executeNextJob(ProcessInstance pi) {
-        List<Job> jobs = managementService.createJobQuery().processInstanceId(pi.getId()).list();
+    private void executeNextJob(ProcessInstance processInstance) {
+        List<Job> jobs = managementService.createJobQuery().processInstanceId(processInstance.getId()).list();
         assertThat(jobs).as("Expected at least one executable job").isNotEmpty();
         managementService.executeJob(jobs.get(0).getId());
     }
@@ -274,18 +274,18 @@ class AgentOrchestrationIntegrationTest {
     // Helpers — process assertions
     // -----------------------------------------------------------------------
 
-    private Execution adHocExecution(ProcessInstance pi) {
-        return runtimeService.createExecutionQuery().processInstanceId(pi.getId())
+    private Execution adHocExecution(ProcessInstance processInstance) {
+        return runtimeService.createExecutionQuery().processInstanceId(processInstance.getId())
                 .activityId(AD_HOC_ID).singleResult();
     }
 
-    private void assertProcessEnded(ProcessInstance pi) {
-        assertThat(runtimeService.createProcessInstanceQuery().processInstanceId(pi.getId())
+    private void assertProcessEnded(ProcessInstance processInstance) {
+        assertThat(runtimeService.createProcessInstanceQuery().processInstanceId(processInstance.getId())
                 .singleResult()).as("Process instance should have ended").isNull();
     }
 
-    private void assertProcessNotEnded(ProcessInstance pi) {
-        assertThat(runtimeService.createProcessInstanceQuery().processInstanceId(pi.getId())
+    private void assertProcessNotEnded(ProcessInstance processInstance) {
+        assertThat(runtimeService.createProcessInstanceQuery().processInstanceId(processInstance.getId())
                 .singleResult()).as("Process instance should still be running").isNotNull();
     }
 
