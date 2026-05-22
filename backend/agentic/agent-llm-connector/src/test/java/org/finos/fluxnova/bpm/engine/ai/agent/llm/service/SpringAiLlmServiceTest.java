@@ -48,7 +48,7 @@ class SpringAiLlmServiceTest {
 
     private ChatResponse stubResponse(String text, List<AssistantMessage.ToolCall> calls) {
         return new ChatResponse(List.of(
-                new Generation(AssistantMessage.builder().content(text).toolCalls(calls).build())));
+            new Generation(AssistantMessage.builder().content(text).toolCalls(calls).build())));
     }
 
     @Test
