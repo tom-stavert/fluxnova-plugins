@@ -93,7 +93,7 @@ class AgentOrchestrationIntegrationTest {
     // -----------------------------------------------------------------------
 
     @Test
-    void singleToolCall_singleTurn_completesAfterToolResult() {
+    void singleToolCall_completesAfterToolResult() {
         deploy(agentXml("toolA"));
 
         // First LLM call: request toolA
@@ -126,7 +126,7 @@ class AgentOrchestrationIntegrationTest {
     // -----------------------------------------------------------------------
 
     @Test
-    void multiTurn_twoSequentialToolCalls_completesAfterBoth() {
+    void twoSequentialToolCalls_completesAfterBoth() {
         deploy(agentXml("toolA", "toolB"));
 
         when(llmOrchestrationService.call(any(), any(), any(), anyList()))
