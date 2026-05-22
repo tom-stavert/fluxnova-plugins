@@ -16,67 +16,6 @@
     <name>Fluxnova Platform - engine plugins - ai - agent llm connector</name>
     <description>Calls the configured LLM provider for an agent subprocess and normalises the response</description>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.finos.fluxnova.bpm</groupId>
-            <artifactId>fluxnova-engine-plugins-shared</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.finos.fluxnova.bpm</groupId>
-            <artifactId>fluxnova-engine-plugins-ai-agent-config</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.finos.fluxnova.bpm</groupId>
-            <artifactId>fluxnova-engine-plugins-ai-agent-tool-context-discovery</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.finos.fluxnova.bpm</groupId>
-            <artifactId>fluxnova-engine</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-client-chat</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-autoconfigure</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-  </dependencyManagement>
-
   <dependencies>
     <dependency>
       <groupId>org.finos.fluxnova.bpm</groupId>
