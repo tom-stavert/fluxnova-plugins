@@ -2,7 +2,6 @@ package org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.integration;
 
 import org.finos.fluxnova.bpm.engine.RepositoryService;
 import org.finos.fluxnova.bpm.engine.RuntimeService;
-import org.springframework.beans.factory.ObjectProvider;
 import org.finos.fluxnova.bpm.engine.ai.agent.autoconfigure.AgentConfigEnginePlugin;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.extract.AdHocSubProcessCatalogueBuilder;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.extract.AgentContextSpecBuilder;
@@ -12,22 +11,23 @@ import org.finos.fluxnova.bpm.engine.ai.agent.discovery.registry.AgentContextSpe
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.registry.AgentToolCatalogueRegistry;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.runtime.AgentContextResolver;
 import org.finos.fluxnova.bpm.engine.ai.agent.extract.AgentConfigExtractor;
+import org.finos.fluxnova.bpm.engine.ai.agent.llm.service.LlmService;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine.AdHocAgentOrchestrationParseListener;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine.AgentOrchestratorEnginePlugin;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine.AgentSubprocessEntryListener;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.engine.SubprocessToolCompletionListener;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.job.AgentOrchestrationJobHandler;
-import org.finos.fluxnova.bpm.engine.ai.agent.service.ToolInvocationService;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.AdHocSubprocessTerminator;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.service.AgentTerminationHandler;
-import org.finos.fluxnova.bpm.engine.ai.agent.llm.service.LlmService;
 import org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.state.AgentStateManager;
-import org.finos.fluxnova.bpm.engine.ai.agent.service.AdHocActivityToolInvocationServiceImpl;
 import org.finos.fluxnova.bpm.engine.ai.agent.registry.AgentConfigRegistry;
+import org.finos.fluxnova.bpm.engine.ai.agent.service.AdHocActivityToolInvocationServiceImpl;
+import org.finos.fluxnova.bpm.engine.ai.agent.service.ToolInvocationService;
 import org.finos.fluxnova.bpm.engine.impl.cfg.AbstractProcessEnginePlugin;
 import org.finos.fluxnova.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.finos.fluxnova.bpm.engine.impl.jobexecutor.JobHandler;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 
@@ -69,7 +69,7 @@ public class TestConfig {
 
     @Bean
     public AgentConfigRegistry agentConfigRegistry(ObjectProvider<RepositoryService> repositoryService,
-            AgentConfigExtractor extractor) {
+                                                   AgentConfigExtractor extractor) {
         return new AgentConfigRegistry(repositoryService, extractor);
     }
 
@@ -99,7 +99,7 @@ public class TestConfig {
 
     @Bean
     public AgentContextSpecRegistry agentContextSpecRegistry(ObjectProvider<RepositoryService> repositoryService,
-            AgentConfigRegistry configRegistry, AgentContextSpecBuilder builder) {
+                                                             AgentConfigRegistry configRegistry, AgentContextSpecBuilder builder) {
         return new AgentContextSpecRegistry(repositoryService, configRegistry, builder);
     }
 
@@ -112,9 +112,8 @@ public class TestConfig {
     // The real AdHocActivityToolInvocationServiceImpl is used here.
     // The test BPMN suppresses the default ad-hoc completion condition via
     // <completionCondition>${false}</completionCondition>, which prevents the subprocess from
-    // terminating prematurely after the first synchronous tool activity completes
-    // (see ENGINE_BUG_REPORT.md). With that in place, triggerAdHocActivities works correctly
-    // and SubprocessToolCompletionListener fires normally to create the tool-completion job.
+    // terminating prematurely after the first synchronous tool activity completes.
+    // To be reviewed with final ad-hoc subprocess semantics.
 
     @Bean
     public ToolInvocationService toolInvocationService(ObjectProvider<RuntimeService> runtimeService) {

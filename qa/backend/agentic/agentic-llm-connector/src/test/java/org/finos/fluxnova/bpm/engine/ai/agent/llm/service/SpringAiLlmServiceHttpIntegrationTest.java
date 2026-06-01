@@ -23,7 +23,8 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Integration test that exercises the full HTTP path through Spring AI's OpenAI client.
@@ -40,42 +41,6 @@ import static org.junit.jupiter.api.Assertions.*;
 class SpringAiLlmServiceHttpIntegrationTest {
 
     private static final String CHAT_COMPLETIONS_PATH = "/v1/chat/completions";
-
-    private SpringAiLlmService buildService(WireMockRuntimeInfo wmInfo) {
-        RestClient.Builder restClientBuilder = RestClient.builder()
-                .requestFactory(new JdkClientHttpRequestFactory(
-                        HttpClient.newBuilder()
-                                .version(HttpClient.Version.HTTP_1_1)
-                                .build()));
-
-        OpenAiApi api = OpenAiApi.builder()
-                .baseUrl(wmInfo.getHttpBaseUrl())
-                .apiKey("test-key")
-                .restClientBuilder(restClientBuilder)
-                .build();
-        OpenAiChatModel chatModel = OpenAiChatModel.builder()
-                .openAiApi(api)
-                .build();
-
-        AgentProviderRegistry registry = new AgentProviderRegistry(() -> Map.of("openai", chatModel));
-        AgentToolSchemaConverter converter = new AgentToolSchemaConverter();
-        return new SpringAiLlmService(registry, converter);
-    }
-
-    private AgentConfig config() {
-        return new AgentConfig("proc-1", "agent-1", "openai", "gpt-4",
-                "You are a helpful agent.", "agent-1");
-    }
-
-    private AgentToolCatalogue catalogue() {
-        return new AgentToolCatalogue("proc-1", "agent-1", List.of(
-                new AgentToolEntry("creditScoreCheck", "Credit Check",
-                        "Looks up the credit score.",
-                        Set.of("customerId"), Set.of("creditScore")),
-                new AgentToolEntry("addressLookup", "Address Lookup",
-                        "Fetches the address.",
-                        Set.of("customerId"), Set.of("address"))));
-    }
 
     // -----------------------------------------------------------------------
     // Scenario 1: Full agentic call — tool call response
@@ -97,10 +62,10 @@ class SpringAiLlmServiceHttpIntegrationTest {
 
         // -- Verify request body structure --
         verify(postRequestedFor(urlEqualTo(CHAT_COMPLETIONS_PATH))
-                .withRequestBody(matchingJsonPath("$.model", equalTo("gpt-4")))
+                .withRequestBody(matchingJsonPath("$.model", equalTo(config().model())))
                 // System prompt is the first message
                 .withRequestBody(matchingJsonPath("$.messages[0].role", equalTo("system")))
-                .withRequestBody(matchingJsonPath("$.messages[0].content", containing("You are a helpful agent.")))
+                .withRequestBody(matchingJsonPath("$.messages[0].content", containing(config().systemPrompt())))
                 // User message
                 .withRequestBody(matchingJsonPath("$.messages[1].role", equalTo("user")))
                 .withRequestBody(matchingJsonPath("$.messages[1].content", equalTo("Run a credit check")))
@@ -124,10 +89,9 @@ class SpringAiLlmServiceHttpIntegrationTest {
     }
 
     // -----------------------------------------------------------------------
-    // Scenario 3: Multi-turn conversation history serialization
+    // Scenario 2: Multi-turn conversation history serialization
     // Verifies that prior assistant tool_calls and tool results are correctly
-    // serialized in the next request. The done signal has empty content —
-    // the orchestrator terminates on toolCalls().isEmpty(), not on text.
+    // serialized in the next request.
     // -----------------------------------------------------------------------
 
     @Test
@@ -166,12 +130,12 @@ class SpringAiLlmServiceHttpIntegrationTest {
                 .withRequestBody(matchingJsonPath("$.messages[3].content", equalTo("[750]")))
         );
 
-        // Done signal: no tool calls
+        // No tool calls
         assertTrue(response.toolCalls().isEmpty());
     }
 
     // -----------------------------------------------------------------------
-    // Scenario 5: Multiple tools in catalogue — all serialized
+    // Scenario 3: Multiple tools in catalogue — all serialized
     // -----------------------------------------------------------------------
 
     @Test
@@ -197,7 +161,7 @@ class SpringAiLlmServiceHttpIntegrationTest {
     }
 
     // -----------------------------------------------------------------------
-    // Scenario 6: Parallel tool calls in response
+    // Scenario 4: Parallel tool calls in response
     // Note: This is almost a unit test, but is specifically testing
     // tool call Ids being deserialised correctly. Mocks too many things
     // to be moved to a single unit test
@@ -221,6 +185,42 @@ class SpringAiLlmServiceHttpIntegrationTest {
         assertEquals("creditScoreCheck", response.toolCalls().get(0).toolId());
         assertEquals("call_2", response.toolCalls().get(1).toolCallId());
         assertEquals("addressLookup", response.toolCalls().get(1).toolId());
+    }
+
+    private SpringAiLlmService buildService(WireMockRuntimeInfo wmInfo) {
+        RestClient.Builder restClientBuilder = RestClient.builder()
+                .requestFactory(new JdkClientHttpRequestFactory(
+                        HttpClient.newBuilder()
+                                .version(HttpClient.Version.HTTP_1_1)
+                                .build()));
+
+        OpenAiApi api = OpenAiApi.builder()
+                .baseUrl(wmInfo.getHttpBaseUrl())
+                .apiKey("test-key")
+                .restClientBuilder(restClientBuilder)
+                .build();
+        OpenAiChatModel chatModel = OpenAiChatModel.builder()
+                .openAiApi(api)
+                .build();
+
+        AgentProviderRegistry registry = new AgentProviderRegistry(() -> Map.of("openai", chatModel));
+        AgentToolSchemaConverter converter = new AgentToolSchemaConverter();
+        return new SpringAiLlmService(registry, converter);
+    }
+
+    private AgentConfig config() {
+        return new AgentConfig("proc-1", "agent-1", "openai", "gpt-4",
+                "You are a helpful agent.", "agent-1");
+    }
+
+    private AgentToolCatalogue catalogue() {
+        return new AgentToolCatalogue("proc-1", "agent-1", List.of(
+                new AgentToolEntry("creditScoreCheck", "Credit Check",
+                        "Looks up the credit score.",
+                        Set.of("customerId"), Set.of("creditScore")),
+                new AgentToolEntry("addressLookup", "Address Lookup",
+                        "Fetches the address.",
+                        Set.of("customerId"), Set.of("address"))));
     }
 
     // -----------------------------------------------------------------------
