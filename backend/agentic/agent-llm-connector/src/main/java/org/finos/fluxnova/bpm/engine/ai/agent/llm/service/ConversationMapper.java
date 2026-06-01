@@ -5,11 +5,7 @@ import org.finos.fluxnova.bpm.engine.ai.agent.model.AgentConfig;
 import org.finos.fluxnova.bpm.engine.shared.model.ConversationEntry;
 import org.finos.fluxnova.bpm.engine.shared.model.LlmResponse;
 import org.finos.fluxnova.bpm.engine.shared.model.ToolCallRequest;
-import org.springframework.ai.chat.messages.AssistantMessage;
-import org.springframework.ai.chat.messages.Message;
-import org.springframework.ai.chat.messages.SystemMessage;
-import org.springframework.ai.chat.messages.ToolResponseMessage;
-import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.messages.*;
 import org.springframework.ai.chat.model.ChatResponse;
 
 import java.util.ArrayList;
@@ -59,25 +55,25 @@ class ConversationMapper {
     private Message entryToMessage(ConversationEntry entry) {
         final String content = entry.content() == null ? "" : entry.content();
         return switch (entry.role()) {
-            case SYSTEM -> new SystemMessage(entry.content() == null ? "" : entry.content());
-            case USER -> new UserMessage(entry.content() == null ? "" : entry.content());
+            case SYSTEM -> new SystemMessage(content);
+            case USER -> new UserMessage(content);
             case ASSISTANT -> AssistantMessage.builder()
-                .content(entry.content() == null ? "" : entry.content())
-                .toolCalls(entry.toolCalls().stream()
-                    .map(tc -> new AssistantMessage.ToolCall(
-                        tc.toolCallId(),
-                        "function",
-                        tc.toolId(),
-                        "{}"))
-                    .collect(Collectors.toList()))
-                .build();
+                    .content(content)
+                    .toolCalls(entry.toolCalls().stream()
+                            .map(tc -> new AssistantMessage.ToolCall(
+                                    tc.toolCallId(),
+                                    "function",
+                                    tc.toolId(),
+                                    "{}"))
+                            .collect(Collectors.toList()))
+                    .build();
             case TOOL -> ToolResponseMessage.builder()
-                .responses(List.of(
-                    new ToolResponseMessage.ToolResponse(
-                        entry.toolCallId(),
-                        "",
-                        !entry.toolResult().containsKey("error") ? entry.toolResult().values().toString() : "error")))
-                .build();
+                    .responses(List.of(
+                            new ToolResponseMessage.ToolResponse(
+                                    entry.toolCallId(),
+                                    "",
+                                    !entry.toolResult().containsKey("error") ? entry.toolResult().values().toString() : "error")))
+                    .build();
         };
     }
 
