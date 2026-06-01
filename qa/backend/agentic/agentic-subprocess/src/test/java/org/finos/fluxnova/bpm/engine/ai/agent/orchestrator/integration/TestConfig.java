@@ -2,6 +2,7 @@ package org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.integration;
 
 import org.finos.fluxnova.bpm.engine.RepositoryService;
 import org.finos.fluxnova.bpm.engine.RuntimeService;
+import org.springframework.beans.factory.ObjectProvider;
 import org.finos.fluxnova.bpm.engine.ai.agent.autoconfigure.AgentConfigEnginePlugin;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.extract.AdHocSubProcessCatalogueBuilder;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.extract.AgentContextSpecBuilder;
@@ -29,7 +30,6 @@ import org.finos.fluxnova.bpm.engine.impl.jobexecutor.JobHandler;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Lazy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,10 +44,11 @@ import java.util.List;
  * by the in-memory Fluxnova engine.
  *
  * <p>
- * Beans that depend on engine services (RuntimeService, RepositoryService) are {@code @Lazy} to
- * break the circular dependency: engine plugins are collected during engine creation, but
- * registries/services need the engine to exist first. The lazy proxies defer resolution until first
- * use (process deployment or job execution), by which time the engine is fully initialised.
+ * Beans that depend on engine services (RuntimeService, RepositoryService) use the
+ * {@link org.springframework.beans.factory.ObjectProvider} pattern to break the circular
+ * dependency: engine plugins are collected during engine creation, but registries/services need the
+ * engine to exist first. ObjectProvider defers resolution until first use (process deployment or
+ * job execution), by which time the engine is fully initialised.
  */
 @TestConfiguration
 public class TestConfig {
@@ -67,8 +68,7 @@ public class TestConfig {
     }
 
     @Bean
-    @Lazy
-    public AgentConfigRegistry agentConfigRegistry(RepositoryService repositoryService,
+    public AgentConfigRegistry agentConfigRegistry(ObjectProvider<RepositoryService> repositoryService,
             AgentConfigExtractor extractor) {
         return new AgentConfigRegistry(repositoryService, extractor);
     }
@@ -91,23 +91,20 @@ public class TestConfig {
     }
 
     @Bean
-    @Lazy
     public AgentToolCatalogueRegistry agentToolCatalogueRegistry(
-            RepositoryService repositoryService, AgentConfigRegistry configRegistry,
+            ObjectProvider<RepositoryService> repositoryService, AgentConfigRegistry configRegistry,
             AgentToolCatalogueBuilder builder) {
         return new AgentToolCatalogueRegistry(repositoryService, configRegistry, builder);
     }
 
     @Bean
-    @Lazy
-    public AgentContextSpecRegistry agentContextSpecRegistry(RepositoryService repositoryService,
+    public AgentContextSpecRegistry agentContextSpecRegistry(ObjectProvider<RepositoryService> repositoryService,
             AgentConfigRegistry configRegistry, AgentContextSpecBuilder builder) {
         return new AgentContextSpecRegistry(repositoryService, configRegistry, builder);
     }
 
     @Bean
-    @Lazy
-    public AgentContextResolver agentContextResolver(RuntimeService runtimeService) {
+    public AgentContextResolver agentContextResolver(ObjectProvider<RuntimeService> runtimeService) {
         return new AgentContextResolver(runtimeService);
     }
 
@@ -120,16 +117,14 @@ public class TestConfig {
     // and SubprocessToolCompletionListener fires normally to create the tool-completion job.
 
     @Bean
-    @Lazy
-    public ToolInvocationService toolInvocationService(RuntimeService runtimeService) {
+    public ToolInvocationService toolInvocationService(ObjectProvider<RuntimeService> runtimeService) {
         return new AdHocActivityToolInvocationServiceImpl(runtimeService);
     }
 
     // -- agent-orchestrator plugin --
 
     @Bean
-    @Lazy
-    public AgentStateManager agentStateManager(RuntimeService runtimeService) {
+    public AgentStateManager agentStateManager(ObjectProvider<RuntimeService> runtimeService) {
         return new AgentStateManager(runtimeService);
     }
 
@@ -144,8 +139,7 @@ public class TestConfig {
     }
 
     @Bean
-    @Lazy
-    public AgentTerminationHandler agentTerminationHandler(RuntimeService runtimeService) {
+    public AgentTerminationHandler agentTerminationHandler(ObjectProvider<RuntimeService> runtimeService) {
         return new AdHocSubprocessTerminator(runtimeService);
     }
 
@@ -163,22 +157,21 @@ public class TestConfig {
     }
 
     // The job handler and its registration plugin are combined into a single bean.
-    // The handler is constructed eagerly with @Lazy proxy references for all
-    // engine-service-dependent beans. The proxies satisfy getType() (returns a
-    // constant) without triggering resolution. Resolution happens at job execution
+    // All engine-service-dependent beans use ObjectProvider internally, so there is
+    // no circular dependency at construction time. Resolution happens at job execution
     // time, when the engine is fully available.
     //
     // Job handler registration is currently missing from AgentOrchestratorEnginePlugin
     // — this plugin fills that gap until the production code is updated.
     @Bean
     public AbstractProcessEnginePlugin jobHandlerRegistrationPlugin(
-            @Lazy AgentConfigRegistry configRegistry,
-            @Lazy AgentToolCatalogueRegistry toolCatalogueRegistry,
-            @Lazy AgentContextSpecRegistry contextSpecRegistry,
-            @Lazy AgentContextResolver contextResolver,
+            AgentConfigRegistry configRegistry,
+            AgentToolCatalogueRegistry toolCatalogueRegistry,
+            AgentContextSpecRegistry contextSpecRegistry,
+            AgentContextResolver contextResolver,
             LlmService llmOrchestrationService,
-            @Lazy ToolInvocationService toolInvocationService, @Lazy AgentStateManager stateManager,
-            @Lazy AgentTerminationHandler terminationHandler) {
+            ToolInvocationService toolInvocationService, AgentStateManager stateManager,
+            AgentTerminationHandler terminationHandler) {
         AgentOrchestrationJobHandler handler = new AgentOrchestrationJobHandler(configRegistry,
                 toolCatalogueRegistry, contextSpecRegistry, contextResolver,
                 llmOrchestrationService, toolInvocationService, stateManager, terminationHandler);

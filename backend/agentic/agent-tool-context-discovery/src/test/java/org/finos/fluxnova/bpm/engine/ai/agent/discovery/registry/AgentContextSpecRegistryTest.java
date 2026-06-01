@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.ObjectProvider;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -45,6 +46,9 @@ class AgentContextSpecRegistryTest {
     private RepositoryService repositoryService;
 
     @Mock
+    private ObjectProvider<RepositoryService> repositoryServiceProvider;
+
+    @Mock
     private AgentConfigRegistry agentConfigRegistry;
 
     @Mock
@@ -54,7 +58,8 @@ class AgentContextSpecRegistryTest {
 
     @BeforeEach
     void setUp() {
-        registry = new AgentContextSpecRegistry(repositoryService, agentConfigRegistry, builder);
+        lenient().when(repositoryServiceProvider.getObject()).thenReturn(repositoryService);
+        registry = new AgentContextSpecRegistry(repositoryServiceProvider, agentConfigRegistry, builder);
     }
 
     private AgentConfig config() {
@@ -164,6 +169,7 @@ class AgentContextSpecRegistryTest {
         ByteArrayInputStream throwingStream = new ByteArrayInputStream(
                 BPMN.getBytes(StandardCharsets.UTF_8)) {
             private boolean firstCloseDone = false;
+
             @Override
             public void close() throws IOException {
                 if (!firstCloseDone) {

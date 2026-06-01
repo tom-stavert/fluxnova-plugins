@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.ObjectProvider;
 
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +37,9 @@ class AgentToolCatalogueRegistryTest {
     private RepositoryService repositoryService;
 
     @Mock
+    private ObjectProvider<RepositoryService> repositoryServiceProvider;
+
+    @Mock
     private AgentConfigRegistry agentConfigRegistry;
 
     @Mock
@@ -45,7 +49,8 @@ class AgentToolCatalogueRegistryTest {
 
     @BeforeEach
     void setUp() {
-        registry = new AgentToolCatalogueRegistry(repositoryService, agentConfigRegistry, catalogueBuilder);
+        lenient().when(repositoryServiceProvider.getObject()).thenReturn(repositoryService);
+        registry = new AgentToolCatalogueRegistry(repositoryServiceProvider, agentConfigRegistry, catalogueBuilder);
     }
 
     private AgentConfig config() {

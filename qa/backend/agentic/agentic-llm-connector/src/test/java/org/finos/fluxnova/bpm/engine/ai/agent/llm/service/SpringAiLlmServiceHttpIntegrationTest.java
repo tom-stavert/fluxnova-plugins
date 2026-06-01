@@ -71,7 +71,10 @@ class SpringAiLlmServiceHttpIntegrationTest {
         return new AgentToolCatalogue("proc-1", "agent-1", List.of(
                 new AgentToolEntry("creditScoreCheck", "Credit Check",
                         "Looks up the credit score.",
-                        Set.of("customerId"), Set.of("creditScore"))));
+                        Set.of("customerId"), Set.of("creditScore")),
+                new AgentToolEntry("addressLookup", "Address Lookup",
+                        "Fetches the address.",
+                        Set.of("customerId"), Set.of("address"))));
     }
 
     // -----------------------------------------------------------------------

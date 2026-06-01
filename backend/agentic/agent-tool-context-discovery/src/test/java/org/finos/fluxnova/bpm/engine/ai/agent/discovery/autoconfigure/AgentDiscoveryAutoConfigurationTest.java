@@ -17,6 +17,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,36 +29,79 @@ class AgentDiscoveryAutoConfigurationTest {
 
     @Configuration
     static class MockInfrastructure {
-        @Bean RepositoryServiceImpl repositoryService() { return mock(RepositoryServiceImpl.class); }
-        @Bean RuntimeService runtimeService() { return mock(RuntimeService.class); }
-        @Bean AgentConfigExtractor agentConfigExtractor() { return new AgentConfigExtractor(); }
-        @Bean AgentConfigRegistry agentConfigRegistry(RepositoryService rs, AgentConfigExtractor ext) {
+        @Bean
+        RepositoryServiceImpl repositoryService() {
+            return mock(RepositoryServiceImpl.class);
+        }
+
+        @Bean
+        RuntimeService runtimeService() {
+            return mock(RuntimeService.class);
+        }
+
+        @Bean
+        AgentConfigExtractor agentConfigExtractor() {
+            return new AgentConfigExtractor();
+        }
+
+        @Bean
+        AgentConfigRegistry agentConfigRegistry(ObjectProvider<RepositoryService> rs, AgentConfigExtractor ext) {
             return new AgentConfigRegistry(rs, ext);
         }
     }
 
     @Configuration
     static class CustomCatalogueBuilderOverride {
-        @Bean RepositoryServiceImpl repositoryService() { return mock(RepositoryServiceImpl.class); }
-        @Bean RuntimeService runtimeService() { return mock(RuntimeService.class); }
-        @Bean AgentConfigExtractor agentConfigExtractor() { return new AgentConfigExtractor(); }
-        @Bean AgentConfigRegistry agentConfigRegistry(RepositoryService rs, AgentConfigExtractor ext) {
+        @Bean
+        RepositoryServiceImpl repositoryService() {
+            return mock(RepositoryServiceImpl.class);
+        }
+
+        @Bean
+        RuntimeService runtimeService() {
+            return mock(RuntimeService.class);
+        }
+
+        @Bean
+        AgentConfigExtractor agentConfigExtractor() {
+            return new AgentConfigExtractor();
+        }
+
+        @Bean
+        AgentConfigRegistry agentConfigRegistry(ObjectProvider<RepositoryService> rs, AgentConfigExtractor ext) {
             return new AgentConfigRegistry(rs, ext);
         }
-        @Bean AgentToolCatalogueBuilder agentToolCatalogueBuilder() {
+
+        @Bean
+        AgentToolCatalogueBuilder agentToolCatalogueBuilder() {
             return mock(AgentToolCatalogueBuilder.class);
         }
     }
 
     @Configuration
     static class CustomContextSpecBuilderOverride {
-        @Bean RepositoryServiceImpl repositoryService() { return mock(RepositoryServiceImpl.class); }
-        @Bean RuntimeService runtimeService() { return mock(RuntimeService.class); }
-        @Bean AgentConfigExtractor agentConfigExtractor() { return new AgentConfigExtractor(); }
-        @Bean AgentConfigRegistry agentConfigRegistry(RepositoryService rs, AgentConfigExtractor ext) {
+        @Bean
+        RepositoryServiceImpl repositoryService() {
+            return mock(RepositoryServiceImpl.class);
+        }
+
+        @Bean
+        RuntimeService runtimeService() {
+            return mock(RuntimeService.class);
+        }
+
+        @Bean
+        AgentConfigExtractor agentConfigExtractor() {
+            return new AgentConfigExtractor();
+        }
+
+        @Bean
+        AgentConfigRegistry agentConfigRegistry(ObjectProvider<RepositoryService> rs, AgentConfigExtractor ext) {
             return new AgentConfigRegistry(rs, ext);
         }
-        @Bean AgentContextSpecBuilder agentContextSpecExtractor() {
+
+        @Bean
+        AgentContextSpecBuilder agentContextSpecExtractor() {
             return mock(AgentContextSpecBuilder.class);
         }
     }

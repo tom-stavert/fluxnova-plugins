@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.ObjectProvider;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
@@ -52,11 +53,15 @@ class AgentConfigRegistryTest {
     @Mock
     private RepositoryService repositoryService;
 
+    @Mock
+    private ObjectProvider<RepositoryService> repositoryServiceProvider;
+
     private AgentConfigRegistry registry;
 
     @BeforeEach
     void setUp() {
-        registry = new AgentConfigRegistry(repositoryService, new AgentConfigExtractor());
+        lenient().when(repositoryServiceProvider.getObject()).thenReturn(repositoryService);
+        registry = new AgentConfigRegistry(repositoryServiceProvider, new AgentConfigExtractor());
     }
 
     @Test
@@ -82,7 +87,7 @@ class AgentConfigRegistryTest {
         assertEquals(ELEMENT_ID, config.elementId());
         assertEquals("ollama", config.provider());
         assertEquals("llama3.1", config.model());
-                assertEquals(ELEMENT_ID, config.toolScopeElementId());
+        assertEquals(ELEMENT_ID, config.toolScopeElementId());
     }
 
     @Test
