@@ -25,10 +25,6 @@ class AgentConfigAutoConfigurationTest {
 
     @Configuration
     static class MockInfrastructure {
-        @Bean
-        RepositoryService repositoryService() {
-            return mock(RepositoryService.class);
-        }
     }
 
     @Test

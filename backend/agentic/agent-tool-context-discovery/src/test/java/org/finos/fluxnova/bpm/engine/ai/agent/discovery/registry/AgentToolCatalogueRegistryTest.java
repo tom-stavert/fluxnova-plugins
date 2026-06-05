@@ -17,7 +17,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.ObjectProvider;
 
 import java.util.List;
 import java.util.Optional;
@@ -37,9 +36,6 @@ class AgentToolCatalogueRegistryTest {
     private RepositoryService repositoryService;
 
     @Mock
-    private ObjectProvider<RepositoryService> repositoryServiceProvider;
-
-    @Mock
     private AgentConfigRegistry agentConfigRegistry;
 
     @Mock
@@ -49,8 +45,7 @@ class AgentToolCatalogueRegistryTest {
 
     @BeforeEach
     void setUp() {
-        lenient().when(repositoryServiceProvider.getObject()).thenReturn(repositoryService);
-        registry = new AgentToolCatalogueRegistry(repositoryServiceProvider, agentConfigRegistry, catalogueBuilder);
+        registry = new AgentToolCatalogueRegistry(agentConfigRegistry, catalogueBuilder);
     }
 
     private AgentConfig config() {
@@ -79,9 +74,9 @@ class AgentToolCatalogueRegistryTest {
 
         @Test
         void resolve_whenNoAgentConfig_returnsEmpty() {
-            when(agentConfigRegistry.resolve(PROC_DEF_ID, AGENT_ELEMENT_ID)).thenReturn(Optional.empty());
+            when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, AGENT_ELEMENT_ID)).thenReturn(Optional.empty());
 
-            Optional<AgentToolCatalogue> result = registry.resolve(PROC_DEF_ID, AGENT_ELEMENT_ID);
+            Optional<AgentToolCatalogue> result = registry.resolve(repositoryService, PROC_DEF_ID, AGENT_ELEMENT_ID);
 
             assertTrue(result.isEmpty());
             verifyNoInteractions(repositoryService);
@@ -93,13 +88,13 @@ class AgentToolCatalogueRegistryTest {
 
         @Test
         void resolve_whenAgentConfigExists_returnsBuilderResult() {
-            when(agentConfigRegistry.resolve(PROC_DEF_ID, AGENT_ELEMENT_ID)).thenReturn(Optional.of(config()));
+            when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, AGENT_ELEMENT_ID)).thenReturn(Optional.of(config()));
             ProcessDefinitionEntity procDef = procDefWithScope(TOOL_SCOPE_ID);
             when(repositoryService.getProcessDefinition(PROC_DEF_ID)).thenReturn(procDef);
             AgentToolCatalogue expected = catalogue();
             when(catalogueBuilder.build(any(ActivityImpl.class))).thenReturn(expected);
 
-            Optional<AgentToolCatalogue> result = registry.resolve(PROC_DEF_ID, AGENT_ELEMENT_ID);
+            Optional<AgentToolCatalogue> result = registry.resolve(repositoryService, PROC_DEF_ID, AGENT_ELEMENT_ID);
 
             assertTrue(result.isPresent());
             assertEquals(expected, result.get());
@@ -111,21 +106,21 @@ class AgentToolCatalogueRegistryTest {
 
         @Test
         void resolve_whenNotFoundException_returnsEmpty() {
-            when(agentConfigRegistry.resolve(PROC_DEF_ID, AGENT_ELEMENT_ID)).thenReturn(Optional.of(config()));
+            when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, AGENT_ELEMENT_ID)).thenReturn(Optional.of(config()));
             when(repositoryService.getProcessDefinition(PROC_DEF_ID))
                     .thenThrow(new NotFoundException("not found"));
 
-            assertTrue(registry.resolve(PROC_DEF_ID, AGENT_ELEMENT_ID).isEmpty());
+            assertTrue(registry.resolve(repositoryService, PROC_DEF_ID, AGENT_ELEMENT_ID).isEmpty());
         }
 
         @Test
         void resolve_whenIncorrectType_returnsEmpty() {
-            when(agentConfigRegistry.resolve(PROC_DEF_ID, AGENT_ELEMENT_ID)).thenReturn(Optional.of(config()));
+            when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, AGENT_ELEMENT_ID)).thenReturn(Optional.of(config()));
             ProcessDefinition processDefinition = mock(ProcessDefinition.class);
             when(repositoryService.getProcessDefinition(PROC_DEF_ID))
                     .thenReturn(processDefinition);
 
-            assertTrue(registry.resolve(PROC_DEF_ID, AGENT_ELEMENT_ID).isEmpty());
+            assertTrue(registry.resolve(repositoryService, PROC_DEF_ID, AGENT_ELEMENT_ID).isEmpty());
         }
     }
 
@@ -134,11 +129,11 @@ class AgentToolCatalogueRegistryTest {
 
         @Test
         void resolve_whenAuthorizationException_returnsEmpty() {
-            when(agentConfigRegistry.resolve(PROC_DEF_ID, AGENT_ELEMENT_ID)).thenReturn(Optional.of(config()));
+            when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, AGENT_ELEMENT_ID)).thenReturn(Optional.of(config()));
             when(repositoryService.getProcessDefinition(PROC_DEF_ID))
                     .thenThrow(new AuthorizationException("denied"));
 
-            assertTrue(registry.resolve(PROC_DEF_ID, AGENT_ELEMENT_ID).isEmpty());
+            assertTrue(registry.resolve(repositoryService, PROC_DEF_ID, AGENT_ELEMENT_ID).isEmpty());
         }
     }
 
@@ -147,12 +142,12 @@ class AgentToolCatalogueRegistryTest {
 
         @Test
         void resolve_whenScopeActivityNotFound_returnsEmpty() {
-            when(agentConfigRegistry.resolve(PROC_DEF_ID, AGENT_ELEMENT_ID)).thenReturn(Optional.of(config()));
+            when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, AGENT_ELEMENT_ID)).thenReturn(Optional.of(config()));
             ProcessDefinitionEntity procDef = new ProcessDefinitionEntity(); // no activities
             procDef.setId(PROC_DEF_ID);
             when(repositoryService.getProcessDefinition(PROC_DEF_ID)).thenReturn(procDef);
 
-            assertTrue(registry.resolve(PROC_DEF_ID, AGENT_ELEMENT_ID).isEmpty());
+            assertTrue(registry.resolve(repositoryService, PROC_DEF_ID, AGENT_ELEMENT_ID).isEmpty());
             verifyNoInteractions(catalogueBuilder);
         }
     }
@@ -162,12 +157,12 @@ class AgentToolCatalogueRegistryTest {
 
         @Test
         void resolve_passesCorrectActivityImplToBuilder() {
-            when(agentConfigRegistry.resolve(PROC_DEF_ID, AGENT_ELEMENT_ID)).thenReturn(Optional.of(config()));
+            when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, AGENT_ELEMENT_ID)).thenReturn(Optional.of(config()));
             ProcessDefinitionEntity procDef = procDefWithScope(TOOL_SCOPE_ID);
             when(repositoryService.getProcessDefinition(PROC_DEF_ID)).thenReturn(procDef);
             when(catalogueBuilder.build(any(ActivityImpl.class))).thenReturn(catalogue());
 
-            registry.resolve(PROC_DEF_ID, AGENT_ELEMENT_ID);
+            registry.resolve(repositoryService, PROC_DEF_ID, AGENT_ELEMENT_ID);
 
             verify(catalogueBuilder).build(argThat(activity ->
                     TOOL_SCOPE_ID.equals(activity.getId())));
@@ -179,65 +174,65 @@ class AgentToolCatalogueRegistryTest {
 
         @Test
         void resolve_calledTwice_scansOnlyOnce() {
-            when(agentConfigRegistry.resolve(PROC_DEF_ID, AGENT_ELEMENT_ID)).thenReturn(Optional.of(config()));
+            when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, AGENT_ELEMENT_ID)).thenReturn(Optional.of(config()));
             ProcessDefinitionEntity procDef = procDefWithScope(TOOL_SCOPE_ID);
             when(repositoryService.getProcessDefinition(PROC_DEF_ID)).thenReturn(procDef);
             when(catalogueBuilder.build(any(ActivityImpl.class))).thenReturn(catalogue());
 
-            registry.resolve(PROC_DEF_ID, AGENT_ELEMENT_ID);
-            registry.resolve(PROC_DEF_ID, AGENT_ELEMENT_ID);
+            registry.resolve(repositoryService, PROC_DEF_ID, AGENT_ELEMENT_ID);
+            registry.resolve(repositoryService, PROC_DEF_ID, AGENT_ELEMENT_ID);
 
             verify(catalogueBuilder, times(1)).build(any());
         }
 
         @Test
         void resolve_unregisterAll_clearsCache() {
-            when(agentConfigRegistry.resolve(PROC_DEF_ID, AGENT_ELEMENT_ID)).thenReturn(Optional.of(config()));
+            when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, AGENT_ELEMENT_ID)).thenReturn(Optional.of(config()));
             ProcessDefinitionEntity procDef = procDefWithScope(TOOL_SCOPE_ID);
             when(repositoryService.getProcessDefinition(PROC_DEF_ID)).thenReturn(procDef);
             when(catalogueBuilder.build(any(ActivityImpl.class))).thenReturn(catalogue());
 
-            registry.resolve(PROC_DEF_ID, AGENT_ELEMENT_ID);
+            registry.resolve(repositoryService, PROC_DEF_ID, AGENT_ELEMENT_ID);
             registry.unregisterAll();
 
-            when(agentConfigRegistry.resolve(PROC_DEF_ID, AGENT_ELEMENT_ID)).thenReturn(Optional.empty());
-            assertTrue(registry.resolve(PROC_DEF_ID, AGENT_ELEMENT_ID).isEmpty());
+            when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, AGENT_ELEMENT_ID)).thenReturn(Optional.empty());
+            assertTrue(registry.resolve(repositoryService, PROC_DEF_ID, AGENT_ELEMENT_ID).isEmpty());
         }
 
         @Test
         void resolve_afterUnregisterAll_rescans() {
-            when(agentConfigRegistry.resolve(PROC_DEF_ID, AGENT_ELEMENT_ID)).thenReturn(Optional.of(config()));
+            when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, AGENT_ELEMENT_ID)).thenReturn(Optional.of(config()));
             ProcessDefinitionEntity procDef = procDefWithScope(TOOL_SCOPE_ID);
             when(repositoryService.getProcessDefinition(PROC_DEF_ID)).thenReturn(procDef);
             when(catalogueBuilder.build(any(ActivityImpl.class))).thenReturn(catalogue());
 
-            registry.resolve(PROC_DEF_ID, AGENT_ELEMENT_ID);
+            registry.resolve(repositoryService, PROC_DEF_ID, AGENT_ELEMENT_ID);
             registry.unregisterAll();
 
-            registry.resolve(PROC_DEF_ID, AGENT_ELEMENT_ID);
+            registry.resolve(repositoryService, PROC_DEF_ID, AGENT_ELEMENT_ID);
 
             verify(catalogueBuilder, times(2)).build(any());
         }
 
         @Test
         void resolve_whenNoAgentConfig_isCached_doesNotRescanOnSecondCall() {
-            when(agentConfigRegistry.resolve(PROC_DEF_ID, AGENT_ELEMENT_ID)).thenReturn(Optional.empty());
+            when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, AGENT_ELEMENT_ID)).thenReturn(Optional.empty());
 
-            registry.resolve(PROC_DEF_ID, AGENT_ELEMENT_ID);
-            registry.resolve(PROC_DEF_ID, AGENT_ELEMENT_ID);
+            registry.resolve(repositoryService, PROC_DEF_ID, AGENT_ELEMENT_ID);
+            registry.resolve(repositoryService, PROC_DEF_ID, AGENT_ELEMENT_ID);
 
-            verify(agentConfigRegistry, times(1)).resolve(PROC_DEF_ID, AGENT_ELEMENT_ID);
+            verify(agentConfigRegistry, times(1)).resolve(repositoryService, PROC_DEF_ID, AGENT_ELEMENT_ID);
         }
 
         @Test
         void resolve_whenScopeActivityNotFound_isCached_doesNotRescanOnSecondCall() {
-            when(agentConfigRegistry.resolve(PROC_DEF_ID, AGENT_ELEMENT_ID)).thenReturn(Optional.of(config()));
+            when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, AGENT_ELEMENT_ID)).thenReturn(Optional.of(config()));
             ProcessDefinitionEntity procDef = new ProcessDefinitionEntity(); // no activities
             procDef.setId(PROC_DEF_ID);
             when(repositoryService.getProcessDefinition(PROC_DEF_ID)).thenReturn(procDef);
 
-            registry.resolve(PROC_DEF_ID, AGENT_ELEMENT_ID);
-            registry.resolve(PROC_DEF_ID, AGENT_ELEMENT_ID);
+            registry.resolve(repositoryService, PROC_DEF_ID, AGENT_ELEMENT_ID);
+            registry.resolve(repositoryService, PROC_DEF_ID, AGENT_ELEMENT_ID);
 
             verify(repositoryService, times(1)).getProcessDefinition(PROC_DEF_ID);
         }
@@ -257,15 +252,15 @@ class AgentToolCatalogueRegistryTest {
             AgentConfig configB = new AgentConfig(PROC_DEF_ID, agentB, "anthropic", "claude-sonnet-4-6",
                     "prompt B", sharedScope);
 
-            when(agentConfigRegistry.resolve(PROC_DEF_ID, agentA)).thenReturn(Optional.of(configA));
-            when(agentConfigRegistry.resolve(PROC_DEF_ID, agentB)).thenReturn(Optional.of(configB));
+            when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, agentA)).thenReturn(Optional.of(configA));
+            when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, agentB)).thenReturn(Optional.of(configB));
             ProcessDefinitionEntity procDef = procDefWithScope(sharedScope);
             when(repositoryService.getProcessDefinition(PROC_DEF_ID)).thenReturn(procDef);
             AgentToolCatalogue expected = new AgentToolCatalogue(PROC_DEF_ID, sharedScope, List.of());
             when(catalogueBuilder.build(any(ActivityImpl.class))).thenReturn(expected);
 
-            Optional<AgentToolCatalogue> resultA = registry.resolve(PROC_DEF_ID, agentA);
-            Optional<AgentToolCatalogue> resultB = registry.resolve(PROC_DEF_ID, agentB);
+            Optional<AgentToolCatalogue> resultA = registry.resolve(repositoryService, PROC_DEF_ID, agentA);
+            Optional<AgentToolCatalogue> resultB = registry.resolve(repositoryService, PROC_DEF_ID, agentB);
 
             assertTrue(resultA.isPresent());
             assertTrue(resultB.isPresent());
@@ -285,8 +280,8 @@ class AgentToolCatalogueRegistryTest {
             AgentConfig configB = new AgentConfig(PROC_DEF_ID, agentB, "anthropic", "claude-sonnet-4-6",
                     "prompt B", scopeB);
 
-            when(agentConfigRegistry.resolve(PROC_DEF_ID, agentA)).thenReturn(Optional.of(configA));
-            when(agentConfigRegistry.resolve(PROC_DEF_ID, agentB)).thenReturn(Optional.of(configB));
+            when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, agentA)).thenReturn(Optional.of(configA));
+            when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, agentB)).thenReturn(Optional.of(configB));
             ProcessDefinitionEntity procDef = new ProcessDefinitionEntity();
             procDef.setId(PROC_DEF_ID);
             procDef.createActivity(scopeA);
@@ -298,8 +293,8 @@ class AgentToolCatalogueRegistryTest {
             when(catalogueBuilder.build(argThat(a -> a != null && scopeA.equals(a.getId())))).thenReturn(catA);
             when(catalogueBuilder.build(argThat(a -> a != null && scopeB.equals(a.getId())))).thenReturn(catB);
 
-            Optional<AgentToolCatalogue> resultA = registry.resolve(PROC_DEF_ID, agentA);
-            Optional<AgentToolCatalogue> resultB = registry.resolve(PROC_DEF_ID, agentB);
+            Optional<AgentToolCatalogue> resultA = registry.resolve(repositoryService, PROC_DEF_ID, agentA);
+            Optional<AgentToolCatalogue> resultB = registry.resolve(repositoryService, PROC_DEF_ID, agentB);
 
             assertTrue(resultA.isPresent());
             assertTrue(resultB.isPresent());

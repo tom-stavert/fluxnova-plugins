@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.ObjectProvider;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
@@ -53,15 +52,11 @@ class AgentConfigRegistryTest {
     @Mock
     private RepositoryService repositoryService;
 
-    @Mock
-    private ObjectProvider<RepositoryService> repositoryServiceProvider;
-
     private AgentConfigRegistry registry;
 
     @BeforeEach
     void setUp() {
-        lenient().when(repositoryServiceProvider.getObject()).thenReturn(repositoryService);
-        registry = new AgentConfigRegistry(repositoryServiceProvider, new AgentConfigExtractor());
+        registry = new AgentConfigRegistry(new AgentConfigExtractor());
     }
 
     @Test
@@ -69,7 +64,7 @@ class AgentConfigRegistryTest {
         when(repositoryService.getProcessModel(PROC_DEF_ID))
                 .thenReturn(new ByteArrayInputStream(BPMN_WITHOUT_AGENT.getBytes(StandardCharsets.UTF_8)));
 
-        Optional<AgentConfig> result = registry.resolve(PROC_DEF_ID, ELEMENT_ID);
+        Optional<AgentConfig> result = registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID);
 
         assertTrue(result.isEmpty());
     }
@@ -79,7 +74,7 @@ class AgentConfigRegistryTest {
         when(repositoryService.getProcessModel(PROC_DEF_ID))
                 .thenReturn(new ByteArrayInputStream(BPMN_WITH_AGENT.getBytes(StandardCharsets.UTF_8)));
 
-        Optional<AgentConfig> result = registry.resolve(PROC_DEF_ID, ELEMENT_ID);
+        Optional<AgentConfig> result = registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID);
 
         assertTrue(result.isPresent());
         AgentConfig config = result.get();
@@ -87,7 +82,7 @@ class AgentConfigRegistryTest {
         assertEquals(ELEMENT_ID, config.elementId());
         assertEquals("ollama", config.provider());
         assertEquals("llama3.1", config.model());
-        assertEquals(ELEMENT_ID, config.toolScopeElementId());
+                assertEquals(ELEMENT_ID, config.toolScopeElementId());
     }
 
     @Test
@@ -95,8 +90,8 @@ class AgentConfigRegistryTest {
         when(repositoryService.getProcessModel(PROC_DEF_ID))
                 .thenReturn(new ByteArrayInputStream(BPMN_WITH_AGENT.getBytes(StandardCharsets.UTF_8)));
 
-        registry.resolve(PROC_DEF_ID, ELEMENT_ID);
-        registry.resolve(PROC_DEF_ID, ELEMENT_ID);
+        registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID);
+        registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID);
 
         verify(repositoryService, times(1)).getProcessModel(PROC_DEF_ID);
     }
@@ -106,14 +101,14 @@ class AgentConfigRegistryTest {
         when(repositoryService.getProcessModel(PROC_DEF_ID))
                 .thenReturn(new ByteArrayInputStream(BPMN_WITH_AGENT.getBytes(StandardCharsets.UTF_8)));
 
-        registry.resolve(PROC_DEF_ID, ELEMENT_ID);
+        registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID);
         registry.unregisterAll();
 
         // registry has been cleared — resolve returns empty without a second scan source
         when(repositoryService.getProcessModel(PROC_DEF_ID))
                 .thenReturn(new ByteArrayInputStream(BPMN_WITHOUT_AGENT.getBytes(StandardCharsets.UTF_8)));
 
-        Optional<AgentConfig> result = registry.resolve(PROC_DEF_ID, ELEMENT_ID);
+        Optional<AgentConfig> result = registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID);
         assertTrue(result.isEmpty());
     }
 
@@ -121,13 +116,13 @@ class AgentConfigRegistryTest {
     void resolve_afterUnregisterAll_rescansDefinition() throws Exception {
         when(repositoryService.getProcessModel(PROC_DEF_ID))
                 .thenReturn(new ByteArrayInputStream(BPMN_WITH_AGENT.getBytes(StandardCharsets.UTF_8)));
-        registry.resolve(PROC_DEF_ID, ELEMENT_ID);
+        registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID);
 
         registry.unregisterAll();
 
         when(repositoryService.getProcessModel(PROC_DEF_ID))
                 .thenReturn(new ByteArrayInputStream(BPMN_WITH_AGENT.getBytes(StandardCharsets.UTF_8)));
-        registry.resolve(PROC_DEF_ID, ELEMENT_ID);
+        registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID);
 
         verify(repositoryService, times(2)).getProcessModel(PROC_DEF_ID);
     }
@@ -139,10 +134,10 @@ class AgentConfigRegistryTest {
                 .thenReturn(new ByteArrayInputStream(BPMN_WITH_AGENT.getBytes(StandardCharsets.UTF_8)));
 
         // First call fails — exception propagates
-        assertThrows(RuntimeException.class, () -> registry.resolve(PROC_DEF_ID, ELEMENT_ID));
+        assertThrows(RuntimeException.class, () -> registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID));
 
         // Second call should retry and succeed (not permanently marked as scanned)
-        Optional<AgentConfig> second = registry.resolve(PROC_DEF_ID, ELEMENT_ID);
+        Optional<AgentConfig> second = registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID);
         assertTrue(second.isPresent());
         assertEquals("ollama", second.get().provider());
 
@@ -154,7 +149,7 @@ class AgentConfigRegistryTest {
         when(repositoryService.getProcessModel(PROC_DEF_ID))
                 .thenThrow(new NotFoundException("not found"));
 
-        assertThrows(NotFoundException.class, () -> registry.resolve(PROC_DEF_ID, ELEMENT_ID));
+        assertThrows(NotFoundException.class, () -> registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID));
     }
 
     @Test
@@ -162,7 +157,7 @@ class AgentConfigRegistryTest {
         when(repositoryService.getProcessModel(PROC_DEF_ID))
                 .thenThrow(new AuthorizationException("forbidden"));
 
-        assertThrows(AuthorizationException.class, () -> registry.resolve(PROC_DEF_ID, ELEMENT_ID));
+        assertThrows(AuthorizationException.class, () -> registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID));
     }
 
     @Test
@@ -170,7 +165,7 @@ class AgentConfigRegistryTest {
         when(repositoryService.getProcessModel(PROC_DEF_ID))
                 .thenThrow(new RuntimeException("unexpected"));
 
-        assertThrows(RuntimeException.class, () -> registry.resolve(PROC_DEF_ID, ELEMENT_ID));
+        assertThrows(RuntimeException.class, () -> registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID));
     }
 
 }

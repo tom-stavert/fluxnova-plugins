@@ -7,7 +7,6 @@ import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.AgentToolEntry;
 import org.finos.fluxnova.bpm.engine.shared.model.ToolCallRequest;
 import org.finos.fluxnova.bpm.engine.shared.model.ToolInvocationResult;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.ObjectProvider;
 
 import java.util.List;
 import java.util.Map;
@@ -19,13 +18,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 class AdHocActivityToolInvocationServiceImplTest {
-
-    @SuppressWarnings("unchecked")
-    private static ObjectProvider<RuntimeService> providerOf(RuntimeService svc) {
-        ObjectProvider<RuntimeService> provider = (ObjectProvider<RuntimeService>) org.mockito.Mockito.mock(ObjectProvider.class);
-        org.mockito.Mockito.when(provider.getObject()).thenReturn(svc);
-        return provider;
-    }
 
     @Test
     void invoke_withValidToolId_returnsSuccessAndCallsTool() {
@@ -42,11 +34,11 @@ class AdHocActivityToolInvocationServiceImplTest {
         ToolCallRequest request = new ToolCallRequest(toolCallId, toolId);
 
         RuntimeService runtimeService = mock(RuntimeService.class);
-        ToolInvocationService toolInvocationService = new AdHocActivityToolInvocationServiceImpl(providerOf(runtimeService));
+        ToolInvocationService toolInvocationService = new AdHocActivityToolInvocationServiceImpl();
 
         ToolInvocationResult expectedResult = ToolInvocationResult.success(toolCallId);
 
-        ToolInvocationResult result = toolInvocationService.invoke(scopeExecutionId, catalogue, request);
+        ToolInvocationResult result = toolInvocationService.invoke(runtimeService, scopeExecutionId, catalogue, request);
 
         assertEquals(expectedResult, result);
         verify(runtimeService).triggerAdHocActivities(
@@ -70,11 +62,11 @@ class AdHocActivityToolInvocationServiceImplTest {
         ToolCallRequest request = new ToolCallRequest(toolCallId, toolId);
 
         RuntimeService runtimeService = mock(RuntimeService.class);
-        ToolInvocationService toolInvocationService = new AdHocActivityToolInvocationServiceImpl(providerOf(runtimeService));
+        ToolInvocationService toolInvocationService = new AdHocActivityToolInvocationServiceImpl();
 
         ToolInvocationResult expectedResult = ToolInvocationResult.failure(toolCallId, "Unknown tool: " + toolId);
 
-        ToolInvocationResult result = toolInvocationService.invoke(scopeExecutionId, catalogue, request);
+        ToolInvocationResult result = toolInvocationService.invoke(runtimeService, scopeExecutionId, catalogue, request);
 
         assertEquals(expectedResult, result);
     }
@@ -95,11 +87,11 @@ class AdHocActivityToolInvocationServiceImplTest {
         ToolCallRequest request = new ToolCallRequest(toolCallId, toolId);
 
         RuntimeService runtimeService = mock(RuntimeService.class);
-        ToolInvocationService toolInvocationService = new AdHocActivityToolInvocationServiceImpl(providerOf(runtimeService));
+        ToolInvocationService toolInvocationService = new AdHocActivityToolInvocationServiceImpl();
 
         ToolInvocationResult expectedResult = ToolInvocationResult.failure(toolCallId, "Unknown tool: " + toolId);
 
-        ToolInvocationResult result = toolInvocationService.invoke(scopeExecutionId, catalogue, request);
+        ToolInvocationResult result = toolInvocationService.invoke(runtimeService, scopeExecutionId, catalogue, request);
 
         assertEquals(expectedResult, result);
     }
@@ -121,11 +113,11 @@ class AdHocActivityToolInvocationServiceImplTest {
         RuntimeService runtimeService = mock(RuntimeService.class);
         String errorMessage = "Bad user request exception";
         doThrow(new BadUserRequestException(errorMessage)).when(runtimeService).triggerAdHocActivities(any(), any(), any());
-        ToolInvocationService toolInvocationService = new AdHocActivityToolInvocationServiceImpl(providerOf(runtimeService));
+        ToolInvocationService toolInvocationService = new AdHocActivityToolInvocationServiceImpl();
 
         ToolInvocationResult expectedResult = ToolInvocationResult.failure(toolCallId, errorMessage);
 
-        ToolInvocationResult result = toolInvocationService.invoke(scopeExecutionId, catalogue, request);
+        ToolInvocationResult result = toolInvocationService.invoke(runtimeService, scopeExecutionId, catalogue, request);
 
         assertEquals(expectedResult, result);
     }

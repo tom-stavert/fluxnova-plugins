@@ -1,7 +1,5 @@
 package org.finos.fluxnova.bpm.engine.ai.agent.discovery.autoconfigure;
 
-import org.finos.fluxnova.bpm.engine.RepositoryService;
-import org.finos.fluxnova.bpm.engine.RuntimeService;
 import org.finos.fluxnova.bpm.engine.ai.agent.autoconfigure.AgentConfigAutoConfiguration;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.extract.AdHocSubProcessCatalogueBuilder;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.extract.AgentContextSpecBuilder;
@@ -12,14 +10,11 @@ import org.finos.fluxnova.bpm.engine.ai.agent.discovery.registry.AgentContextSpe
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.registry.AgentToolCatalogueRegistry;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.runtime.AgentContextResolver;
 import org.finos.fluxnova.bpm.engine.ai.agent.registry.AgentConfigRegistry;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 
 @AutoConfiguration(after = AgentConfigAutoConfiguration.class)
-@ConditionalOnBean(RepositoryService.class)
 public class AgentDiscoveryAutoConfiguration {
 
     @Bean
@@ -36,24 +31,22 @@ public class AgentDiscoveryAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public AgentToolCatalogueRegistry agentToolCatalogueRegistry(ObjectProvider<RepositoryService> repositoryService,
-                                                                 AgentConfigRegistry agentConfigRegistry,
-                                                                 AgentToolCatalogueBuilder catalogueBuilder) {
-        return new AgentToolCatalogueRegistry(repositoryService, agentConfigRegistry, catalogueBuilder);
+    public AgentToolCatalogueRegistry agentToolCatalogueRegistry(AgentConfigRegistry agentConfigRegistry,
+                                                                  AgentToolCatalogueBuilder catalogueBuilder) {
+        return new AgentToolCatalogueRegistry(agentConfigRegistry, catalogueBuilder);
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public AgentContextSpecRegistry agentContextSpecRegistry(ObjectProvider<RepositoryService> repositoryService,
-                                                             AgentConfigRegistry agentConfigRegistry,
-                                                             AgentContextSpecBuilder extractor) {
-        return new AgentContextSpecRegistry(repositoryService, agentConfigRegistry, extractor);
+    public AgentContextSpecRegistry agentContextSpecRegistry(AgentConfigRegistry agentConfigRegistry,
+                                                              AgentContextSpecBuilder extractor) {
+        return new AgentContextSpecRegistry(agentConfigRegistry, extractor);
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public AgentContextResolver agentContextResolver(ObjectProvider<RuntimeService> runtimeService) {
-        return new AgentContextResolver(runtimeService);
+    public AgentContextResolver agentContextResolver() {
+        return new AgentContextResolver();
     }
 
     @Bean

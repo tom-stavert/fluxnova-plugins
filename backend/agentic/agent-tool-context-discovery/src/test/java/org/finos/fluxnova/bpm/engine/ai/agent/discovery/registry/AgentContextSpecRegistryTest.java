@@ -14,7 +14,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.ObjectProvider;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -46,9 +45,6 @@ class AgentContextSpecRegistryTest {
     private RepositoryService repositoryService;
 
     @Mock
-    private ObjectProvider<RepositoryService> repositoryServiceProvider;
-
-    @Mock
     private AgentConfigRegistry agentConfigRegistry;
 
     @Mock
@@ -58,8 +54,7 @@ class AgentContextSpecRegistryTest {
 
     @BeforeEach
     void setUp() {
-        lenient().when(repositoryServiceProvider.getObject()).thenReturn(repositoryService);
-        registry = new AgentContextSpecRegistry(repositoryServiceProvider, agentConfigRegistry, builder);
+        registry = new AgentContextSpecRegistry(agentConfigRegistry, builder);
     }
 
     private AgentConfig config() {
@@ -73,9 +68,9 @@ class AgentContextSpecRegistryTest {
 
     @Test
     void resolve_whenNoAgentConfig_returnsEmpty() {
-        when(agentConfigRegistry.resolve(PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.empty());
+        when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.empty());
 
-        Optional<AgentContextSpec> result = registry.resolve(PROC_DEF_ID, ELEMENT_ID);
+        Optional<AgentContextSpec> result = registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID);
 
         assertTrue(result.isEmpty());
         verifyNoInteractions(repositoryService);
@@ -83,11 +78,11 @@ class AgentContextSpecRegistryTest {
 
     @Test
     void resolve_whenAgentConfigExists_returnsBuilderResult() {
-        when(agentConfigRegistry.resolve(PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.of(config()));
+        when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.of(config()));
         when(repositoryService.getProcessModel(PROC_DEF_ID)).thenReturn(bpmnStream());
         when(builder.build(any(Element.class), eq(PROC_DEF_ID))).thenReturn(SENTINEL);
 
-        Optional<AgentContextSpec> result = registry.resolve(PROC_DEF_ID, ELEMENT_ID);
+        Optional<AgentContextSpec> result = registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID);
 
         assertTrue(result.isPresent());
         assertEquals(SENTINEL, result.get());
@@ -95,40 +90,40 @@ class AgentContextSpecRegistryTest {
 
     @Test
     void resolve_calledTwice_scansOnlyOnce() {
-        when(agentConfigRegistry.resolve(PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.of(config()));
+        when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.of(config()));
         when(repositoryService.getProcessModel(PROC_DEF_ID)).thenReturn(bpmnStream());
         when(builder.build(any(Element.class), eq(PROC_DEF_ID))).thenReturn(SENTINEL);
 
-        registry.resolve(PROC_DEF_ID, ELEMENT_ID);
-        registry.resolve(PROC_DEF_ID, ELEMENT_ID);
+        registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID);
+        registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID);
 
         verify(repositoryService, times(1)).getProcessModel(PROC_DEF_ID);
     }
 
     @Test
     void resolve_unregisterAll_clearsCache() {
-        when(agentConfigRegistry.resolve(PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.of(config()));
+        when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.of(config()));
         when(repositoryService.getProcessModel(PROC_DEF_ID)).thenReturn(bpmnStream());
         when(builder.build(any(Element.class), eq(PROC_DEF_ID))).thenReturn(SENTINEL);
 
-        registry.resolve(PROC_DEF_ID, ELEMENT_ID);
+        registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID);
         registry.unregisterAll();
 
-        when(agentConfigRegistry.resolve(PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.empty());
-        assertTrue(registry.resolve(PROC_DEF_ID, ELEMENT_ID).isEmpty());
+        when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.empty());
+        assertTrue(registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID).isEmpty());
     }
 
     @Test
     void resolve_afterUnregisterAll_rescans() {
-        when(agentConfigRegistry.resolve(PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.of(config()));
+        when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.of(config()));
         when(repositoryService.getProcessModel(PROC_DEF_ID)).thenReturn(bpmnStream());
         when(builder.build(any(Element.class), eq(PROC_DEF_ID))).thenReturn(SENTINEL);
 
-        registry.resolve(PROC_DEF_ID, ELEMENT_ID);
+        registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID);
         registry.unregisterAll();
 
         when(repositoryService.getProcessModel(PROC_DEF_ID)).thenReturn(bpmnStream());
-        registry.resolve(PROC_DEF_ID, ELEMENT_ID);
+        registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID);
 
         verify(repositoryService, times(2)).getProcessModel(PROC_DEF_ID);
     }
@@ -137,39 +132,38 @@ class AgentContextSpecRegistryTest {
     void resolve_whenToolScopeElementNotFound_returnsEmpty() {
         AgentConfig configWithMissingScope = new AgentConfig(PROC_DEF_ID, ELEMENT_ID,
                 "anthropic", "claude-sonnet-4-6", "prompt", "nonExistentScope");
-        when(agentConfigRegistry.resolve(PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.of(configWithMissingScope));
+        when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.of(configWithMissingScope));
         when(repositoryService.getProcessModel(PROC_DEF_ID)).thenReturn(bpmnStream());
 
-        assertTrue(registry.resolve(PROC_DEF_ID, ELEMENT_ID).isEmpty());
+        assertTrue(registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID).isEmpty());
         verifyNoInteractions(builder);
     }
 
     @Test
     void resolve_whenGetProcessModelReturnsNull_returnsEmpty() {
-        when(agentConfigRegistry.resolve(PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.of(config()));
+        when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.of(config()));
         when(repositoryService.getProcessModel(PROC_DEF_ID)).thenReturn(null);
 
-        assertTrue(registry.resolve(PROC_DEF_ID, ELEMENT_ID).isEmpty());
+        assertTrue(registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID).isEmpty());
     }
 
     @Test
     void resolve_whenBuilderThrowsProcessEngineException_propagates() {
-        when(agentConfigRegistry.resolve(PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.of(config()));
+        when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.of(config()));
         when(repositoryService.getProcessModel(PROC_DEF_ID)).thenReturn(bpmnStream());
         when(builder.build(any(Element.class), eq(PROC_DEF_ID)))
                 .thenThrow(new ProcessEngineException("invalid config"));
 
         assertThrows(ProcessEngineException.class,
-                () -> registry.resolve(PROC_DEF_ID, ELEMENT_ID));
+                () -> registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID));
     }
 
     @Test
     void resolve_whenIOExceptionOnStreamClose_isNotCached_retriesNextCall() {
-        when(agentConfigRegistry.resolve(PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.of(config()));
+        when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.of(config()));
         ByteArrayInputStream throwingStream = new ByteArrayInputStream(
                 BPMN.getBytes(StandardCharsets.UTF_8)) {
             private boolean firstCloseDone = false;
-
             @Override
             public void close() throws IOException {
                 if (!firstCloseDone) {
@@ -182,31 +176,31 @@ class AgentContextSpecRegistryTest {
         when(repositoryService.getProcessModel(PROC_DEF_ID)).thenReturn(throwingStream);
         when(builder.build(any(Element.class), eq(PROC_DEF_ID))).thenReturn(SENTINEL);
 
-        assertTrue(registry.resolve(PROC_DEF_ID, ELEMENT_ID).isEmpty());
+        assertTrue(registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID).isEmpty());
 
         when(repositoryService.getProcessModel(PROC_DEF_ID)).thenReturn(bpmnStream());
-        assertTrue(registry.resolve(PROC_DEF_ID, ELEMENT_ID).isPresent());
+        assertTrue(registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID).isPresent());
 
         verify(repositoryService, times(2)).getProcessModel(PROC_DEF_ID);
     }
 
     @Test
     void resolve_whenNoAgentConfig_isCached_doesNotRescanOnSecondCall() {
-        when(agentConfigRegistry.resolve(PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.empty());
+        when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.empty());
 
-        registry.resolve(PROC_DEF_ID, ELEMENT_ID);
-        registry.resolve(PROC_DEF_ID, ELEMENT_ID);
+        registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID);
+        registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID);
 
-        verify(agentConfigRegistry, times(1)).resolve(PROC_DEF_ID, ELEMENT_ID);
+        verify(agentConfigRegistry, times(1)).resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID);
     }
 
     @Test
     void resolve_whenGetProcessModelReturnsNull_isCached_doesNotRescanOnSecondCall() {
-        when(agentConfigRegistry.resolve(PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.of(config()));
+        when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.of(config()));
         when(repositoryService.getProcessModel(PROC_DEF_ID)).thenReturn(null);
 
-        registry.resolve(PROC_DEF_ID, ELEMENT_ID);
-        registry.resolve(PROC_DEF_ID, ELEMENT_ID);
+        registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID);
+        registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID);
 
         verify(repositoryService, times(1)).getProcessModel(PROC_DEF_ID);
     }
@@ -215,28 +209,28 @@ class AgentContextSpecRegistryTest {
     void resolve_whenToolScopeElementNotFound_isCached_doesNotRescanOnSecondCall() {
         AgentConfig configWithMissingScope = new AgentConfig(PROC_DEF_ID, ELEMENT_ID,
                 "anthropic", "claude-sonnet-4-6", "prompt", "nonExistentScope");
-        when(agentConfigRegistry.resolve(PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.of(configWithMissingScope));
+        when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.of(configWithMissingScope));
         when(repositoryService.getProcessModel(PROC_DEF_ID)).thenReturn(bpmnStream());
 
-        registry.resolve(PROC_DEF_ID, ELEMENT_ID);
-        registry.resolve(PROC_DEF_ID, ELEMENT_ID);
+        registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID);
+        registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID);
 
         verify(repositoryService, times(1)).getProcessModel(PROC_DEF_ID);
     }
 
     @Test
     void resolve_whenNotFoundException_returnsEmpty() {
-        when(agentConfigRegistry.resolve(PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.of(config()));
+        when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.of(config()));
         when(repositoryService.getProcessModel(PROC_DEF_ID)).thenThrow(new NotFoundException("not found"));
 
-        assertTrue(registry.resolve(PROC_DEF_ID, ELEMENT_ID).isEmpty());
+        assertTrue(registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID).isEmpty());
     }
 
     @Test
     void resolve_whenAuthorizationException_returnsEmpty() {
-        when(agentConfigRegistry.resolve(PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.of(config()));
+        when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID)).thenReturn(Optional.of(config()));
         when(repositoryService.getProcessModel(PROC_DEF_ID)).thenThrow(new AuthorizationException("denied"));
 
-        assertTrue(registry.resolve(PROC_DEF_ID, ELEMENT_ID).isEmpty());
+        assertTrue(registry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID).isEmpty());
     }
 }

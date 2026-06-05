@@ -12,7 +12,6 @@ import org.finos.fluxnova.bpm.engine.impl.util.xml.Parse;
 import org.finos.fluxnova.bpm.engine.shared.xml.BpmnXmlParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.ObjectProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,14 +35,11 @@ public class AgentContextSpecRegistry {
 
     private final ConcurrentHashMap<String, HashMap<String, AgentContextSpec>> cache = new ConcurrentHashMap<>();
 
-    private final ObjectProvider<RepositoryService> repositoryService;
     private final AgentConfigRegistry agentConfigRegistry;
     private final AgentContextSpecBuilder builder;
 
-    public AgentContextSpecRegistry(ObjectProvider<RepositoryService> repositoryService,
-                                    AgentConfigRegistry agentConfigRegistry,
+    public AgentContextSpecRegistry(AgentConfigRegistry agentConfigRegistry,
                                     AgentContextSpecBuilder builder) {
-        this.repositoryService = repositoryService;
         this.agentConfigRegistry = agentConfigRegistry;
         this.builder = builder;
     }
@@ -57,16 +53,17 @@ public class AgentContextSpecRegistry {
      * the element, an empty optional is returned. Transient failures (e.g. IO errors
      * reading the process model) are not cached, so a subsequent call may succeed.
      *
+     * @param repositoryService   the service to resolve the configuration against
      * @param processDefinitionId the process definition to look up
      * @param elementId           the BPMN element whose context specification is requested
      * @return the context specification if one is declared for the element, otherwise empty
      */
-    public Optional<AgentContextSpec> resolve(String processDefinitionId, String elementId) {
+    public Optional<AgentContextSpec> resolve(RepositoryService repositoryService, String processDefinitionId, String elementId) {
         HashMap<String, AgentContextSpec> resultMap = cache.compute(processDefinitionId, (key, value) -> {
             HashMap<String, AgentContextSpec> currentMap = value != null ? value : new HashMap<>();
             if (!currentMap.containsKey(elementId)) {
                 try {
-                    AgentContextSpec result = doScan(processDefinitionId, elementId);
+                    AgentContextSpec result = doScan(repositoryService, processDefinitionId, elementId);
                     currentMap.put(elementId, result);
                 } catch (TransientException e) {
                     // transient failure — don't cache, retry next time
@@ -87,13 +84,13 @@ public class AgentContextSpecRegistry {
         cache.clear();
     }
 
-    private AgentContextSpec doScan(String processDefinitionId, String elementId) throws TransientException {
-        Optional<AgentConfig> config = agentConfigRegistry.resolve(processDefinitionId, elementId);
+    private AgentContextSpec doScan(RepositoryService repositoryService, String processDefinitionId, String elementId) throws TransientException {
+        Optional<AgentConfig> config = agentConfigRegistry.resolve(repositoryService, processDefinitionId, elementId);
         if (config.isEmpty()) {
             return null;
         }
 
-        try (InputStream xml = repositoryService.getObject().getProcessModel(processDefinitionId)) {
+        try (InputStream xml = repositoryService.getProcessModel(processDefinitionId)) {
             if (xml == null) {
                 LOG.warn("Process model not found for '{}'", processDefinitionId);
                 return null;

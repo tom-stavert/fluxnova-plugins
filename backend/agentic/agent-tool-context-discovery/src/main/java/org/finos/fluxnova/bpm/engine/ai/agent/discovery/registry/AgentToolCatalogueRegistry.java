@@ -12,7 +12,6 @@ import org.finos.fluxnova.bpm.engine.impl.pvm.process.ActivityImpl;
 import org.finos.fluxnova.bpm.engine.repository.ProcessDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.ObjectProvider;
 
 import java.util.HashMap;
 import java.util.Optional;
@@ -47,14 +46,11 @@ public class AgentToolCatalogueRegistry {
      */
     private final ConcurrentHashMap<String, HashMap<String, String>> resolvedAgents = new ConcurrentHashMap<>();
 
-    private final ObjectProvider<RepositoryService> repositoryService;
     private final AgentConfigRegistry agentConfigRegistry;
     private final AgentToolCatalogueBuilder catalogueBuilder;
 
-    public AgentToolCatalogueRegistry(ObjectProvider<RepositoryService> repositoryService,
-                                      AgentConfigRegistry agentConfigRegistry,
+    public AgentToolCatalogueRegistry(AgentConfigRegistry agentConfigRegistry,
                                       AgentToolCatalogueBuilder catalogueBuilder) {
-        this.repositoryService = repositoryService;
         this.agentConfigRegistry = agentConfigRegistry;
         this.catalogueBuilder = catalogueBuilder;
     }
@@ -69,18 +65,21 @@ public class AgentToolCatalogueRegistry {
      * for the element, if the scope activity cannot be found, or if the process definition
      * is not accessible.
      *
+     * @param repositoryService   the repository service used to fetch the process
+     *                            definition and BPMN model on a cache miss; supplied per
+     *                            call so the registry holds no reference to the engine
      * @param processDefinitionId the process definition to look up
      * @param agentElementId      the BPMN element id of the agent whose tool catalogue
      *                            is requested
      * @return the tool catalogue for the resolved scope, or empty if it could not be
      * determined
      */
-    public Optional<AgentToolCatalogue> resolve(String processDefinitionId, String agentElementId) {
+    public Optional<AgentToolCatalogue> resolve(RepositoryService repositoryService, String processDefinitionId, String agentElementId) {
         // Check if this agent has already been resolved
         String toolScopeElementId = resolvedAgents.compute(processDefinitionId, (key, value) -> {
             HashMap<String, String> map = value != null ? value : new HashMap<>();
             if (!map.containsKey(agentElementId)) {
-                Optional<AgentConfig> config = agentConfigRegistry.resolve(processDefinitionId, agentElementId);
+                Optional<AgentConfig> config = agentConfigRegistry.resolve(repositoryService, processDefinitionId, agentElementId);
                 map.put(agentElementId, config.map(AgentConfig::toolScopeElementId).orElse(null));
             }
             return map;
@@ -94,7 +93,7 @@ public class AgentToolCatalogueRegistry {
         HashMap<String, AgentToolCatalogue> resultMap = scopeCache.compute(processDefinitionId, (key, value) -> {
             HashMap<String, AgentToolCatalogue> currentMap = value != null ? value : new HashMap<>();
             if (!currentMap.containsKey(toolScopeElementId)) {
-                AgentToolCatalogue result = doScan(processDefinitionId, toolScopeElementId);
+                AgentToolCatalogue result = doScan(repositoryService, processDefinitionId, toolScopeElementId);
                 currentMap.put(toolScopeElementId, result);
             }
             return currentMap;
@@ -114,10 +113,10 @@ public class AgentToolCatalogueRegistry {
         resolvedAgents.clear();
     }
 
-    private AgentToolCatalogue doScan(String processDefinitionId, String toolScopeElementId) {
+    private AgentToolCatalogue doScan(RepositoryService repositoryService, String processDefinitionId, String toolScopeElementId) {
         try {
             ProcessDefinition processDefinition =
-                    repositoryService.getObject().getProcessDefinition(processDefinitionId);
+                    repositoryService.getProcessDefinition(processDefinitionId);
 
             if (!(processDefinition instanceof ProcessDefinitionEntity)) {
                 LOG.warn("Process definition '{}' is not an instance of ProcessDefinitionEntity, cannot scan for tools",

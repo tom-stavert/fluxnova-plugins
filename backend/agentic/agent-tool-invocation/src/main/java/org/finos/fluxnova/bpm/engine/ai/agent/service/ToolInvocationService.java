@@ -1,5 +1,6 @@
 package org.finos.fluxnova.bpm.engine.ai.agent.service;
 
+import org.finos.fluxnova.bpm.engine.RuntimeService;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.AgentToolCatalogue;
 import org.finos.fluxnova.bpm.engine.shared.model.ToolCallRequest;
 import org.finos.fluxnova.bpm.engine.shared.model.ToolInvocationResult;
@@ -22,6 +23,7 @@ public interface ToolInvocationService {
      * Attempts to invoke the tool identified by {@code request.toolId()} within the given
      * ad-hoc subprocess scope.
      *
+     * @param runtimeService    the runtime service to execute the tool against
      * @param adHocSubprocessId the execution id of the ad-hoc subprocess scope that owns
      *                          the tool activities
      * @param catalogue         the tool catalogue for the scope; used to validate that the
@@ -32,5 +34,5 @@ public interface ToolInvocationService {
      * @return a successful result if the activity was started, or a failure result if the
      *         tool id was not found in the catalogue or the engine rejected the invocation
      */
-    ToolInvocationResult invoke(String adHocSubprocessId, AgentToolCatalogue catalogue, ToolCallRequest request);
+    ToolInvocationResult invoke(RuntimeService runtimeService, String adHocSubprocessId, AgentToolCatalogue catalogue, ToolCallRequest request);
 }

@@ -1,5 +1,8 @@
 package org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.job;
 
+import org.finos.fluxnova.bpm.engine.ProcessEngineServices;
+import org.finos.fluxnova.bpm.engine.RepositoryService;
+import org.finos.fluxnova.bpm.engine.RuntimeService;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.AgentContextSpec;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.AgentToolCatalogue;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.AgentToolEntry;
@@ -47,6 +50,10 @@ class AgentOrchestrationJobHandlerTest {
         private static final String ELEMENT_ID = "agentSubprocess";
 
         @Mock
+        private RepositoryService repositoryService;
+        @Mock
+        private RuntimeService runtimeService;
+        @Mock
         private AgentConfigRegistry agentConfigRegistry;
         @Mock
         private AgentToolCatalogueRegistry toolCatalogueRegistry;
@@ -90,6 +97,13 @@ class AgentOrchestrationJobHandlerTest {
                 contextSpec = new AgentContextSpec(PROC_DEF_ID, ELEMENT_ID, List.of());
         }
 
+        private void stubActiveServices() {
+                ProcessEngineServices services = mock(ProcessEngineServices.class);
+                when(services.getRepositoryService()).thenReturn(repositoryService);
+                when(services.getRuntimeService()).thenReturn(runtimeService);
+                when(execution.getProcessEngineServices()).thenReturn(services);
+        }
+
         private void stubActiveExecution() {
                 when(execution.isActive()).thenReturn(true);
                 when(execution.getId()).thenReturn(SCOPE_EXECUTION_ID);
@@ -98,18 +112,18 @@ class AgentOrchestrationJobHandlerTest {
         }
 
         private void stubRegistries() {
-                when(agentConfigRegistry.resolve(PROC_DEF_ID, ELEMENT_ID))
+                when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID))
                                 .thenReturn(Optional.of(agentConfig));
-                when(toolCatalogueRegistry.resolve(PROC_DEF_ID, ELEMENT_ID))
+                when(toolCatalogueRegistry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID))
                                 .thenReturn(Optional.of(toolCatalogue));
-                when(contextSpecRegistry.resolve(PROC_DEF_ID, ELEMENT_ID))
+                when(contextSpecRegistry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID))
                                 .thenReturn(Optional.of(contextSpec));
         }
 
         private void stubEmptyState() {
-                when(stateManager.loadToolResultBuffer(SCOPE_EXECUTION_ID))
+                when(stateManager.loadToolResultBuffer(runtimeService, SCOPE_EXECUTION_ID))
                                 .thenReturn(new ArrayList<>());
-                when(stateManager.loadHistory(SCOPE_EXECUTION_ID)).thenReturn(new ArrayList<>());
+                when(stateManager.loadHistory(runtimeService, SCOPE_EXECUTION_ID)).thenReturn(new ArrayList<>());
         }
 
         @Test
@@ -122,6 +136,7 @@ class AgentOrchestrationJobHandlerTest {
 
                 @Test
                 void execute_whenScopeInactive_exitsImmediately() {
+                        stubActiveServices();
                         when(execution.isActive()).thenReturn(false);
 
                         handler.execute(AgentOrchestrationConfig.forEntry(), execution,
@@ -138,6 +153,7 @@ class AgentOrchestrationJobHandlerTest {
                 @BeforeEach
                 void setUpActiveExecution() {
                         stubActiveExecution();
+                        stubActiveServices();
                 }
 
                 @Test
@@ -146,7 +162,7 @@ class AgentOrchestrationJobHandlerTest {
                         stubEmptyState();
                         ResolvedContext resolvedContext =
                                         new ResolvedContext(Map.of("customerId", "C123"));
-                        when(contextResolver.resolve(SCOPE_EXECUTION_ID, contextSpec))
+                        when(contextResolver.resolve(runtimeService, SCOPE_EXECUTION_ID, contextSpec))
                                         .thenReturn(resolvedContext);
 
                         List<ToolCallRequest> toolCalls =
@@ -157,7 +173,7 @@ class AgentOrchestrationJobHandlerTest {
                                         updatedHistory);
                         when(llmService.call(eq(agentConfig), eq(toolCatalogue),
                                         eq(resolvedContext), anyList())).thenReturn(response);
-                        when(toolInvocationService.invoke(eq(SCOPE_EXECUTION_ID), eq(toolCatalogue),
+                        when(toolInvocationService.invoke(eq(runtimeService), eq(SCOPE_EXECUTION_ID), eq(toolCatalogue),
                                         any())).thenReturn(ToolInvocationResult.success("tc1"));
 
                         handler.execute(AgentOrchestrationConfig.forEntry(), execution,
@@ -165,10 +181,10 @@ class AgentOrchestrationJobHandlerTest {
 
                         verify(llmService).call(eq(agentConfig), eq(toolCatalogue),
                                         eq(resolvedContext), anyList());
-                        verify(toolInvocationService).invoke(SCOPE_EXECUTION_ID, toolCatalogue,
+                        verify(toolInvocationService).invoke(runtimeService, SCOPE_EXECUTION_ID, toolCatalogue,
                                         toolCalls.get(0));
-                        verify(stateManager).saveHistory(SCOPE_EXECUTION_ID, updatedHistory);
-                        verify(stateManager).savePendingToolCalls(eq(SCOPE_EXECUTION_ID),
+                        verify(stateManager).saveHistory(runtimeService, SCOPE_EXECUTION_ID, updatedHistory);
+                        verify(stateManager).savePendingToolCalls(eq(runtimeService), eq(SCOPE_EXECUTION_ID),
                                         eq(Set.of("tc1")));
                 }
 
@@ -177,7 +193,7 @@ class AgentOrchestrationJobHandlerTest {
                         stubRegistries();
                         stubEmptyState();
                         ResolvedContext resolvedContext = new ResolvedContext(Map.of());
-                        when(contextResolver.resolve(SCOPE_EXECUTION_ID, contextSpec))
+                        when(contextResolver.resolve(runtimeService, SCOPE_EXECUTION_ID, contextSpec))
                                         .thenReturn(resolvedContext);
 
                         List<ConversationEntry> updatedHistory = List
@@ -190,7 +206,7 @@ class AgentOrchestrationJobHandlerTest {
                         handler.execute(AgentOrchestrationConfig.forEntry(), execution,
                                         commandContext, null);
 
-                        verify(terminationHandler).complete(SCOPE_EXECUTION_ID);
+                        verify(terminationHandler).complete(runtimeService, SCOPE_EXECUTION_ID);
                         verifyNoInteractions(toolInvocationService);
                 }
 
@@ -198,31 +214,31 @@ class AgentOrchestrationJobHandlerTest {
                 void execute_whenToolCatalogueEmpty_completesScope() {
                         AgentToolCatalogue emptyCatalogue =
                                         new AgentToolCatalogue(PROC_DEF_ID, ELEMENT_ID, List.of());
-                        when(agentConfigRegistry.resolve(PROC_DEF_ID, ELEMENT_ID))
+                        when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID))
                                         .thenReturn(Optional.of(agentConfig));
-                        when(toolCatalogueRegistry.resolve(PROC_DEF_ID, ELEMENT_ID))
+                        when(toolCatalogueRegistry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID))
                                         .thenReturn(Optional.of(emptyCatalogue));
                         stubEmptyState();
 
                         handler.execute(AgentOrchestrationConfig.forEntry(), execution,
                                         commandContext, null);
 
-                        verify(terminationHandler).complete(SCOPE_EXECUTION_ID);
+                        verify(terminationHandler).complete(runtimeService, SCOPE_EXECUTION_ID);
                         verifyNoInteractions(llmService);
                 }
 
                 @Test
                 void execute_whenNoContextSpec_usesEmptyFallback() {
-                        when(agentConfigRegistry.resolve(PROC_DEF_ID, ELEMENT_ID))
+                        when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID))
                                         .thenReturn(Optional.of(agentConfig));
-                        when(toolCatalogueRegistry.resolve(PROC_DEF_ID, ELEMENT_ID))
+                        when(toolCatalogueRegistry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID))
                                         .thenReturn(Optional.of(toolCatalogue));
-                        when(contextSpecRegistry.resolve(PROC_DEF_ID, ELEMENT_ID))
+                        when(contextSpecRegistry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID))
                                         .thenReturn(Optional.empty());
                         stubEmptyState();
 
                         ResolvedContext resolvedContext = new ResolvedContext(Map.of());
-                        when(contextResolver.resolve(eq(SCOPE_EXECUTION_ID),
+                        when(contextResolver.resolve(eq(runtimeService), eq(SCOPE_EXECUTION_ID),
                                         any(AgentContextSpec.class))).thenReturn(resolvedContext);
 
                         LlmResponse response = new LlmResponse("Done", List.of(),
@@ -233,14 +249,14 @@ class AgentOrchestrationJobHandlerTest {
                         handler.execute(AgentOrchestrationConfig.forEntry(), execution,
                                         commandContext, null);
 
-                        verify(contextResolver).resolve(eq(SCOPE_EXECUTION_ID),
+                        verify(contextResolver).resolve(eq(runtimeService), eq(SCOPE_EXECUTION_ID),
                                         any(AgentContextSpec.class));
-                        verify(terminationHandler).complete(SCOPE_EXECUTION_ID);
+                        verify(terminationHandler).complete(runtimeService, SCOPE_EXECUTION_ID);
                 }
 
                 @Test
                 void execute_whenAgentConfigMissing_throwsIllegalState() {
-                        when(agentConfigRegistry.resolve(PROC_DEF_ID, ELEMENT_ID))
+                        when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID))
                                         .thenReturn(Optional.empty());
                         stubEmptyState();
 
@@ -251,9 +267,9 @@ class AgentOrchestrationJobHandlerTest {
 
                 @Test
                 void execute_whenToolCatalogueMissing_throwsIllegalState() {
-                        when(agentConfigRegistry.resolve(PROC_DEF_ID, ELEMENT_ID))
+                        when(agentConfigRegistry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID))
                                         .thenReturn(Optional.of(agentConfig));
-                        when(toolCatalogueRegistry.resolve(PROC_DEF_ID, ELEMENT_ID))
+                        when(toolCatalogueRegistry.resolve(repositoryService, PROC_DEF_ID, ELEMENT_ID))
                                         .thenReturn(Optional.empty());
                         stubEmptyState();
 
@@ -270,21 +286,22 @@ class AgentOrchestrationJobHandlerTest {
                 void setUpActiveExecution() {
                         when(execution.isActive()).thenReturn(true);
                         when(execution.getId()).thenReturn(SCOPE_EXECUTION_ID);
+                        stubActiveServices();
                 }
 
                 @Test
                 void execute_absorbsResultAndWaitsForMore() {
                         ToolResult toolResult = new ToolResult("tc1", "taskA", null);
-                        when(stateManager.isPendingToolCall(SCOPE_EXECUTION_ID, "tc1"))
+                        when(stateManager.isPendingToolCall(runtimeService, SCOPE_EXECUTION_ID, "tc1"))
                                         .thenReturn(true);
-                        when(stateManager.completeToolCall(SCOPE_EXECUTION_ID, "tc1"))
+                        when(stateManager.completeToolCall(runtimeService, SCOPE_EXECUTION_ID, "tc1"))
                                         .thenReturn(false);
 
                         handler.execute(AgentOrchestrationConfig.forToolCompletion(toolResult),
                                         execution, commandContext, null);
 
-                        verify(stateManager).appendToResultBuffer(SCOPE_EXECUTION_ID, toolResult);
-                        verify(stateManager).completeToolCall(SCOPE_EXECUTION_ID, "tc1");
+                        verify(stateManager).appendToResultBuffer(runtimeService, SCOPE_EXECUTION_ID, toolResult);
+                        verify(stateManager).completeToolCall(runtimeService, SCOPE_EXECUTION_ID, "tc1");
                         verifyNoInteractions(llmService);
                 }
 
@@ -294,23 +311,23 @@ class AgentOrchestrationJobHandlerTest {
                         when(execution.getActivityId()).thenReturn(ELEMENT_ID);
                         stubRegistries();
                         ToolResult toolResult = new ToolResult("tc1", "taskA", null);
-                        when(stateManager.isPendingToolCall(SCOPE_EXECUTION_ID, "tc1"))
+                        when(stateManager.isPendingToolCall(runtimeService, SCOPE_EXECUTION_ID, "tc1"))
                                         .thenReturn(true);
-                        when(stateManager.completeToolCall(SCOPE_EXECUTION_ID, "tc1"))
+                        when(stateManager.completeToolCall(runtimeService, SCOPE_EXECUTION_ID, "tc1"))
                                         .thenReturn(true);
 
                         ResolvedContext resolvedContext =
                                         new ResolvedContext(Map.of("resultA", "value"));
-                        when(contextResolver.resolve(SCOPE_EXECUTION_ID, contextSpec))
+                        when(contextResolver.resolve(runtimeService, SCOPE_EXECUTION_ID, contextSpec))
                                         .thenReturn(resolvedContext);
 
-                        when(stateManager.loadToolResultBuffer(SCOPE_EXECUTION_ID))
+                        when(stateManager.loadToolResultBuffer(runtimeService, SCOPE_EXECUTION_ID))
                                         .thenReturn(new ArrayList<>(List.of(toolResult)));
 
                         List<ConversationEntry> existingHistory = new ArrayList<>(
                                         List.of(ConversationEntry.assistant("Checking", List
                                                         .of(new ToolCallRequest("tc1", "taskA")))));
-                        when(stateManager.loadHistory(SCOPE_EXECUTION_ID))
+                        when(stateManager.loadHistory(runtimeService, SCOPE_EXECUTION_ID))
                                         .thenReturn(existingHistory);
 
                         LlmResponse response = new LlmResponse("Done!", List.of(),
@@ -321,22 +338,22 @@ class AgentOrchestrationJobHandlerTest {
                         handler.execute(AgentOrchestrationConfig.forToolCompletion(toolResult),
                                         execution, commandContext, null);
 
-                        verify(stateManager).appendToResultBuffer(SCOPE_EXECUTION_ID, toolResult);
+                        verify(stateManager).appendToResultBuffer(runtimeService, SCOPE_EXECUTION_ID, toolResult);
                         verify(llmService).call(eq(agentConfig), eq(toolCatalogue),
                                         eq(resolvedContext), anyList());
-                        verify(terminationHandler).complete(SCOPE_EXECUTION_ID);
+                        verify(terminationHandler).complete(runtimeService, SCOPE_EXECUTION_ID);
                 }
 
                 @Test
                 void execute_duplicateToolCallId_discarded() {
                         ToolResult toolResult = new ToolResult("tc-unknown", "taskA", null);
-                        when(stateManager.isPendingToolCall(SCOPE_EXECUTION_ID, "tc-unknown"))
+                        when(stateManager.isPendingToolCall(runtimeService, SCOPE_EXECUTION_ID, "tc-unknown"))
                                         .thenReturn(false);
 
                         handler.execute(AgentOrchestrationConfig.forToolCompletion(toolResult),
                                         execution, commandContext, null);
 
-                        verify(stateManager, never()).appendToResultBuffer(any(), any());
+                        verify(stateManager, never()).appendToResultBuffer(any(), any(), any());
                         verifyNoInteractions(llmService);
                 }
         }
@@ -347,6 +364,7 @@ class AgentOrchestrationJobHandlerTest {
                 @BeforeEach
                 void setUpActiveExecution() {
                         stubActiveExecution();
+                        stubActiveServices();
                 }
 
                 @Test
@@ -354,7 +372,7 @@ class AgentOrchestrationJobHandlerTest {
                         stubRegistries();
                         stubEmptyState();
                         ResolvedContext resolvedContext = new ResolvedContext(Map.of());
-                        when(contextResolver.resolve(SCOPE_EXECUTION_ID, contextSpec))
+                        when(contextResolver.resolve(runtimeService, SCOPE_EXECUTION_ID, contextSpec))
                                         .thenReturn(resolvedContext);
 
                         List<ToolCallRequest> toolCalls =
@@ -365,7 +383,7 @@ class AgentOrchestrationJobHandlerTest {
                         when(llmService.call(eq(agentConfig), eq(toolCatalogue),
                                         eq(resolvedContext), anyList())).thenReturn(response);
                         when(toolInvocationService
-                                        .invoke(eq(SCOPE_EXECUTION_ID), eq(toolCatalogue), any()))
+                                        .invoke(eq(runtimeService), eq(SCOPE_EXECUTION_ID), eq(toolCatalogue), any()))
                                                         .thenReturn(ToolInvocationResult
                                                                         .failure("tc1", "Failed"))
                                                         .thenReturn(ToolInvocationResult.failure(
@@ -375,11 +393,11 @@ class AgentOrchestrationJobHandlerTest {
                         handler.execute(AgentOrchestrationConfig.forEntry(), execution,
                                         commandContext, null);
 
-                        verify(stateManager).savePendingToolCalls(eq(SCOPE_EXECUTION_ID),
+                        verify(stateManager).savePendingToolCalls(eq(runtimeService), eq(SCOPE_EXECUTION_ID),
                                         eq(Set.of("tc1", "tc2")));
                         verify(jobManager, times(2))
                                         .insertAndHintJobExecutor(any(MessageEntity.class));
-                        verify(stateManager, never()).appendAllToResultBuffer(any(), any());
+                        verify(stateManager, never()).appendAllToResultBuffer(any(), any(), any());
                 }
         }
 

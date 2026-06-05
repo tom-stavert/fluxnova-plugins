@@ -1,17 +1,13 @@
 package org.finos.fluxnova.bpm.engine.ai.agent.autoconfigure;
 
-import org.finos.fluxnova.bpm.engine.RepositoryService;
 import org.finos.fluxnova.bpm.engine.ai.agent.extract.AgentConfigExtractor;
 import org.finos.fluxnova.bpm.engine.ai.agent.lifecycle.AgentConfigUndeployListener;
 import org.finos.fluxnova.bpm.engine.ai.agent.registry.AgentConfigRegistry;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 
 @AutoConfiguration
-@ConditionalOnBean(RepositoryService.class)
 public class AgentConfigAutoConfiguration {
 
     @Bean
@@ -22,9 +18,8 @@ public class AgentConfigAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public AgentConfigRegistry agentConfigRegistry(ObjectProvider<RepositoryService> repositoryService,
-                                                   AgentConfigExtractor extractor) {
-        return new AgentConfigRegistry(repositoryService, extractor);
+    public AgentConfigRegistry agentConfigRegistry(AgentConfigExtractor extractor) {
+        return new AgentConfigRegistry(extractor);
     }
 
     @Bean

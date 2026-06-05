@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.ObjectProvider;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -29,15 +28,11 @@ class AgentContextResolverTest {
     @Mock
     private RuntimeService runtimeService;
 
-    @Mock
-    private ObjectProvider<RuntimeService> runtimeServiceProvider;
-
     private AgentContextResolver resolver;
 
     @BeforeEach
     void setUp() {
-        when(runtimeServiceProvider.getObject()).thenReturn(runtimeService);
-        resolver = new AgentContextResolver(runtimeServiceProvider);
+        resolver = new AgentContextResolver();
     }
 
     private Map<String, Object> allVariables() {
@@ -56,7 +51,7 @@ class AgentContextResolverTest {
             when(runtimeService.getVariables(EXECUTION_ID)).thenReturn(allVariables());
             AgentContextSpec spec = new AgentContextSpec(PROC_DEF_ID, "agent1", List.of());
 
-            ResolvedContext result = resolver.resolve(EXECUTION_ID, spec);
+            ResolvedContext result = resolver.resolve(runtimeService, EXECUTION_ID, spec);
 
             assertTrue(result.variables().isEmpty());
         }
@@ -73,7 +68,7 @@ class AgentContextResolverTest {
                     new ContextVariableDeclaration("applicationAmount")
             ));
 
-            ResolvedContext result = resolver.resolve(EXECUTION_ID, spec);
+            ResolvedContext result = resolver.resolve(runtimeService, EXECUTION_ID, spec);
 
             assertEquals(2, result.variables().size());
             assertEquals("C-001", result.variables().get("customerId"));
@@ -88,7 +83,7 @@ class AgentContextResolverTest {
                     new ContextVariableDeclaration("nonExistentVar")
             ));
 
-            ResolvedContext result = resolver.resolve(EXECUTION_ID, spec);
+            ResolvedContext result = resolver.resolve(runtimeService, EXECUTION_ID, spec);
 
             assertEquals(1, result.variables().size());
             assertTrue(result.variables().containsKey("customerId"));
@@ -111,7 +106,7 @@ class AgentContextResolverTest {
                     new ContextVariableDeclaration("data")
             ));
 
-            ResolvedContext result = resolver.resolve(EXECUTION_ID, spec);
+            ResolvedContext result = resolver.resolve(runtimeService, EXECUTION_ID, spec);
 
             assertEquals(42, result.variables().get("count"));
             assertEquals(true, result.variables().get("active"));

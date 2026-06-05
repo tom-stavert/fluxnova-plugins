@@ -4,7 +4,6 @@ import org.finos.fluxnova.bpm.engine.RuntimeService;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.AgentContextSpec;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.ContextVariableDeclaration;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.ResolvedContext;
-import org.springframework.beans.factory.ObjectProvider;
 
 import java.util.Map;
 import java.util.Set;
@@ -29,30 +28,31 @@ import static java.util.stream.Collectors.toSet;
  */
 public class AgentContextResolver {
 
-    private final ObjectProvider<RuntimeService> runtimeService;
-
-    public AgentContextResolver(ObjectProvider<RuntimeService> runtimeService) {
-        this.runtimeService = runtimeService;
-    }
+    private static final String AGENT_VAR_PREFIX = "_agent";
 
     /**
-     * Resolves the context variables for the given execution.
+     * Resolves the process variables visible to an agent scope into a {@link ResolvedContext}.
      *
-     * @param executionId the id of the scope execution whose variables should be read
-     * @param spec        the context specification declaring which variable names to
-     *                    include; must not be {@code null}
-     * @return a {@link ResolvedContext} containing only the variables whose names appear
-     *         in {@code spec.declaredVariables()}; never {@code null}
+     * <p>Reads the variables of the given execution and returns only those explicitly named
+     * in the spec's {@code declaredVariables}. Variables whose names begin with the internal
+     * {@code _agent} prefix are always excluded, and an empty declaration list yields an empty
+     * context (nothing is exposed unless explicitly declared).
+     *
+     * @param runtimeService the runtime service used to read the execution's variables
+     * @param executionId    the execution (agent scope) whose variables are read
+     * @param spec           the context specification declaring which variables to expose
+     * @return a resolved context containing only the declared, non-internal variables
      */
-    public ResolvedContext resolve(String executionId, AgentContextSpec spec) {
-        Map<String, Object> processVariables = runtimeService.getObject().getVariables(executionId);
+    public ResolvedContext resolve(RuntimeService runtimeService, String executionId, AgentContextSpec spec) {
+        Map<String, Object> processVariables = runtimeService.getVariables(executionId);
 
         Set<String> declared = spec.declaredVariables().stream()
                 .map(ContextVariableDeclaration::name)
                 .collect(toSet());
 
         Map<String, Object> filtered = processVariables.entrySet().stream()
-                .filter(e -> declared.contains(e.getKey()))
+                .filter(e -> !e.getKey().startsWith(AGENT_VAR_PREFIX)
+                        && declared.contains(e.getKey()))
                 .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         return new ResolvedContext(filtered);

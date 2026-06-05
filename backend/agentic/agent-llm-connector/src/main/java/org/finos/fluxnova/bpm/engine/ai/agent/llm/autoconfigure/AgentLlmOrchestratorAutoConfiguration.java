@@ -7,6 +7,8 @@ import org.finos.fluxnova.bpm.engine.ai.agent.llm.provider.AgentProviderRegistry
 import org.finos.fluxnova.bpm.engine.ai.agent.llm.service.LlmService;
 import org.finos.fluxnova.bpm.engine.ai.agent.llm.service.SpringAiLlmService;
 import org.finos.fluxnova.bpm.engine.ai.agent.llm.tool.AgentToolSchemaConverter;
+import org.finos.fluxnova.bpm.engine.spring.SpringProcessEngineServicesConfiguration;
+import org.finos.fluxnova.bpm.spring.boot.starter.FluxnovaBpmAutoConfiguration;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -15,7 +17,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
-@AutoConfiguration
+@AutoConfiguration(after = { SpringProcessEngineServicesConfiguration.class, FluxnovaBpmAutoConfiguration.class })
 @ConditionalOnClass(ChatModel.class)
 @EnableConfigurationProperties(AgentProviderProperties.class)
 public class AgentLlmOrchestratorAutoConfiguration {

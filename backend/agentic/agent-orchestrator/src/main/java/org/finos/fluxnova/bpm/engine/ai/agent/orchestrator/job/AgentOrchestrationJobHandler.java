@@ -1,5 +1,7 @@
 package org.finos.fluxnova.bpm.engine.ai.agent.orchestrator.job;
 
+import org.finos.fluxnova.bpm.engine.RepositoryService;
+import org.finos.fluxnova.bpm.engine.RuntimeService;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.AgentContextSpec;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.AgentToolCatalogue;
 import org.finos.fluxnova.bpm.engine.ai.agent.discovery.model.ResolvedContext;
@@ -91,6 +93,8 @@ public class AgentOrchestrationJobHandler implements JobHandler<AgentOrchestrati
     public void execute(AgentOrchestrationConfig orchestratorConfig, ExecutionEntity execution,
             CommandContext commandContext, String tenantId) {
         String scopeExecutionId = execution.getId();
+        RuntimeService runtimeService = execution.getProcessEngineServices().getRuntimeService();
+        RepositoryService repositoryService = execution.getProcessEngineServices().getRepositoryService();
 
         if (!execution.isActive()) {
             LOG.debug("Scope execution '{}' is no longer active, skipping orchestration step",
@@ -101,7 +105,7 @@ public class AgentOrchestrationJobHandler implements JobHandler<AgentOrchestrati
         if (orchestratorConfig.hasToolResult()) {
             ToolResult result = orchestratorConfig.toolResult();
 
-            if (!stateManager.isPendingToolCall(scopeExecutionId, result.toolCallId())) {
+            if (!stateManager.isPendingToolCall(runtimeService, scopeExecutionId, result.toolCallId())) {
                 LOG.debug(
                         "ToolResult '{}' not in pending set, discarding (duplicate or late arrival)",
                         result.toolCallId());
@@ -109,8 +113,8 @@ public class AgentOrchestrationJobHandler implements JobHandler<AgentOrchestrati
             }
 
             boolean allCompleted =
-                    stateManager.completeToolCall(scopeExecutionId, result.toolCallId());
-            stateManager.appendToResultBuffer(scopeExecutionId, result);
+                    stateManager.completeToolCall(runtimeService, scopeExecutionId, result.toolCallId());
+            stateManager.appendToResultBuffer(runtimeService, scopeExecutionId, result);
 
             if (!allCompleted) {
                 return;
@@ -118,17 +122,17 @@ public class AgentOrchestrationJobHandler implements JobHandler<AgentOrchestrati
             // All pending tools done — fall through to next LLM call
         }
 
-        List<ToolResult> buffer = stateManager.loadToolResultBuffer(scopeExecutionId);
-        List<ConversationEntry> history = stateManager.loadHistory(scopeExecutionId);
+        List<ToolResult> buffer = stateManager.loadToolResultBuffer(runtimeService, scopeExecutionId);
+        List<ConversationEntry> history = stateManager.loadHistory(runtimeService, scopeExecutionId);
         history = appendToolResults(history, buffer);
-        stateManager.clearToolResultBuffer(scopeExecutionId);
+        stateManager.clearToolResultBuffer(runtimeService, scopeExecutionId);
 
         AgentConfig agentConfig = agentConfigRegistry
-                .resolve(execution.getProcessDefinitionId(), execution.getActivityId())
+                .resolve(repositoryService, execution.getProcessDefinitionId(), execution.getActivityId())
                 .orElseThrow(() -> new IllegalStateException("No AgentConfig found for "
                         + execution.getProcessDefinitionId() + "/" + execution.getActivityId()));
         AgentToolCatalogue catalogue = toolCatalogueRegistry
-                .resolve(execution.getProcessDefinitionId(), execution.getActivityId())
+                .resolve(repositoryService, execution.getProcessDefinitionId(), execution.getActivityId())
                 .orElseThrow(() -> new IllegalStateException("No AgentToolCatalogue found for "
                         + execution.getProcessDefinitionId() + "/" + execution.getActivityId()));
 
@@ -137,30 +141,30 @@ public class AgentOrchestrationJobHandler implements JobHandler<AgentOrchestrati
                     "Tool catalogue is empty for activity '{}' in process '{}', terminating execution '{}'",
                     execution.getActivityId(), execution.getProcessDefinitionId(),
                     scopeExecutionId);
-            AgentTerminationHandler.complete(scopeExecutionId);
+            AgentTerminationHandler.complete(runtimeService, scopeExecutionId);
             return;
         }
 
         // Fallback to empty spec if no context is declared — resolver will include all process
         // variables
         AgentContextSpec contextSpec = contextSpecRegistry
-                .resolve(execution.getProcessDefinitionId(), execution.getActivityId())
+                .resolve(repositoryService, execution.getProcessDefinitionId(), execution.getActivityId())
                 .orElse(new AgentContextSpec(execution.getProcessDefinitionId(),
                         execution.getActivityId(), List.of()));
-        ResolvedContext context = contextResolver.resolve(scopeExecutionId, contextSpec);
+        ResolvedContext context = contextResolver.resolve(runtimeService, scopeExecutionId, contextSpec);
 
 
         LlmResponse response =
                 llmService.call(agentConfig, catalogue, context, history);
-        stateManager.saveHistory(scopeExecutionId, response.updatedHistory());
+        stateManager.saveHistory(runtimeService, scopeExecutionId, response.updatedHistory());
 
         if (response.toolCalls().isEmpty()) {
             // Complete the process if tool call is empty
-            AgentTerminationHandler.complete(scopeExecutionId);
+            AgentTerminationHandler.complete(runtimeService, scopeExecutionId);
             return;
         }
 
-        dispatch(scopeExecutionId, catalogue, response.toolCalls(), execution, commandContext);
+        dispatch(runtimeService, scopeExecutionId, catalogue, response.toolCalls(), execution, commandContext);
     }
 
     @Override
@@ -173,7 +177,7 @@ public class AgentOrchestrationJobHandler implements JobHandler<AgentOrchestrati
         // No cleanup needed
     }
 
-    private void dispatch(String scopeExecutionId, AgentToolCatalogue catalogue,
+    private void dispatch(RuntimeService runtimeService, String scopeExecutionId, AgentToolCatalogue catalogue,
             List<ToolCallRequest> toolCalls, ExecutionEntity execution,
             CommandContext commandContext) {
         Set<String> pending = new HashSet<>();
@@ -181,7 +185,7 @@ public class AgentOrchestrationJobHandler implements JobHandler<AgentOrchestrati
         for (ToolCallRequest tc : toolCalls) {
             pending.add(tc.toolCallId());
             ToolInvocationResult result =
-                    toolInvocationService.invoke(scopeExecutionId, catalogue, tc);
+                    toolInvocationService.invoke(runtimeService, scopeExecutionId, catalogue, tc);
             if (!result.success()) {
                 // Synchronous failure — no BPMN activity will complete, so no listener will fire.
                 // Instantiate an equivalent completion job so the failure travels through the same
@@ -196,7 +200,7 @@ public class AgentOrchestrationJobHandler implements JobHandler<AgentOrchestrati
                 commandContext.getJobManager().insertAndHintJobExecutor(job);
             }
         }
-        stateManager.savePendingToolCalls(scopeExecutionId, pending);
+        stateManager.savePendingToolCalls(runtimeService, scopeExecutionId, pending);
     }
 
 
