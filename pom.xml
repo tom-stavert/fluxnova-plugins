@@ -4,14 +4,15 @@
 
     <groupId>org.finos.fluxnova.bpm</groupId>
     <artifactId>fluxnova-plugins</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Fluxnova Platform - engine plugins</name>
 
     <modules>
-        <module>backend/shared</module>
-        <module>backend/agentic</module>
+        <module>agentic</module>
+        <module>shared</module>
+        <module>agentic-subprocess</module>
     </modules>
     <properties>
         <fluxnova.version>3.0.0-SNAPSHOT</fluxnova.version>
